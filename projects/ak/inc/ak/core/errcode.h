@@ -6,14 +6,13 @@
   X(ak_ok)                                  \
   X(ak_err_invalid_args)                    \
   X(ak_err_invalid_type)                    \
-  X(ak_err_crash_in_crash)                  \
   X(ak_err_unreachable)                     \
   X(ak_err_not_impled)                      \
   X(ak_err_null_ptr)                        \
   X(ak_err_index_out_of_bounds)             \
   X(ak_err_double_free)                     \
-  X(ak_err_out_of_memory)                   \
-  X(ak_err_bad_format)
+  X(ak_err_bad_format)                      \
+  X(ak_err_allocation_failed)
 
 typedef enum
 {

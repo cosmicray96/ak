@@ -11,15 +11,21 @@ typedef struct
 } ak_alct;
 
 static void*
-ak_alct_alloc(ak_alct* a, uint32_t size)
+ak_alct_alloc(ak_alct a, uint32_t size)
 {
-  return a->alloc(a->ctx, size);
+  return a.alloc(a.ctx, size);
 }
 
 static void
-ak_alct_free(ak_alct* a, void* ptr)
+ak_alct_free(ak_alct a, void* ptr)
 {
-  a->free(a->ctx, ptr);
+  a.free(a.ctx, ptr);
+}
+
+static void
+ak_alct_invalidate(ak_alct* a)
+{
+  a->ctx = 0;
 }
 
 #endif

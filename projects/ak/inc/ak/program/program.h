@@ -3,17 +3,13 @@
 
 #include "ak/export.h"
 
-typedef void (*ak_exit_fn)(void* ctx);
+typedef void (*ak_crash_fn)(void* ctx);
 
 ak_ex void
-ak_program_make();
+ak_program_reg_crash_fn(ak_crash_fn crash_fn,
+                        void* ctx);
 
 ak_ex void
-ak_program_exit_fn_register(
-  ak_exit_fn exit_fn,
-  void* exit_ctx);
-
-ak_ex void
-ak_program_exit();
+ak_program_crash();
 
 #endif

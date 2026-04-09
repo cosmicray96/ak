@@ -1,4 +1,6 @@
 #include "ak/core/mem/heap.h"
+#include "ak/core/errcode.h"
+#include "ak/debug.h"
 #include <stdlib.h>
 
 //===== ak_heap =====//
@@ -20,6 +22,9 @@ void*
 ak_heap_alloc(ak_heap* h, uint32_t size)
 {
   void* ptr = malloc(size);
+  if (!ptr) {
+    ak_ec(ak_err_allocation_failed);
+  }
   return ptr;
 }
 

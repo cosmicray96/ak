@@ -1,4 +1,5 @@
 #include "ak/program/program.h"
+#include "ak/debug.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -8,14 +9,14 @@
 #define s_max_exit_fns 32
 typedef struct
 {
-  ak_exit_fn fn;
-  void* ctx;
 } exit_fn_item;
 
 typedef struct
 {
-  exit_fn_item exit_fns[s_max_exit_fns];
-  uint32_t exit_fn_count;
+
+  ak_crash_fn crash_fn;
+  void* crash_ctx;
+
   bool in_crash;
 } program;
 
@@ -24,39 +25,24 @@ program p = { 0 };
 
 //--- public ---//
 void
-ak_program_make()
+ak_program_reg_crash_fn(ak_crash_fn fn,
+                        void* ctx)
 {
-  p.in_crash = false;
-  p.exit_fn_count = 0;
+  p.crash_fn = fn;
+  p.crash_ctx = ctx;
 }
 
 void
-ak_program_exit_fn_register(
-  ak_exit_fn exit_fn,
-  void* exit_ctx)
-{
-  exit_fn_item item = { 0 };
-  item.ctx = exit_ctx;
-  item.fn = exit_fn;
-  p.exit_fns[p.exit_fn_count] = item;
-  p.exit_fn_count++;
-}
-
-void
-ak_program_exit()
+ak_program_crash()
 {
   if (p.in_crash) {
+    ak_log_cic();
     exit(1);
   }
   p.in_crash = true;
 
-  for (uint32_t i = p.exit_fn_count; i > 0;
-       i--) {
-    uint32_t idx = i - 1;
-    exit_fn_item item = p.exit_fns[idx];
-    if (item.fn) {
-      item.fn(item.ctx);
-    }
+  if (p.crash_fn) {
+    p.crash_fn(p.crash_ctx);
   }
 
   exit(1);
