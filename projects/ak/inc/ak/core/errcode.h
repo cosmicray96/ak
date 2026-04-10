@@ -12,7 +12,8 @@
   X(ak_err_index_out_of_bounds)             \
   X(ak_err_double_free)                     \
   X(ak_err_bad_format)                      \
-  X(ak_err_allocation_failed)
+  X(ak_err_allocation_failed)               \
+  X(ak_err_log_err)
 
 typedef enum
 {

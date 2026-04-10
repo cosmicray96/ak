@@ -20,6 +20,11 @@ ak_ec_itn(const char* file,
           ak_errcode ec);
 
 ak_ex void
+ak_assert_itn(const char* file,
+              uint32_t line,
+              ak_errcode ec);
+
+ak_ex void
 ak_log_crash(const char* file,
              uint32_t line);
 
@@ -42,6 +47,14 @@ ak_log_cic();
     ak_ec_itn(__FILE__, __LINE__, ec);      \
     ak_log_crash(__FILE__, __LINE__);       \
     ak_program_crash();                     \
+  } while (0)
+
+#define ak_assert(expr, ec)                 \
+  do {                                      \
+    if (!(expr)) {                          \
+      ak_assert_itn(                        \
+        __FILE__, __LINE__, ec);            \
+    }                                       \
   } while (0)
 
 #else

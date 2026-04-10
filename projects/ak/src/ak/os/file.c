@@ -14,7 +14,7 @@ read(void* ctx,
 
 static int32_t
 write(void* ctx,
-      void* buff,
+      const void* buff,
       uint32_t write_count)
 {
   FILE* f = ctx;

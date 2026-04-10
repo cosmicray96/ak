@@ -1,6 +1,7 @@
 #ifndef ak_io_h
 #define ak_io_h
 
+#include "ak/export.h"
 #include <stdint.h>
 
 typedef struct
@@ -10,7 +11,7 @@ typedef struct
                   uint32_t read_count);
 
   int32_t (*write)(void* ctx,
-                   void* buff,
+                   const void* buff,
                    uint32_t write_count);
 
   void (*close)(void* ctx);
@@ -19,25 +20,29 @@ typedef struct
 } ak_iostream;
 
 static int32_t
-ak_iostream_read(ak_iostream* s,
+ak_iostream_read(ak_iostream s,
                  void* buff,
                  uint32_t read_count)
 {
-  return s->read(s->ctx, buff, read_count);
+  return s.read(s.ctx, buff, read_count);
 }
 
 static int32_t
-ak_iostream_write(ak_iostream* s,
-                  void* buff,
+ak_iostream_write(ak_iostream s,
+                  const void* buff,
                   uint32_t write_count)
 {
-  return s->write(s->ctx, buff, write_count);
+  return s.write(s.ctx, buff, write_count);
 }
 
 static void
-ak_iostream_close(ak_iostream* s)
+ak_iostream_close(ak_iostream s)
 {
-  s->close(s->ctx);
+  s.close(s.ctx);
 }
+
+ak_ex void
+ak_iostream_write_str(ak_iostream s,
+                      const char* str);
 
 #endif
