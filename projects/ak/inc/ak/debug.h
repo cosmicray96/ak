@@ -2,12 +2,13 @@
 #define ak_debug_h
 
 #include "ak/core/errcode.h"
-#include "ak/core/io.h"
 #include "ak/export.h"
 #include "ak/program/program.h"
 
+#include <stdint.h>
+
 ak_ex void
-ak_debug_make(ak_iostream s);
+ak_debug_startup();
 
 ak_ex void
 ak_log_itn(const char* file,
@@ -25,11 +26,9 @@ ak_assert_itn(const char* file,
               ak_errcode ec);
 
 ak_ex void
-ak_log_crash(const char* file,
-             uint32_t line);
-
-ak_ex void
 ak_log_cic();
+ak_ex void
+ak_log_crash();
 
 #define ak_logging
 #ifdef ak_logging
@@ -45,7 +44,6 @@ ak_log_cic();
 #define ak_ec(ec)                           \
   do {                                      \
     ak_ec_itn(__FILE__, __LINE__, ec);      \
-    ak_log_crash(__FILE__, __LINE__);       \
     ak_program_crash();                     \
   } while (0)
 
@@ -54,6 +52,7 @@ ak_log_cic();
     if (!(expr)) {                          \
       ak_assert_itn(                        \
         __FILE__, __LINE__, ec);            \
+      ak_program_crash();                   \
     }                                       \
   } while (0)
 

@@ -1,17 +1,14 @@
-#include "ak/core/io.h"
-#include "ak/os/file.h"
+#include "ak/program/program.h"
 #include <ak/debug.h>
 
 int
 main()
 {
-  ak_iostream file =
-    ak_fstream_make("./log.txt", "w");
-  ak_debug_make(file);
+  ak_program_startup();
+  ak_debug_startup();
 
   ak_log("Hello, %s", "World!");
 
-  ak_iostream_close(file);
-
+  ak_program_shutdown();
   return 0;
 }

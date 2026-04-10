@@ -36,9 +36,10 @@ ak_iostream_write(ak_iostream s,
 }
 
 static void
-ak_iostream_close(ak_iostream s)
+ak_iostream_close(ak_iostream* s)
 {
-  s.close(s.ctx);
+  s->close(s->ctx);
+  *s = (ak_iostream){ 0 };
 }
 
 ak_ex void
