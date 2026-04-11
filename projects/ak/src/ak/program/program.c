@@ -1,6 +1,7 @@
 #include "ak/program/program.h"
 #include "ak/debug.h"
 #include "ak/debug_itn.h"
+#include "ak/program/program_itn.h"
 
 #include "ak/program/event_itn.h"
 
@@ -23,7 +24,8 @@ ak_program_startup()
   p.in_crash = false;
 
   ak_debug_startup();
-  ak_pgm_event_startup();
+  ak_pgm_event_startup(
+    &ak_program_crash_fatal);
 }
 
 void

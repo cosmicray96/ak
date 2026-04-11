@@ -5,7 +5,8 @@
 typedef enum
 {
   ak_pgm_none,
-  ak_pgm_exit,
+  ak_pgm_exit_req,
+  ak_pgm_exit_fatal
 } ak_pgm_event;
 
 ak_ex ak_pgm_event

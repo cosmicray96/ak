@@ -4,7 +4,6 @@
 #include "ak/debug_itn.h"
 #include "ak/os/file.h"
 
-#include <__stdarg_va_list.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -136,6 +135,7 @@ fmter_len(fmter* f)
 typedef struct
 {
   ak_iostream s;
+  ak_iostream sraw;
 } debug;
 debug d = { 0 };
 
@@ -145,12 +145,15 @@ ak_debug_startup()
 {
   d.s = ak_fstream_make("./log.txt", "w");
 
+  d.sraw =
+    ak_frawstream_make("./lograw.txt", "w");
+
   const char* buf = "Debug Startup.\n";
   ak_iostream_write(d.s, buf, strlen(buf));
 }
 
 void
-ak_debug_stutdown()
+ak_debug_shutdown()
 {
   const char* buf = "Debug Shutdown.\n";
   ak_iostream_write(d.s, buf, strlen(buf));
@@ -244,4 +247,13 @@ ak_log_crash()
 
   ak_iostream_write(
     d.s, fmter_buf(&f), fmter_len(&f));
+}
+
+#define s_fatal_log_size 7
+void
+ak_log_crash_fatal()
+{
+  char buf[s_fatal_log_size] = "[Ftl]\n";
+  ak_iostream_write(
+    d.sraw, buf, s_fatal_log_size);
 }

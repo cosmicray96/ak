@@ -6,4 +6,7 @@ ak_debug_startup();
 void
 ak_debug_shutdown();
 
+void
+ak_log_crash_fatal();
+
 #endif

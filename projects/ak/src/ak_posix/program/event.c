@@ -1,11 +1,25 @@
+#include "ak/program/program_itn.h"
 #define _POSIX_C_SOURCE 200112L
 
+#include "ak/program/event.h"
 #include "ak/program/event_itn.h"
 
 #include <signal.h>
 #include <string.h>
 
 #define s_max_signals 64
+
+//===== ak_pmg_event =====//
+//--- private ---//
+typedef struct
+{
+  ak_crash_fatal_fn fn;
+  struct sigaction sigint_old;
+  struct sigaction sigterm_old;
+  struct sigaction sigwinch_old;
+  struct sigaction sigsegv_old;
+} event;
+static event e;
 
 //===== signal_queue =====//
 //--- private ---//
@@ -24,41 +38,47 @@ signal_handler(int signum)
   sig_atomic_t next_write =
     (current_write + 1) % s_max_signals;
 
-  /* Don't overwrite unread signals */
+  // Don't overwrite unread signals
   if (next_write != sq.read_pos) {
     sq.signals[current_write] = signum;
     sq.write_pos = next_write;
   }
 }
 
+static void
+signal_handler_fatal(int signum)
+{
+  e.fn();
+}
+
 //===== ak_pmg_event =====//
 //--- public ---//
 void
-ak_pgm_event_startup()
+ak_pgm_event_startup(ak_crash_fatal_fn fn)
 {
+  e.fn = fn;
+
   struct sigaction sa;
   memset(&sa, 0, sizeof(sa));
   sa.sa_handler = signal_handler;
   sigemptyset(&sa.sa_mask);
   sa.sa_flags = 0;
 
-  sigaction(SIGINT, &sa, NULL);
-  sigaction(SIGTERM, &sa, NULL);
-  sigaction(SIGWINCH, &sa, NULL);
+  sigaction(SIGINT, &sa, &e.sigint_old);
+  sigaction(SIGTERM, &sa, &e.sigterm_old);
+  sigaction(SIGWINCH, &sa, &e.sigwinch_old);
+
+  sa.sa_handler = signal_handler_fatal;
+  sigaction(SIGSEGV, &sa, &e.sigsegv_old);
 }
 
 void
 ak_pgm_event_shutdown()
 {
-  struct sigaction sa;
-  memset(&sa, 0, sizeof(sa));
-  sa.sa_handler =
-    SIG_DFL; // Restore default behavior
-  sigemptyset(&sa.sa_mask);
-
-  sigaction(SIGINT, &sa, NULL);
-  sigaction(SIGTERM, &sa, NULL);
-  sigaction(SIGWINCH, &sa, NULL);
+  sigaction(SIGINT, &e.sigint_old, NULL);
+  sigaction(SIGTERM, &e.sigterm_old, NULL);
+  sigaction(SIGWINCH, &e.sigwinch_old, NULL);
+  sigaction(SIGSEGV, &e.sigsegv_old, NULL);
 }
 
 //--- export ---//

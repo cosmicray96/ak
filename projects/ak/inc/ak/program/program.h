@@ -3,8 +3,6 @@
 
 #include "ak/export.h"
 
-typedef void (*ak_exit_fn)(void* ctx);
-
 ak_ex void
 ak_program_startup();
 ak_ex void
