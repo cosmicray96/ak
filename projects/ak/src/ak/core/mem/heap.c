@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 //===== ak_heap =====//
-//--- public ---//
+//--- export ---//
 ak_heap
 ak_heap_make()
 {
@@ -47,7 +47,7 @@ ak_heap_free_b(void* h, void* ptr)
   ak_heap_free((ak_heap*)h, ptr);
 }
 
-//--- public ---//
+//--- export ---//
 ak_alct
 ak_heap_to_alct(ak_heap* h)
 {

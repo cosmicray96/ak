@@ -19,6 +19,22 @@ ak_da_destroy(ak_da* da);
 ak_ex void
 ak_da_clear(ak_da* da);
 
+static ak_alct
+ak_da_alct(const ak_da* da)
+{
+  return ak_dbuff_alct(&da->dbuff);
+}
+static uint32_t
+ak_da_cap(const ak_da* da)
+{
+  return ak_dbuff_cap(&da->dbuff);
+}
+static uint32_t
+ak_da_count(const ak_da* da)
+{
+  return da->count;
+}
+
 ak_ex void*
 ak_da_at_impl(ak_da* da, uint32_t idx);
 #define ak_da_at(t, da, idx)                \

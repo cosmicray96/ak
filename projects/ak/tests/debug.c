@@ -5,7 +5,6 @@ int
 main()
 {
   ak_program_startup();
-  ak_debug_startup();
 
   ak_log("Hello, %s", "World!");
 

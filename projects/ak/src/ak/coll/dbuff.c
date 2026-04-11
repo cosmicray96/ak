@@ -1,4 +1,5 @@
 #include "ak/coll/dbuff.h"
+#include "ak/debug.h"
 #include <stdint.h>
 #include <string.h>
 
@@ -17,13 +18,17 @@ get_new_cap(uint32_t cur_cap,
   return cap;
 }
 
-//--- public ---//
+//--- export ---//
 ak_dbuff
 ak_dbuff_make(uint32_t is,
               float gr,
               uint32_t sc,
               ak_alct alct)
 {
+  ak_assert(gr > 1.0f);
+  ak_assert(is > 0);
+  ak_assert(sc > 0);
+
   ak_dbuff d;
   d.alct = alct;
   d.is = is;
@@ -46,25 +51,22 @@ ak_dbuff_destroy(ak_dbuff* d)
   d->buff = 0;
 }
 
-ak_alct
-ak_dbuff_alct(const ak_dbuff* d)
+void
+ak_dbuff_at_copy(const ak_dbuff* d,
+                 uint32_t idx,
+                 void* item)
 {
-  return d->alct;
-}
-uint32_t
-ak_dbuff_cap(const ak_dbuff* d)
-{
-  return d->cap;
-}
-uint32_t
-ak_dbuff_itemsize(const ak_dbuff* d)
-{
-  return d->is;
-}
+  ak_assert(idx < d->cap);
 
+  const void* ptr =
+    ak_dbuff_at_const(d, idx);
+  memcpy(item, ptr, d->is);
+}
 void*
 ak_dbuff_at(ak_dbuff* d, uint32_t idx)
 {
+  ak_assert(idx < d->cap);
+
   uint8_t* ptr = d->buff;
   ptr += (idx * d->is);
   return ptr;
@@ -73,10 +75,56 @@ const void*
 ak_dbuff_at_const(const ak_dbuff* d,
                   uint32_t idx)
 {
+  ak_assert(idx < d->cap);
 
   const uint8_t* ptr = d->buff;
   ptr += (idx * d->is);
   return ptr;
+}
+
+void
+ak_dbuff_overwrite(ak_dbuff* d,
+                   uint32_t idx,
+                   const void* item)
+{
+  memcpy(ak_dbuff_at(d, idx), item, d->is);
+}
+
+void
+ak_dbuff_bulk_overwrite(ak_dbuff* dest,
+                        const ak_dbuff* src,
+                        uint32_t dest_idx,
+                        uint32_t src_idx,
+                        uint32_t src_count)
+{
+  ak_assert(dest_idx < dest->cap);
+  ak_assert(src_idx < src->cap);
+  ak_assert(src_idx + src_count <= src->cap);
+
+  if (src_count == 0) {
+    return;
+  }
+
+  ak_dbuff_ensure_cap(dest,
+                      dest_idx + src_count);
+
+  void* dest_ptr =
+    ak_dbuff_at(dest, dest_idx);
+  const void* src_ptr =
+    ak_dbuff_at_const(src, src_idx);
+  uint32_t size = dest->is * src_count;
+  memmove(dest_ptr, src_ptr, size);
+}
+
+void
+ak_dbuff_ensure_cap(ak_dbuff* d,
+                    uint32_t min_cap)
+{
+  if (d->cap >= min_cap) {
+    return;
+  }
+  ak_dbuff_cap_inc_w_copy(d,
+                          min_cap - d->cap);
 }
 
 void
@@ -95,6 +143,9 @@ void
 ak_dbuff_cap_inc(ak_dbuff* d,
                  uint32_t inc_by)
 {
+  if (inc_by == 0) {
+    return;
+  }
   uint32_t new_cap =
     get_new_cap(d->cap, inc_by, d->gr);
 
@@ -123,6 +174,10 @@ ak_ex void
 ak_dbuff_cap_inc_w_copy(ak_dbuff* d,
                         uint32_t inc_by)
 {
+  if (inc_by == 0) {
+    return;
+  }
+
   uint32_t new_cap =
     get_new_cap(d->cap, inc_by, d->gr);
   void* new_buff =

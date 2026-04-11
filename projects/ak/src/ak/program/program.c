@@ -1,5 +1,8 @@
 #include "ak/program/program.h"
 #include "ak/debug.h"
+#include "ak/debug_itn.h"
+
+#include "ak/program/event_itn.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -7,53 +10,27 @@
 
 //===== ak_program =====//
 //--- private ---//
-#define s_max_exit_fns 32
 typedef struct
 {
-  ak_exit_fn fn;
-  void* ctx;
-
-} exit_item;
-
-typedef struct
-{
-  exit_item exits[s_max_exit_fns];
-  uint32_t exit_count;
   bool in_crash;
 } program;
+static program p = { 0 };
 
-program p = { 0 };
-
-//--- public ---//
+//--- export ---//
 void
 ak_program_startup()
 {
-  p.exit_count = 0;
   p.in_crash = false;
+
+  ak_debug_startup();
+  ak_pgm_event_startup();
 }
 
 void
 ak_program_shutdown()
 {
-  for (uint32_t i = p.exit_count; i > 0;
-       i--) {
-    uint32_t idx = i - 1;
-    exit_item e = p.exits[idx];
-    e.fn(e.ctx);
-  }
-  p.exit_count = 0;
-  p.in_crash = false;
-}
-
-void
-ak_program_reg_exit_fn(ak_exit_fn fn,
-                       void* ctx)
-{
-  exit_item e = { 0 };
-  e.fn = fn;
-  e.ctx = ctx;
-  p.exits[p.exit_count] = e;
-  p.exit_count++;
+  ak_pgm_event_shutdown();
+  ak_debug_shutdown();
 }
 
 void

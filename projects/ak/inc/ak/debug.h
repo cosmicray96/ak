@@ -8,9 +8,6 @@
 #include <stdint.h>
 
 ak_ex void
-ak_debug_startup();
-
-ak_ex void
 ak_log_itn(const char* file,
            uint32_t line,
            const char* fmt,
@@ -23,7 +20,7 @@ ak_ec_itn(const char* file,
 ak_ex void
 ak_assert_itn(const char* file,
               uint32_t line,
-              ak_errcode ec);
+              const char* expr);
 
 ak_ex void
 ak_log_cic();
@@ -47,11 +44,11 @@ ak_log_crash();
     ak_program_crash();                     \
   } while (0)
 
-#define ak_assert(expr, ec)                 \
+#define ak_assert(expr)                     \
   do {                                      \
     if (!(expr)) {                          \
       ak_assert_itn(                        \
-        __FILE__, __LINE__, ec);            \
+        __FILE__, __LINE__, #expr);         \
       ak_program_crash();                   \
     }                                       \
   } while (0)

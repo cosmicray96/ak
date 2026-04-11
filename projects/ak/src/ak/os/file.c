@@ -28,7 +28,7 @@ close(void* ctx)
   fclose(f);
 }
 
-//--- public ---//
+//--- export ---//
 ak_iostream
 ak_fstream_make(const char* path,
                 const char* mode)

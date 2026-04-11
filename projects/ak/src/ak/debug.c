@@ -1,6 +1,7 @@
 #include "ak/debug.h"
 #include "ak/core/errcode.h"
 #include "ak/core/io.h"
+#include "ak/debug_itn.h"
 #include "ak/os/file.h"
 
 #include <__stdarg_va_list.h>
@@ -28,6 +29,8 @@ get_filename(const char* path)
   return last;
 }
 
+//===== fmter =====//
+//--- private ---//
 typedef struct
 {
   char* buf;
@@ -40,8 +43,8 @@ typedef struct
 static fmter
 fmter_make(char* buf, uint32_t size)
 {
-  ak_assert(buf, ak_err_null_ptr);
-  ak_assert(size > 5, ak_err_log_err);
+  ak_assert(buf);
+  ak_assert(size > 5);
 
   fmter f = { 0 };
   f.buf = buf;
@@ -70,7 +73,7 @@ fmter_full_itn(fmter* f)
 static void
 fmter_update_itn(fmter* f)
 {
-  ak_assert(f->last_n >= 0, ak_err_log_err);
+  ak_assert(f->last_n >= 0);
   if (f->len + f->last_n >= f->size) {
     fmter_full_itn(f);
   } else {
@@ -107,6 +110,7 @@ fmter_valist(fmter* f,
                         args);
   fmter_update_itn(f);
 }
+
 static void
 fmter_vargs(fmter* f, const char* fmt, ...)
 {
@@ -135,13 +139,6 @@ typedef struct
 } debug;
 debug d = { 0 };
 
-void
-ak_debug_stutdown(void* ctx)
-{
-  const char* buf = "Debug Shutdown.\n";
-  ak_iostream_write(d.s, buf, strlen(buf));
-  ak_iostream_close(&d.s);
-}
 //--- public ---//
 void
 ak_debug_startup()
@@ -150,11 +147,17 @@ ak_debug_startup()
 
   const char* buf = "Debug Startup.\n";
   ak_iostream_write(d.s, buf, strlen(buf));
-
-  ak_program_reg_exit_fn(&ak_debug_stutdown,
-                         0);
 }
 
+void
+ak_debug_stutdown()
+{
+  const char* buf = "Debug Shutdown.\n";
+  ak_iostream_write(d.s, buf, strlen(buf));
+  ak_iostream_close(&d.s);
+}
+
+//--- export ---//
 void
 ak_log_itn(const char* file,
            uint32_t line,
@@ -203,7 +206,7 @@ ak_ec_itn(const char* file,
 void
 ak_assert_itn(const char* file,
               uint32_t line,
-              ak_errcode ec)
+              const char* expr)
 {
   char buf[256];
   fmter f = fmter_make(buf, sizeof(buf));
@@ -211,8 +214,8 @@ ak_assert_itn(const char* file,
   fmter_str(&f, "[Ast] ");
 
   fmter_vargs(&f,
-              "%s (%s:%d)\n",
-              ak_errcode_to_str(ec),
+              "((%s)) (%s:%d)\n",
+              expr,
               get_filename(file),
               line);
 

@@ -1,6 +1,19 @@
 #include "ak/coll/da.h"
 #include "ak/coll/dbuff.h"
+#include "ak/debug.h"
 
+//===== ak_da =====//
+//--- private ---//
+static void
+resize_ifneeded(ak_da* da)
+{
+  if (da->count < ak_dbuff_cap(&da->dbuff)) {
+    return;
+  }
+  ak_dbuff_grow_w_copy(&da->dbuff);
+}
+
+//--- export ---//
 ak_da
 ak_da_make(uint32_t is, ak_alct alct)
 {
@@ -27,27 +40,73 @@ ak_da_clear(ak_da* da)
 void*
 ak_da_at_impl(ak_da* da, uint32_t idx)
 {
+  ak_assert(idx < da->count);
   return ak_dbuff_at(&da->dbuff, idx);
 }
 const void*
 ak_da_at_const_impl(const ak_da* da,
                     uint32_t idx)
 {
+  ak_assert(idx < da->count);
   return ak_dbuff_at_const(&da->dbuff, idx);
 }
 
-ak_ex void
-ak_da_pushback(ak_da* da, const void* item);
-ak_ex void
-ak_da_pushfront(ak_da* da, const void* item);
-ak_ex void
+void
+ak_da_pushback(ak_da* da, const void* item)
+{
+  resize_ifneeded(da);
+  ak_dbuff_overwrite(
+    &da->dbuff, da->count, item);
+  da->count++;
+}
+
+void
+ak_da_pushfront(ak_da* da, const void* item)
+{
+  ak_da_insert(da, 0, item);
+}
+
+void
 ak_da_insert(ak_da* da,
              uint32_t idx,
-             const void* item);
-ak_ex void
+             const void* item)
+{
+  ak_assert(idx < da->count);
+  resize_ifneeded(da);
+  ak_dbuff_bulk_overwrite(
+    &da->dbuff,
+    &da->dbuff,
+    idx + 1,
+    idx,
+    ak_dbuff_cap(&da->dbuff) - idx);
+  ak_dbuff_overwrite(&da->dbuff, idx, item);
+  da->count++;
+}
+
+void
 ak_da_overwrite(ak_da* da,
                 uint32_t idx,
-                const void* item);
+                const void* item)
+{
+  ak_assert(idx < da->count);
+  ak_dbuff_overwrite(&da->dbuff, idx, item);
+}
 
-ak_ex void
-ak_da_remove(ak_da* da, uint32_t idx);
+void
+ak_da_remove(ak_da* da, uint32_t idx)
+{
+  ak_assert(idx < da->count);
+  ak_assert(da->count > 0);
+  if (idx == da->count - 1) {
+    da->count--;
+    return;
+  }
+
+  ak_dbuff_bulk_overwrite(&da->dbuff,
+                          &da->dbuff,
+                          idx,
+                          idx + 1,
+                          da->count - idx -
+                            1);
+  da->count--;
+}

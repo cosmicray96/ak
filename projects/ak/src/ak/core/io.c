@@ -1,6 +1,8 @@
 #include "ak/core/io.h"
 #include <string.h>
 
+//===== ak_iostream =====//
+//--- export ---//
 void
 ak_iostream_write_str(ak_iostream s,
                       const char* str)

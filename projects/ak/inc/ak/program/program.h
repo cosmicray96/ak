@@ -11,10 +11,6 @@ ak_ex void
 ak_program_shutdown();
 
 ak_ex void
-ak_program_reg_exit_fn(ak_exit_fn fn,
-                       void* ctx);
-
-ak_ex void
 ak_program_crash();
 
 #endif
