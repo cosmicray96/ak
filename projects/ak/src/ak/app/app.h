@@ -1,6 +1,7 @@
 #ifndef ak_app_app_h
 #define ak_app_app_h
 
+#include "ak/app/eq.h"
 #include "ak/app/event.h"
 #include "ak/coll/dq.h"
 #include "ak/core/mem/allocator.h"
@@ -16,10 +17,11 @@ typedef void (*ak_applayer_startup_fn)(
 typedef void (*ak_applayer_shutdown_fn)(
   void* ctx);
 typedef void (*ak_applayer_epusher_fn)(
-  void* ctx);
+  void* ctx,
+  ak_app_eq* eq);
 typedef bool (*ak_applayer_event_fn)(
   void* ctx,
-  ak_event e);
+  ak_evt e);
 typedef void (*ak_applayer_update_fn)(
   void* ctx,
   ak_dur delta);
@@ -58,7 +60,8 @@ ak_applayer_regs_pop(ak_applayer_regs* alr,
 
 //===== ak_app  =====//
 ak_app*
-ak_app_make(ak_applayer_regs* regs);
+ak_app_make(ak_applayer_regs* regs,
+            ak_alct alct);
 void
 ak_app_destroy(ak_app* a);
 
@@ -66,6 +69,6 @@ void
 ak_app_run(ak_app* a);
 
 void
-ak_app_event_push(ak_app* a, ak_event e);
+ak_app_event_push(ak_app* a, ak_evt e);
 
 #endif
