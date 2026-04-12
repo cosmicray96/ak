@@ -35,6 +35,11 @@ ak_da_count(const ak_da* da)
   return da->count;
 }
 
+ak_ex void
+ak_da_at_copy(const ak_da* da,
+              uint32_t idx,
+              void* item);
+
 ak_ex void*
 ak_da_at_impl(ak_da* da, uint32_t idx);
 #define ak_da_at(t, da, idx)                \

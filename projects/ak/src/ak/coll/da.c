@@ -37,6 +37,15 @@ ak_da_clear(ak_da* da)
   da->count = 0;
 }
 
+void
+ak_da_at_copy(const ak_da* da,
+              uint32_t idx,
+              void* item)
+{
+  ak_assert(idx < da->count);
+  ak_dbuff_at_copy(&da->dbuff, idx, item);
+}
+
 void*
 ak_da_at_impl(ak_da* da, uint32_t idx)
 {

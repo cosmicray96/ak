@@ -1,4 +1,3 @@
-#include "ak/program/program_itn.h"
 #define _POSIX_C_SOURCE 200112L
 
 #include "ak/program/event.h"
