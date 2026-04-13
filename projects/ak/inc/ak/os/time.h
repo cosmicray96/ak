@@ -2,6 +2,7 @@
 #define ak_os_time_h
 
 #include "ak/export.h"
+#include <stdbool.h>
 #include <stdint.h>
 typedef struct
 {
@@ -28,5 +29,8 @@ ak_dur_diff(ak_dur a, ak_dur b);
 
 ak_ex ak_dur
 ak_dur_add(ak_dur a, ak_dur b);
+
+ak_ex bool
+ak_dur_zero(ak_dur a);
 
 #endif

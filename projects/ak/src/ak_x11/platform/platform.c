@@ -25,3 +25,9 @@ ak_platform_shutdown(ak_platform* p)
 {
   XCloseDisplay(p->d);
 }
+
+Display*
+ak_platform_display_get(ak_platform* p)
+{
+  return p->d;
+}

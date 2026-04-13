@@ -1,4 +1,5 @@
 #include "ak/os/time.h"
+#include <stdbool.h>
 
 //===== ak_dur =====//
 
@@ -67,4 +68,10 @@ ak_dur_add(ak_dur a, ak_dur b)
   ak_dur res = { 0 };
   res.nanos = a.nanos + b.nanos;
   return res;
+}
+
+bool
+ak_dur_zero(ak_dur a)
+{
+  return a.nanos == 0;
 }

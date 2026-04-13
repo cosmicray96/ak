@@ -2,7 +2,14 @@
 #include "ak/app/app.h"
 #include "ak/app/eq.h"
 #include "ak/app/event.h"
+#include "ak/debug.h"
 #include "ak/os/time.h"
+#include "ak/platform/core.h"
+#include "ak/program/core.h"
+#include "ak/program/event.h"
+
+#include "ak/platform/platform.h"
+#include "ak/platform/window.h"
 
 //===== ak_lcore =====//
 //--- private ---//
@@ -10,6 +17,8 @@ struct ak_lcore
 {
   ak_alct alct;
   ak_app* app;
+  ak_platform* p;
+  ak_window* w;
 };
 
 //--- public ---//
@@ -18,6 +27,7 @@ ak_lcore_make(ak_alct alct)
 {
   ak_lcore* l =
     ak_alct_alloc(alct, sizeof(ak_lcore));
+  l->alct = alct;
   return l;
 }
 void
@@ -28,33 +38,64 @@ ak_lcore_destroy(ak_lcore* l)
 
 //===== ak_applayer =====//
 //--- private ---//
+
 void
 on_startup(void* ctx, ak_app* app)
 {
   ak_lcore* l = ctx;
   l->app = app;
+  l->p = ak_platform_startup(l->alct);
+  l->w = ak_window_make(l->p, l->alct);
 }
 void
 on_shutdown(void* ctx)
 {
   ak_lcore* l = ctx;
+  ak_window_destroy(l->w);
+  ak_platform_shutdown(l->p);
 }
+
 void
 on_epusher(void* ctx, ak_app_eq* eq)
 {
+
   ak_lcore* l = ctx;
+  ak_pgmevt pgmevt = ak_pgm_event_pop();
+  while (pgmevt != ak_pgm_none) {
+    ak_evt e = { 0 };
+    e.type = ak_evt_type_pgm;
+    e.pgm = pgmevt;
+    ak_app_eq_push(eq, e);
+
+    pgmevt = ak_pgm_event_pop();
+  }
+
+  ak_window_eventflush(l->w, eq);
 }
+
 bool
 on_event(void* ctx, ak_evt e)
 {
   ak_lcore* l = ctx;
+
+  if (e.type == ak_evt_type_win &&
+      e.win.type == ak_winevt_mouse &&
+      e.win.mouse.btn ==
+        ak_winevt_mouse_left) {
+    ak_log("Mouse Left: (%x, %y)",
+           e.win.mouse.x,
+           e.win.mouse.y);
+  }
+
   return false;
 }
+
 void
 on_update(void* ctx, ak_dur delta)
 {
   ak_lcore* l = ctx;
 }
+
 void
 on_upost(void* ctx, ak_dur delta)
 {

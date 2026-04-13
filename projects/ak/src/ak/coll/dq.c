@@ -61,6 +61,7 @@ ak_dq_push(ak_dq* q, const void* item)
     &q->dbuff, q->widx, item);
   q->widx =
     (q->widx + 1) % ak_dbuff_cap(&q->dbuff);
+  q->count++;
 }
 
 bool

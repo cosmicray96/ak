@@ -12,7 +12,7 @@ typedef struct
 
 ak_app_eq
 ak_app_eq_make(ak_alct alct);
-ak_app_eq
+void
 ak_app_eq_destroy(ak_app_eq* eq);
 
 void

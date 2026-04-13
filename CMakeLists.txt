@@ -4,6 +4,7 @@ project(cmake_proj C)
 include("./cmake/cm.cmake")
 cm_begin()
 cm_impls_append(posix)
+cm_impls_append(x11)
 cm_end()
 
 

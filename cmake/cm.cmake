@@ -1,6 +1,7 @@
-message("Cmake Template. Language: C, Version: 3")
+message("Cmake Template. Language: C, Version: 4")
 
 include("${CMAKE_CURRENT_LIST_DIR}/config.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/impl.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/target.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/tests.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/utils.cmake")
@@ -13,6 +14,7 @@ endmacro()
 
 macro(cm_end)
 	cm_output_dirs_set()
+	cm_impl_bridge()
 	cm_clangd_commands_json()
 endmacro()
 

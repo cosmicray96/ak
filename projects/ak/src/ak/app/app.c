@@ -1,8 +1,11 @@
 #include "ak/app/app.h"
 #include "ak/app/eq.h"
+#include "ak/app/event.h"
 #include "ak/coll/da.h"
 #include "ak/debug.h"
 #include "ak/os/time.h"
+#include "ak/platform/core.h"
+#include "ak/program/program.h"
 #include <stdint.h>
 
 ak_applayer_regs
@@ -24,10 +27,10 @@ ak_applayer_regs_destroy(
 
 void
 ak_applayer_regs_push(ak_applayer_regs* alr,
-                      const ak_applayer* l)
+                      ak_applayer l)
 {
   ak_assert(!alr->popping);
-  ak_dq_push(&alr->layers, l);
+  ak_dq_push(&alr->layers, &l);
 }
 
 bool
@@ -45,7 +48,8 @@ struct ak_app
   ak_alct alct;
   ak_da layers;
   ak_app_eq eq;
-  ak_dur framerate;
+  ak_dur frametime;
+  ak_dur last_frametime;
   bool should_close;
 };
 
@@ -108,6 +112,7 @@ run_event(ak_app* a, ak_evt e)
 void
 run_update(ak_app* a, ak_dur delta)
 {
+
   ak_da_for_begin(
     ak_applayer, &a->layers, i, l);
 
@@ -142,7 +147,9 @@ ak_app_make(ak_applayer_regs* regs,
   app->layers =
     ak_da_make(sizeof(ak_applayer), alct);
   app->eq = ak_app_eq_make(alct);
-  app->framerate = ak_dur_from_millis(50);
+  app->frametime = ak_dur_from_millis(50);
+  app->last_frametime =
+    ak_dur_from_millis(0);
   app->should_close = false;
 
   ak_applayer l = { 0 };
@@ -167,10 +174,35 @@ ak_app_run(ak_app* a)
 
   while (!a->should_close) {
     ak_dur frame_start = ak_dur_now();
-    ak_dur frame_end = ak_dur_now();
 
+    run_epusher(a);
+
+    ak_evt e = ak_app_eq_pop(&a->eq);
+    while (e.type != ak_evt_none) {
+      ak_log("event: %d", e.type);
+      if (e.type == ak_evt_type_pgm &&
+          e.pgm == ak_pgm_exit_req) {
+        a->should_close = true;
+      }
+      if (e.type == ak_evt_type_win &&
+          e.win.type == ak_winevt_close) {
+        a->should_close = true;
+      }
+
+      run_event(a, e);
+      e = ak_app_eq_pop(&a->eq);
+    }
+
+    run_update(a, a->last_frametime);
+    run_upost(a, a->last_frametime);
+
+    ak_dur frame_end = ak_dur_now();
     ak_dur diff = ak_dur_subtract(
       frame_end, frame_start);
+    a->last_frametime = diff;
+    ak_dur sleep_time =
+      ak_dur_subtract(a->frametime, diff);
+    ak_program_sleep(sleep_time);
     // sleep;
   }
 

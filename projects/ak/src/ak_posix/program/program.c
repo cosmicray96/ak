@@ -22,6 +22,10 @@ ak_program_crash_fatal()
 void
 ak_program_sleep(ak_dur t)
 {
+  if (ak_dur_zero(t)) {
+    return;
+  }
+
   uint64_t ns = t.nanos;
 
   struct timespec ts = { .tv_sec =

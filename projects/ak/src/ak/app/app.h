@@ -54,7 +54,7 @@ ak_applayer_regs_destroy(
 
 void
 ak_applayer_regs_push(ak_applayer_regs* alr,
-                      const ak_applayer* l);
+                      ak_applayer l);
 bool
 ak_applayer_regs_pop(ak_applayer_regs* alr,
                      ak_applayer* l);

@@ -17,6 +17,13 @@ function(cmi_impl_add target_name)
 		)
 
 	endforeach()
+
+	foreach(impl_target IN LISTS cm_impl_targets)
+		target_link_libraries(${target_name} PRIVATE
+		${impl_target}
+		)
+	endforeach()
+
 endfunction()
 
 function(cm_target_add_exe target_name)

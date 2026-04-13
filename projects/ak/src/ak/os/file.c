@@ -18,7 +18,10 @@ write(void* ctx,
       uint32_t write_count)
 {
   FILE* f = ctx;
-  return fwrite(buff, 1, write_count, f);
+  int32_t n =
+    fwrite(buff, 1, write_count, f);
+  fflush(f);
+  return n;
 }
 
 static void

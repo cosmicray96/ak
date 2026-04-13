@@ -1,6 +1,7 @@
 #define _POSIX_C_SOURCE 200112L
 
 #include "ak/program/event.h"
+#include "ak/program/core.h"
 #include "ak/program/event_itn.h"
 
 #include <signal.h>
@@ -65,7 +66,6 @@ ak_pgm_event_startup(ak_crash_fatal_fn fn)
 
   sigaction(SIGINT, &sa, &e.sigint_old);
   sigaction(SIGTERM, &sa, &e.sigterm_old);
-  sigaction(SIGWINCH, &sa, &e.sigwinch_old);
 
   sa.sa_handler = signal_handler_fatal;
   sigaction(SIGSEGV, &sa, &e.sigsegv_old);
@@ -76,15 +76,32 @@ ak_pgm_event_shutdown()
 {
   sigaction(SIGINT, &e.sigint_old, NULL);
   sigaction(SIGTERM, &e.sigterm_old, NULL);
-  sigaction(SIGWINCH, &e.sigwinch_old, NULL);
   sigaction(SIGSEGV, &e.sigsegv_old, NULL);
 }
 
 //--- export ---//
-ak_pgm_event
+ak_pgmevt
 ak_pgm_event_pop()
 {
-  return 0;
+  if (sq.read_pos == sq.write_pos) {
+    return ak_pgm_none; // empty queue
+  }
+
+  int signal = sq.signals[sq.read_pos];
+  sq.read_pos =
+    (sq.read_pos + 1) % s_max_signals;
+
+  switch (signal) {
+    case SIGINT:
+    case SIGTERM:
+    case SIGWINCH:
+      return ak_pgm_exit_req;
+      break;
+    default:
+      return ak_pgm_unknown;
+      break;
+  }
+  return ak_pgm_unknown;
 }
 
 /*

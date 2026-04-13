@@ -35,7 +35,7 @@ ak_log_crash();
     ak_log_itn(__FILE__,                    \
                __LINE__,                    \
                fmt,                         \
-               __VA_ARGS__);                \
+               ##__VA_ARGS__);              \
   } while (0)
 
 #define ak_ec(ec)                           \

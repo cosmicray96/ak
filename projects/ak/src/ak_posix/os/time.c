@@ -6,7 +6,7 @@
 //===== ak_time =====//
 //--- public ---//
 ak_dur
-ak_time_now()
+ak_dur_now()
 {
   struct timespec ts;
   clock_gettime(CLOCK_MONOTONIC, &ts);

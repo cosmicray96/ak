@@ -2,10 +2,12 @@
 #define ak_app_event_h
 
 #include "ak/platform/core.h"
+#include "ak/program/core.h"
 
 typedef enum
 {
   ak_evt_none,
+  ak_evt_type_pgm,
   ak_evt_type_win,
 } ak_evt_type;
 
@@ -15,6 +17,7 @@ typedef struct
   union
   {
     ak_winevt win;
+    ak_pgmevt pgm;
   };
 } ak_evt;
 

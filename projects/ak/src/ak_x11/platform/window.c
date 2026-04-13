@@ -1,9 +1,13 @@
 #include "ak/platform/window.h"
+#include "ak/app/eq.h"
 #include "ak/app/event.h"
+#include "ak/debug.h"
 #include "ak/platform/core.h"
 #include "ak_x11/platform/platform_itn.h"
+
 #include <X11/X.h>
 #include <X11/Xlib.h>
+#include <X11/Xutil.h>
 
 //===== ak_window =====//
 //--- private ---//
@@ -35,7 +39,14 @@ ak_window_make(ak_platform* p, ak_alct alct)
     BlackPixel(w->dpy, w->screen),
     WhitePixel(w->dpy, w->screen));
 
-  XMapWindow(w->dpy, w->win);
+  XSizeHints hints = { 0 };
+  hints.flags = PPosition | PSize;
+  hints.x = 100;
+  hints.y = 100;
+  hints.width = 800;
+  hints.height = 600;
+  XSetNormalHints(w->dpy, w->win, &hints);
+
   XStoreName(w->dpy,
              w->win,
              "Triangle Linear Color Blend");
@@ -50,6 +61,8 @@ ak_window_make(ak_platform* p, ak_alct alct)
     ButtonPressMask | ButtonReleaseMask |
       FocusChangeMask | KeyPressMask |
       StructureNotifyMask);
+
+  XMapWindow(w->dpy, w->win);
 
   return w;
 }
@@ -70,15 +83,24 @@ ak_window_eventflush(ak_window* w,
   XEvent ev;
 
   while (XPending(w->dpy)) {
-
     XNextEvent(w->dpy, &ev);
-    switch (ev.type) {
 
+    switch (ev.type) {
       case ClientMessage:
         if ((Atom)ev.xclient.data.l[0] ==
             w->wm_delete) {
           appevt.win.type = ak_winevt_close;
+          ak_app_eq_push(eq, appevt);
         }
+        break;
+      case ButtonPress:
+        ak_log("here");
+        appevt.win.type = ak_winevt_mouse;
+        appevt.win.mouse.x = ev.xbutton.x;
+        appevt.win.mouse.y = ev.xbutton.y;
+        appevt.win.mouse.btn =
+          ev.xbutton.button;
+        ak_app_eq_push(eq, appevt);
         break;
     }
   }

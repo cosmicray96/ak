@@ -1,9 +1,9 @@
-#ifndef ak
-#define ak
+#ifndef ak_h
+#define ak_h
 
 #include "ak/export.h"
 
 ak_ex void
-hello();
+ak();
 
 #endif
