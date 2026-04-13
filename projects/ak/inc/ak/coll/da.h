@@ -66,4 +66,20 @@ ak_da_overwrite(ak_da* da,
 ak_ex void
 ak_da_remove(ak_da* da, uint32_t idx);
 
+#define ak_da_for_rev_begin(                \
+  type, da, idx, elm)                       \
+  type* elm = 0;                            \
+  for (uint32_t idx = ak_da_count(da);      \
+       idx-- > 0;) {                        \
+    elm = ak_da_at_impl(da, idx);
+
+#define ak_da_for_begin(type, da, idx, elm) \
+  type* elm = 0;                            \
+  for (uint32_t idx = 0;                    \
+       idx < ak_da_count(da);               \
+       idx++) {                             \
+    elm = ak_da_at_impl(da, idx);
+
+#define ak_da_for_end() }
+
 #endif

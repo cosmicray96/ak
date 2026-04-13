@@ -37,6 +37,7 @@ typedef struct
   ak_applayer_event_fn on_event;
   ak_applayer_update_fn on_update;
   ak_applayer_upost_fn on_upost;
+  void* ctx;
 } ak_applayer;
 
 //===== ak_applayer_regs =====//
@@ -69,6 +70,6 @@ void
 ak_app_run(ak_app* a);
 
 void
-ak_app_event_push(ak_app* a, ak_evt e);
+ak_app_close(ak_app* a);
 
 #endif

@@ -2,6 +2,8 @@
 #include "ak/app/eq.h"
 #include "ak/coll/da.h"
 #include "ak/debug.h"
+#include "ak/os/time.h"
+#include <stdint.h>
 
 ak_applayer_regs
 ak_applayer_regs_make(ak_alct alct)
@@ -37,13 +39,99 @@ ak_applayer_regs_pop(ak_applayer_regs* alr,
 }
 
 //===== ak_app  =====//
+//--- private ---//
 struct ak_app
 {
   ak_alct alct;
   ak_da layers;
   ak_app_eq eq;
+  ak_dur framerate;
+  bool should_close;
 };
 
+void
+run_startup(ak_app* a)
+{
+  ak_da_for_begin(
+    ak_applayer, &a->layers, i, l);
+
+  if (l->on_startup) {
+    l->on_startup(l->ctx, a);
+  }
+
+  ak_da_for_end();
+}
+
+void
+run_shutdown(ak_app* a)
+{
+  ak_da_for_rev_begin(
+    ak_applayer, &a->layers, i, l);
+
+  if (l->on_shutdown) {
+    l->on_shutdown(l->ctx);
+  }
+
+  ak_da_for_end();
+}
+
+void
+run_epusher(ak_app* a)
+{
+  ak_da_for_begin(
+    ak_applayer, &a->layers, i, l);
+
+  if (l->on_epusher) {
+    l->on_epusher(l->ctx, &a->eq);
+  }
+
+  ak_da_for_end();
+}
+
+void
+run_event(ak_app* a, ak_evt e)
+{
+  bool consumed = false;
+  ak_da_for_begin(
+    ak_applayer, &a->layers, i, l);
+
+  if (l->on_event) {
+    consumed = l->on_event(l->ctx, e);
+  }
+  if (consumed) {
+    break;
+  }
+
+  ak_da_for_end();
+}
+
+void
+run_update(ak_app* a, ak_dur delta)
+{
+  ak_da_for_begin(
+    ak_applayer, &a->layers, i, l);
+
+  if (l->on_update) {
+    l->on_update(l->ctx, delta);
+  }
+
+  ak_da_for_end();
+}
+
+void
+run_upost(ak_app* a, ak_dur delta)
+{
+  ak_da_for_rev_begin(
+    ak_applayer, &a->layers, i, l);
+
+  if (l->on_upost) {
+    l->on_upost(l->ctx, delta);
+  }
+
+  ak_da_for_end();
+}
+
+//--- public ---//
 ak_app*
 ak_app_make(ak_applayer_regs* regs,
             ak_alct alct)
@@ -54,6 +142,8 @@ ak_app_make(ak_applayer_regs* regs,
   app->layers =
     ak_da_make(sizeof(ak_applayer), alct);
   app->eq = ak_app_eq_make(alct);
+  app->framerate = ak_dur_from_millis(50);
+  app->should_close = false;
 
   ak_applayer l = { 0 };
   while (ak_applayer_regs_pop(regs, &l)) {
@@ -71,4 +161,24 @@ ak_app_destroy(ak_app* a)
 }
 
 void
-ak_app_run(ak_app* a);
+ak_app_run(ak_app* a)
+{
+  run_startup(a);
+
+  while (!a->should_close) {
+    ak_dur frame_start = ak_dur_now();
+    ak_dur frame_end = ak_dur_now();
+
+    ak_dur diff = ak_dur_subtract(
+      frame_end, frame_start);
+    // sleep;
+  }
+
+  run_shutdown(a);
+}
+
+void
+ak_app_close(ak_app* a)
+{
+  a->should_close = true;
+}

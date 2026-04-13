@@ -2,6 +2,7 @@
 #define ak_program_program_h
 
 #include "ak/export.h"
+#include "ak/os/time.h"
 
 typedef void (*ak_pgm_crashfn)(void* ctx);
 
@@ -16,5 +17,8 @@ ak_pgm_crashfn_reg(ak_pgm_crashfn fn,
 
 ak_ex void
 ak_program_crash();
+
+ak_ex void
+ak_program_sleep(ak_dur t);
 
 #endif

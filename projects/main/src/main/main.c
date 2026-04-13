@@ -1,9 +1,11 @@
+#include "ak/program/program.h"
 #include <ak/ak.h>
 
 int
 main()
 {
+  ak_program_startup();
 
-  hello();
+  ak_program_shutdown();
   return 0;
 }

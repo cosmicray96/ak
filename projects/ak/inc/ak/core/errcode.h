@@ -13,7 +13,8 @@
   X(ak_err_double_free)                     \
   X(ak_err_bad_format)                      \
   X(ak_err_allocation_failed)               \
-  X(ak_err_log_err)
+  X(ak_err_log_err)                         \
+  X(ak_err_sleep)
 
 typedef enum
 {
