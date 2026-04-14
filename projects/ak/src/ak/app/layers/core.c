@@ -78,6 +78,20 @@ on_event(void* ctx, ak_evt e)
 {
   ak_lcore* l = ctx;
 
+  if (e.type != ak_evt_type_win) {
+    return false;
+  }
+  if (e.win.type != ak_winevt_key) {
+    return false;
+  }
+  ak_log("key: %d", e.win.key.code);
+  ak_log("mode: %d", e.win.key.mode);
+  ak_log("action: %s",
+         e.win.key.action ==
+             ak_keyaction_pressed
+           ? "pressed"
+           : "released");
+
   return false;
 }
 

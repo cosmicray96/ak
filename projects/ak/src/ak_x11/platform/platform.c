@@ -131,7 +131,7 @@ ak_platform_eventflush(ak_platform* p,
           continue;
         }
 
-        if (ak_window_key_pressed(
+        if (!ak_window_key_pressed(
               ex11.w, e.win.key.code)) {
           ak_app_eq_push(eq, e);
         }
