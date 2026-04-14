@@ -70,22 +70,13 @@ on_epusher(void* ctx, ak_app_eq* eq)
     pgmevt = ak_pgm_event_pop();
   }
 
-  ak_window_eventflush(l->w, eq);
+  ak_platform_eventflush(l->p, eq);
 }
 
 bool
 on_event(void* ctx, ak_evt e)
 {
   ak_lcore* l = ctx;
-
-  if (e.type == ak_evt_type_win &&
-      e.win.type == ak_winevt_mouse &&
-      e.win.mouse.btn ==
-        ak_winevt_mouse_left) {
-    ak_log("Mouse Left: (%x, %y)",
-           e.win.mouse.x,
-           e.win.mouse.y);
-  }
 
   return false;
 }

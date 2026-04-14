@@ -2,6 +2,7 @@
 #define ak_da_h
 
 #include "ak/coll/dbuff.h"
+#include <stdbool.h>
 #include <stdint.h>
 
 typedef struct ak_da ak_da;
@@ -24,6 +25,12 @@ ak_da_alct(const ak_da* da)
 {
   return ak_dbuff_alct(&da->dbuff);
 }
+
+static uint32_t
+ak_da_itemsize(const ak_da* da)
+{
+  return ak_dbuff_itemsize(&da->dbuff);
+}
 static uint32_t
 ak_da_cap(const ak_da* da)
 {
@@ -43,7 +50,7 @@ ak_da_at_copy(const ak_da* da,
 ak_ex void*
 ak_da_at_impl(ak_da* da, uint32_t idx);
 #define ak_da_at(t, da, idx)                \
-  ((t)*)ak_da_at_impl(da, idx)
+  (t*)ak_da_at_impl(da, idx)
 ak_ex const void*
 ak_da_at_const_impl(const ak_da* da,
                     uint32_t idx);
@@ -65,6 +72,14 @@ ak_da_overwrite(ak_da* da,
 
 ak_ex void
 ak_da_remove(ak_da* da, uint32_t idx);
+
+typedef bool (*ak_equal_fn)(const void* a,
+                            const void* b);
+ak_ex bool
+ak_da_findfirst(ak_da* da,
+                const void* item,
+                uint32_t* idx,
+                ak_equal_fn fn);
 
 #define ak_da_for_rev_begin(                \
   type, da, idx, elm)                       \

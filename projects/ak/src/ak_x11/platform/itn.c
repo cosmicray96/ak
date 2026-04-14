@@ -1,0 +1,196 @@
+#include "ak_x11/platform/itn.h"
+
+#include <X11/X.h>
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+
+ak_keycode
+ak_keycode_from_x11(XKeyEvent* e)
+{
+  KeySym sym = XLookupKeysym(
+    e, 0); // 0 = ignore shift state
+  switch (sym) {
+      // num
+    case XK_0:
+      return ak_key_0;
+    case XK_1:
+      return ak_key_1;
+    case XK_2:
+      return ak_key_2;
+    case XK_3:
+      return ak_key_3;
+    case XK_4:
+      return ak_key_4;
+    case XK_5:
+      return ak_key_5;
+    case XK_6:
+      return ak_key_6;
+    case XK_7:
+      return ak_key_7;
+    case XK_8:
+      return ak_key_8;
+    case XK_9:
+      return ak_key_9;
+
+      // numpad
+    case XK_KP_0:
+      return ak_key_np0;
+    case XK_KP_1:
+      return ak_key_np1;
+    case XK_KP_2:
+      return ak_key_np2;
+    case XK_KP_3:
+      return ak_key_np3;
+    case XK_KP_4:
+      return ak_key_np4;
+    case XK_KP_5:
+      return ak_key_np5;
+    case XK_KP_6:
+      return ak_key_np6;
+    case XK_KP_7:
+      return ak_key_np7;
+    case XK_KP_8:
+      return ak_key_np8;
+    case XK_KP_9:
+      return ak_key_np9;
+
+      // char
+    case XK_a:
+      return ak_key_a;
+    case XK_b:
+      return ak_key_b;
+    case XK_c:
+      return ak_key_c;
+    case XK_d:
+      return ak_key_d;
+    case XK_e:
+      return ak_key_e;
+    case XK_f:
+      return ak_key_f;
+    case XK_g:
+      return ak_key_g;
+    case XK_h:
+      return ak_key_h;
+    case XK_i:
+      return ak_key_i;
+    case XK_j:
+      return ak_key_j;
+    case XK_k:
+      return ak_key_k;
+    case XK_l:
+      return ak_key_l;
+    case XK_m:
+      return ak_key_m;
+    case XK_n:
+      return ak_key_n;
+    case XK_o:
+      return ak_key_o;
+    case XK_p:
+      return ak_key_p;
+    case XK_q:
+      return ak_key_q;
+    case XK_r:
+      return ak_key_r;
+    case XK_s:
+      return ak_key_s;
+    case XK_t:
+      return ak_key_t;
+    case XK_u:
+      return ak_key_u;
+    case XK_v:
+      return ak_key_v;
+    case XK_w:
+      return ak_key_w;
+    case XK_x:
+      return ak_key_x;
+    case XK_y:
+      return ak_key_y;
+    case XK_z:
+      return ak_key_z;
+
+      // function
+    case XK_F1:
+      return ak_key_f1;
+    case XK_F2:
+      return ak_key_f2;
+    case XK_F3:
+      return ak_key_f3;
+    case XK_F4:
+      return ak_key_f4;
+    case XK_F5:
+      return ak_key_f5;
+    case XK_F6:
+      return ak_key_f6;
+    case XK_F7:
+      return ak_key_f7;
+    case XK_F8:
+      return ak_key_f8;
+    case XK_F9:
+      return ak_key_f9;
+    case XK_F10:
+      return ak_key_f10;
+    case XK_F11:
+      return ak_key_f11;
+    case XK_F12:
+      return ak_key_f12;
+
+      // navigation
+    case XK_Up:
+      return ak_key_up;
+    case XK_Down:
+      return ak_key_down;
+    case XK_Left:
+      return ak_key_left;
+    case XK_Right:
+      return ak_key_right;
+    case XK_Home:
+      return ak_key_home;
+    case XK_End:
+      return ak_key_end;
+    case XK_Page_Up:
+      return ak_key_pageup;
+    case XK_Page_Down:
+      return ak_key_pagedown;
+    case XK_Insert:
+      return ak_key_insert;
+    case XK_Delete:
+      return ak_key_delete;
+
+      // editing
+    case XK_Return:
+      return ak_key_enter;
+    case XK_BackSpace:
+      return ak_key_backspace;
+    case XK_Tab:
+      return ak_key_tab;
+    case XK_Escape:
+      return ak_key_escape;
+
+      // modifiers
+    case XK_Shift_L:
+      return ak_key_lshift;
+    case XK_Shift_R:
+      return ak_key_rshift;
+    case XK_Control_L:
+      return ak_key_lctrl;
+    case XK_Control_R:
+      return ak_key_rctrl;
+    case XK_Alt_L:
+      return ak_key_lalt;
+    case XK_Alt_R:
+      return ak_key_ralt;
+    case XK_Super_L:
+      return ak_key_lsuper;
+    case XK_Super_R:
+      return ak_key_rsuper;
+    case XK_Caps_Lock:
+      return ak_key_capslock;
+    case XK_Num_Lock:
+      return ak_key_numlock;
+    case XK_Scroll_Lock:
+      return ak_key_scrolllock;
+
+    default:
+      return ak_key_none;
+  }
+}

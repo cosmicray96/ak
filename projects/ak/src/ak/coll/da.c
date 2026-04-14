@@ -1,6 +1,7 @@
 #include "ak/coll/da.h"
 #include "ak/coll/dbuff.h"
 #include "ak/debug.h"
+#include <string.h>
 
 //===== ak_da =====//
 //--- private ---//
@@ -118,4 +119,21 @@ ak_da_remove(ak_da* da, uint32_t idx)
                           da->count - idx -
                             1);
   da->count--;
+}
+
+bool
+ak_da_findfirst(ak_da* da,
+                const void* item,
+                uint32_t* idx,
+                ak_equal_fn fn)
+{
+  for (uint32_t i = 0; i < ak_da_count(da);
+       i++) {
+    void* cddt = ak_da_at_impl(da, i);
+    if (fn(item, cddt)) {
+      return true;
+    }
+  }
+
+  return false;
 }
