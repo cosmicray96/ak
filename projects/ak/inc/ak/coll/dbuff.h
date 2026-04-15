@@ -88,4 +88,7 @@ ak_ex void
 ak_dbuff_cap_inc_w_copy(ak_dbuff* d,
                         uint32_t inc_by);
 
+#define ak_dbuff_at_t(t, d, idx)            \
+  (t*)ak_dbuff_at(d, idx)
+
 #endif
