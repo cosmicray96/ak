@@ -1,6 +1,7 @@
 #include "ak/os/file.h"
 #include "ak/debug.h"
 
+#include <errno.h>
 #include <fcntl.h>
 #include <stdint.h>
 #include <string.h>
@@ -61,7 +62,7 @@ ak_frawstream_make(const char* path,
   int flags = fopen_mode_to_flags(mode);
   ak_assert(flags >= 0);
 
-  int f = open(path, flags);
+  int f = open(path, flags, 0644);
   ak_assert(f > 0);
 
   s.ctx = (void*)(uintptr_t)f;

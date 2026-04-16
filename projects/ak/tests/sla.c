@@ -28,7 +28,6 @@ main()
 
     ak_sla s =
       ak_sla_make(sizeof(uint32_t), alct);
-    ak_sla_destroy(&s);
     ak_sla_h hs[20] = { 0 };
 
     for (uint32_t i = 0; i < 20; i++) {
@@ -41,6 +40,90 @@ main()
       ak_assert(*v == i * 100);
     }
 
+    ak_sla_destroy(&s);
+    ak_log("done.");
+  }
+  {
+    ak_log("basic3");
+
+    ak_sla s =
+      ak_sla_make(sizeof(uint32_t), alct);
+    ak_sla_h hs[20] = { 0 };
+
+    for (uint32_t i = 0; i < 20; i++) {
+      uint32_t v = i * 100;
+      hs[i] = ak_sla_insert(&s, &v);
+    }
+    ak_sla_remove(&s, hs[10]);
+    for (uint32_t i = 0; i < 10; i++) {
+      ak_assert(ak_sla_exist(&s, hs[i]));
+      uint32_t* v = ak_sla_at(&s, hs[i]);
+      ak_assert(*v == i * 100);
+    }
+
+    ak_assert(!ak_sla_exist(&s, hs[10]));
+
+    for (uint32_t i = 11; i < 20; i++) {
+      ak_assert(ak_sla_exist(&s, hs[i]));
+      uint32_t* v = ak_sla_at(&s, hs[i]);
+      ak_assert(*v == i * 100);
+    }
+
+    ak_sla_destroy(&s);
+    ak_log("done.");
+  }
+  {
+    ak_log("basic4");
+
+    ak_sla s =
+      ak_sla_make(sizeof(uint32_t), alct);
+    ak_sla_h hs[20] = { 0 };
+
+    for (uint32_t i = 0; i < 20; i++) {
+      uint32_t v = i * 100;
+      hs[i] = ak_sla_insert(&s, &v);
+    }
+    for (uint32_t i = 5; i < 15; i++) {
+      ak_sla_remove(&s, hs[i]);
+      ak_assert(!ak_sla_exist(&s, hs[i]));
+    }
+
+    for (uint32_t i = 0; i < 5; i++) {
+      ak_assert(ak_sla_exist(&s, hs[i]));
+      uint32_t* v = ak_sla_at(&s, hs[i]);
+      ak_assert(*v == i * 100);
+    }
+    for (uint32_t i = 5; i < 15; i++) {
+      ak_assert(!ak_sla_exist(&s, hs[i]));
+    }
+    for (uint32_t i = 15; i < 20; i++) {
+      ak_assert(ak_sla_exist(&s, hs[i]));
+      uint32_t* v = ak_sla_at(&s, hs[i]);
+      ak_assert(*v == i * 100);
+    }
+
+    for (uint32_t i = 5; i < 15; i++) {
+      uint32_t v = i * 1000;
+      hs[i] = ak_sla_insert(&s, &v);
+    }
+
+    for (uint32_t i = 0; i < 5; i++) {
+      ak_assert(ak_sla_exist(&s, hs[i]));
+      uint32_t* v = ak_sla_at(&s, hs[i]);
+      ak_assert(*v == i * 100);
+    }
+    for (uint32_t i = 5; i < 15; i++) {
+      ak_assert(ak_sla_exist(&s, hs[i]));
+      uint32_t* v = ak_sla_at(&s, hs[i]);
+      ak_assert(*v == i * 1000);
+    }
+    for (uint32_t i = 15; i < 20; i++) {
+      ak_assert(ak_sla_exist(&s, hs[i]));
+      uint32_t* v = ak_sla_at(&s, hs[i]);
+      ak_assert(*v == i * 100);
+    }
+
+    ak_sla_destroy(&s);
     ak_log("done.");
   }
   ak_log("sla done");

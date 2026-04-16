@@ -163,7 +163,7 @@ ak_dbuff_grow_w_copy(ak_dbuff* d)
   void* new_buff =
     ak_alct_alloc(d->alct, new_cap * d->is);
 
-  memcpy(new_buff, d->buff, d->cap);
+  memcpy(new_buff, d->buff, d->cap * d->is);
   ak_alct_free(d->alct, d->buff);
 
   d->buff = new_buff;
@@ -183,7 +183,7 @@ ak_dbuff_cap_inc_w_copy(ak_dbuff* d,
   void* new_buff =
     ak_alct_alloc(d->alct, new_cap * d->is);
 
-  memcpy(new_buff, d->buff, d->cap);
+  memcpy(new_buff, d->buff, d->cap * d->is);
   ak_alct_free(d->alct, d->buff);
 
   d->buff = new_buff;

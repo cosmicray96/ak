@@ -8,6 +8,12 @@
 //--- private ---//
 #define s_item_pos 8
 
+static uint32_t
+align8(uint32_t size)
+{
+  return (size + 7u) & ~7u;
+}
+
 static ak_sla_h
 handle_make(uint32_t idx, uint32_t gen)
 {
@@ -28,22 +34,23 @@ get_gen(ak_sla_h h)
 static uint32_t*
 get_gen_p(ak_sla* s, uint32_t idx)
 {
-  return ak_dbuff_at_t(
-    uint32_t, &s->slots, idx);
+  return (uint32_t*)ak_dbuff_at(&s->slots,
+                                idx);
 }
 
 static void
-gen_inc(ak_sla* s, ak_sla_h h)
+gen_inc(ak_sla* s, uint32_t idx)
 {
-  (*get_gen_p(s, get_idx(h)))++;
+  (*get_gen_p(s, idx))++;
 }
 
 static void*
 get_item(ak_sla* s, uint32_t idx)
 {
   void* ptr = ak_dbuff_at(&s->slots, idx);
-  return (void*)((uintptr_t)ptr +
-                 s_item_pos);
+  void* p =
+    (void*)((uintptr_t)ptr + s_item_pos);
+  return p;
 }
 static void
 set_item(ak_sla* s,
@@ -63,8 +70,10 @@ get_free_idx(ak_sla* s, uint32_t idx)
 static uint32_t
 slot_size(uint32_t itemsize)
 {
-  return (sizeof(ak_sla_h) + itemsize + 7) &
-         ~7;
+  uint32_t size = 0;
+  size += align8(sizeof(uint32_t));
+  size += align8(itemsize);
+  return size;
 }
 
 static void
@@ -75,9 +84,7 @@ init_slots(ak_sla* s, uint32_t start_idx)
   for (uint32_t i = start_idx; i < cap;
        i++) {
     *get_gen_p(s, i) = 0;
-
-    uint32_t* free_idx = get_free_idx(s, i);
-    *free_idx = i + 1;
+    *get_free_idx(s, i) = i + 1;
   }
   s->free_head_idx = start_idx;
 }
@@ -139,6 +146,8 @@ ak_sla_destroy(ak_sla* s)
 bool
 ak_sla_exist(ak_sla* s, ak_sla_h h)
 {
+  ak_assert(get_idx(h) <
+            ak_dbuff_cap(&s->slots));
   return (*get_gen_p(s, get_idx(h))) ==
          get_gen(h);
 }
@@ -146,6 +155,9 @@ ak_sla_exist(ak_sla* s, ak_sla_h h)
 void*
 ak_sla_at(ak_sla* s, ak_sla_h h)
 {
+
+  ak_assert(get_idx(h) <
+            ak_dbuff_cap(&s->slots));
   ak_assert(ak_sla_exist(s, h));
   return get_item(s, get_idx(h));
 }
@@ -159,16 +171,19 @@ ak_sla_insert(ak_sla* s, const void* item)
   set_item(s, idx, item);
 
   s->count++;
-  return handle_make(*get_gen_p(s, idx),
-                     idx);
+  ak_sla_h h =
+    handle_make(idx, *get_gen_p(s, idx));
+  return h;
 }
 
 void
 ak_sla_remove(ak_sla* s, ak_sla_h h)
 {
+  ak_assert(get_idx(h) <
+            ak_dbuff_cap(&s->slots));
   ak_assert(s->count > 0);
   ak_assert(ak_sla_exist(s, h));
-  gen_inc(s, h);
+  gen_inc(s, get_idx(h));
   free_idx_push(s, get_idx(h));
   s->count--;
 }
