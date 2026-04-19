@@ -2,8 +2,8 @@
 #define ak_platform_core_h
 
 #include <stdint.h>
-typedef struct ak_platform ak_platform;
-typedef struct ak_window ak_window;
+typedef struct ak_plat ak_plat;
+typedef uint64_t ak_window;
 
 typedef enum
 {
@@ -192,7 +192,7 @@ typedef struct
 typedef struct
 {
   ak_winevt_type type;
-  ak_window* win;
+  ak_window w;
   union
   {
     ak_mouseevt mouse;

@@ -8,8 +8,7 @@
 #include "ak/program/core.h"
 #include "ak/program/event.h"
 
-#include "ak/platform/platform.h"
-#include "ak/platform/window.h"
+#include "ak/platform/plat.h"
 
 //===== ak_lcore =====//
 //--- private ---//
@@ -17,8 +16,9 @@ struct ak_lcore
 {
   ak_alct alct;
   ak_app* app;
-  ak_platform* p;
-  ak_window* w;
+  ak_plat* p;
+  ak_window w;
+  ak_window w2;
 };
 
 //--- public ---//
@@ -44,15 +44,17 @@ on_startup(void* ctx, ak_app* app)
 {
   ak_lcore* l = ctx;
   l->app = app;
-  l->p = ak_platform_startup(l->alct);
-  l->w = ak_window_make(l->p, l->alct);
+  l->p = ak_plat_startup(l->alct);
+  l->w = ak_plat_win_make(l->p);
+  l->w2 = ak_plat_win_make(l->p);
 }
 void
 on_shutdown(void* ctx)
 {
   ak_lcore* l = ctx;
-  ak_window_destroy(l->w);
-  ak_platform_shutdown(l->p);
+  ak_plat_win_destroy(l->p, l->w);
+  ak_plat_win_destroy(l->p, l->w2);
+  ak_plat_shutdown(l->p);
 }
 
 void
@@ -70,7 +72,7 @@ on_epusher(void* ctx, ak_app_eq* eq)
     pgmevt = ak_pgm_event_pop();
   }
 
-  ak_platform_eventflush(l->p, eq);
+  ak_plat_eventflush(l->p, eq);
 }
 
 bool
@@ -91,6 +93,7 @@ on_event(void* ctx, ak_evt e)
              ak_keyaction_pressed
            ? "pressed"
            : "released");
+  ak_log("window: %d", e.win.w);
 
   return false;
 }
