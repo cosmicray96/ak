@@ -2,7 +2,6 @@
 #define ak_coll_sla_h
 
 #include "ak/coll/dbuff.h"
-#include "ak/coll/dq.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/export.h"
 #include <stdbool.h>
@@ -28,6 +27,9 @@ ak_sla_exist(ak_sla* s, ak_sla_h h);
 
 ak_ex void*
 ak_sla_at(ak_sla* s, ak_sla_h h);
+
+ak_ex ak_sla_h
+ak_sla_insert_empty(ak_sla* s);
 ak_ex ak_sla_h
 ak_sla_insert(ak_sla* s, const void* item);
 ak_ex void

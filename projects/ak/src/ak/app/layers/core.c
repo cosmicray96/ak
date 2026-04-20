@@ -17,8 +17,6 @@ struct ak_lcore
   ak_alct alct;
   ak_app* app;
   ak_plat* p;
-  ak_window w;
-  ak_window w2;
 };
 
 //--- public ---//
@@ -45,15 +43,11 @@ on_startup(void* ctx, ak_app* app)
   ak_lcore* l = ctx;
   l->app = app;
   l->p = ak_plat_startup(l->alct);
-  l->w = ak_plat_win_make(l->p);
-  l->w2 = ak_plat_win_make(l->p);
 }
 void
 on_shutdown(void* ctx)
 {
   ak_lcore* l = ctx;
-  ak_plat_win_destroy(l->p, l->w);
-  ak_plat_win_destroy(l->p, l->w2);
   ak_plat_shutdown(l->p);
 }
 
@@ -93,7 +87,6 @@ on_event(void* ctx, ak_evt e)
              ak_keyaction_pressed
            ? "pressed"
            : "released");
-  ak_log("window: %d", e.win.w);
 
   return false;
 }

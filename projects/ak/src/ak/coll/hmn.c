@@ -2,6 +2,7 @@
 #include "ak/coll/dbuff.h"
 #include "ak/core/errcode.h"
 #include "ak/debug.h"
+
 #include <stdint.h>
 
 #define s_gr 2
@@ -19,7 +20,7 @@ typedef struct
     alive,
     dead
   } state;
-} item;
+} keystate;
 
 //===== ak_hmn =====//
 //--- private ---//
@@ -53,7 +54,7 @@ keystates_empty(ak_hmn* h)
 {
   uint32_t cap = get_cap(h);
   for (uint32_t i = 0; i < cap; i++) {
-    item* itm =
+    keystate* itm =
       ak_dbuff_at(&h->keystates, i);
     itm->state = empty;
   }
@@ -66,8 +67,11 @@ ak_hmn_make_startingcount(
   ak_alct alct)
 {
   ak_hmn h = { 0 };
-  h.keystates = ak_dbuff_make(
-    sizeof(item), s_gr, startingcount, alct);
+  h.keystates =
+    ak_dbuff_make(sizeof(keystate),
+                  s_gr,
+                  startingcount,
+                  alct);
   h.values = ak_dbuff_make(
     valuesize, s_gr, startingcount, alct);
   h.count = 0;
@@ -101,7 +105,7 @@ resize_ifneed(ak_hmn* h)
     ak_hmn_alct(h));
 
   for (uint32_t i = 0; i < cap; i++) {
-    const item* itm =
+    const keystate* itm =
       ak_dbuff_at_const(&h->keystates, i);
     if (itm->state != alive) {
       continue;
@@ -144,7 +148,7 @@ ak_hmn_at_itn_u64(ak_hmn* h, uint64_t key)
 
   for (uint32_t i = 0; i < cap;
        i++, idx = (idx + 1) % cap) {
-    item* itm =
+    keystate* itm =
       ak_dbuff_at(&h->keystates, idx);
     if (itm->state == alive) {
       if (itm->key == key) {
@@ -187,7 +191,7 @@ ak_hmn_insert_u64(ak_hmn* h,
 
   for (uint32_t i = 0; i < cap;
        i++, idx = (idx + 1) % cap) {
-    item* itm =
+    keystate* itm =
       ak_dbuff_at(&h->keystates, idx);
 
     if (itm->state == alive) {
@@ -207,8 +211,8 @@ ak_hmn_insert_u64(ak_hmn* h,
     if (dead_idx != -1) {
       idx = dead_idx;
     }
-    item new_itm = { .key = key,
-                     .state = alive };
+    keystate new_itm = { .key = key,
+                         .state = alive };
 
     ak_dbuff_overwrite(
       &h->keystates, idx, &new_itm);
@@ -228,7 +232,7 @@ ak_hmn_remove_u64(ak_hmn* h, uint64_t key)
 
   for (uint32_t i = 0; i < cap;
        i++, idx = (idx + 1) % cap) {
-    item* itm =
+    keystate* itm =
       ak_dbuff_at(&h->keystates, idx);
     if (itm->state == alive) {
       if (itm->key == key) {

@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 typedef struct ak_plat ak_plat;
-typedef uint64_t ak_window;
 
 typedef enum
 {
@@ -11,7 +10,11 @@ typedef enum
   ak_winevt_close,
   ak_winevt_resize,
   ak_winevt_mouse,
-  ak_winevt_key
+  ak_winevt_key,
+  ak_winevt_visible,
+  ak_winevt_invisible,
+  ak_winevt_focus_gained,
+  ak_winevt_focus_lost,
 } ak_winevt_type;
 
 typedef enum
@@ -192,15 +195,14 @@ typedef struct
 typedef struct
 {
   ak_winevt_type type;
-  ak_window w;
   union
   {
     ak_mouseevt mouse;
     ak_keyevt key;
     struct
     {
-      uint32_t x;
-      uint32_t y;
+      uint32_t w;
+      uint32_t h;
     } resize;
   };
 } ak_winevt;
