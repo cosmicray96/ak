@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-typedef uint64_t ak_sibt_h;
+typedef uint32_t ak_sibt_h;
 typedef struct ak_sibt ak_sibt;
 struct ak_sibt
 {
@@ -20,9 +20,6 @@ ak_sibt_make(uint32_t itemsize,
              ak_alct alct);
 ak_ex void
 ak_sibt_destroy(ak_sibt* t);
-
-ak_ex bool
-ak_sibt_n_exist(ak_sibt* t, ak_sibt_h h);
 
 ak_ex ak_sibt_h
 ak_sibt_n_parent(ak_sibt* t, ak_sibt_h h);
