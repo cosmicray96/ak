@@ -249,3 +249,36 @@ ak_hmn_remove_u64(ak_hmn* h, uint64_t key)
     ak_ec(ak_err_removed_remove);
   }
 }
+
+//===== ak_hmn_iter =====//
+//--- export ---//
+ak_hmn_iter
+ak_hmn_iter_make(ak_hmn* h)
+{
+  ak_hmn_iter it = { 0 };
+  it.h = h;
+  it.idx = 0;
+  return it;
+}
+
+bool
+ak_hmn_iter_next_u64(ak_hmn_iter* it,
+                     uint64_t* o_key,
+                     void** o_value)
+{
+  uint32_t cap =
+    ak_dbuff_cap(&it->h->values);
+  for (; it->idx < cap; it->idx++) {
+    keystate* s = ak_dbuff_at(
+      &it->h->keystates, it->idx);
+    if (s->state != alive) {
+      continue;
+    }
+    *o_key = s->key;
+    *o_value =
+      ak_dbuff_at(&it->h->values, it->idx);
+    return true;
+  }
+
+  return false;
+}

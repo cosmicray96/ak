@@ -70,4 +70,17 @@ ak_hmn_remove_i64(ak_hmn* h, int64_t key)
 #define ak_hmn_at_u64_t(t, da, key)         \
   (t*)ak_hmn_at_u64(da, key)
 
+typedef struct
+{
+  ak_hmn* h;
+  uint32_t idx;
+} ak_hmn_iter;
+
+ak_ex ak_hmn_iter
+ak_hmn_iter_make(ak_hmn* h);
+ak_ex bool
+ak_hmn_iter_next_u64(ak_hmn_iter* it,
+                     uint64_t* o_key,
+                     void** o_value);
+
 #endif
