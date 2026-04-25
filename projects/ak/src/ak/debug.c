@@ -145,8 +145,9 @@ ak_debug_startup()
 {
   d.s = ak_fstream_make("./log.txt", "w");
 
-  d.sraw =
-    ak_frawstream_make("./lograw.txt", "w");
+  d.sraw = (ak_iostream){ 0 };
+  //    ak_frawstream_make("./lograw.txt",
+  //    "w");
 
   const char* buf = "Debug Startup.\n";
   ak_iostream_write(d.s, buf, strlen(buf));
@@ -253,6 +254,7 @@ ak_log_crash()
 void
 ak_log_crash_fatal()
 {
+  return;
   char buf[s_fatal_log_size] = "[Ftl]\n";
   ak_iostream_write(
     d.sraw, buf, s_fatal_log_size);

@@ -18,6 +18,16 @@ ak_p_sub(const void* p, uint32_t n)
 ak_ex void
 ak_p_cpy(void* dest,
          const void* src,
-         uint32_t n);
+         uint32_t count);
+
+ak_ex void
+ak_p_swap(void* p1,
+          void* p2,
+          uint32_t count);
+
+ak_ex void
+ak_p_set_byte(void* dest,
+              uint8_t n,
+              uint32_t count);
 
 #endif

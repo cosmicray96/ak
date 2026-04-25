@@ -22,6 +22,8 @@ ensure_page(ak_pbuff* pb, uint32_t page_idx)
 
   void* page = ak_alct_alloc(
     ak_hmn_alct(&pb->pages), s_page_size);
+  ak_p_set_byte(page, 0, s_page_size);
+
   ak_hmn_insert_u64(
     &pb->pages, page_idx, &page);
 }
@@ -51,7 +53,7 @@ ak_pbuff_destroy(ak_pbuff* pb)
   void* value = 0;
   while (ak_hmn_iter_next_u64(
     &it, &key, &value)) {
-    ak_alct_free(alct, value);
+    ak_alct_free(alct, *(void**)value);
   }
   ak_hmn_destroy(&pb->pages);
   pb->itemsize = 0;
@@ -67,9 +69,9 @@ ak_pbuff_at(ak_pbuff* pb, uint32_t idx)
 
   ensure_page(pb, page_idx);
 
-  void* page =
+  void** page =
     ak_hmn_at_u64(&pb->pages, page_idx);
-  return ak_p_add(page,
+  return ak_p_add(*page,
                   inpage_idx * pb->itemsize);
 }
 

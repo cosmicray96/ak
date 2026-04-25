@@ -277,6 +277,7 @@ ak_hmn_iter_next_u64(ak_hmn_iter* it,
     *o_key = s->key;
     *o_value =
       ak_dbuff_at(&it->h->values, it->idx);
+    it->idx++;
     return true;
   }
 

@@ -63,6 +63,10 @@ ak_dbuff_at_const(const ak_dbuff* d,
                   uint32_t idx);
 
 ak_ex void
+ak_dbuff_overwrite_zero(ak_dbuff* d,
+                        uint32_t idx);
+
+ak_ex void
 ak_dbuff_overwrite(ak_dbuff* d,
                    uint32_t idx,
                    const void* item);
@@ -73,6 +77,11 @@ ak_dbuff_bulk_overwrite(ak_dbuff* dest,
                         uint32_t dest_idx,
                         uint32_t src_idx,
                         uint32_t src_count);
+
+ak_ex void
+ak_dbuff_swap(ak_dbuff* d,
+              uint32_t idx1,
+              uint32_t idx2);
 
 ak_ex void
 ak_dbuff_ensure_cap(ak_dbuff* d,

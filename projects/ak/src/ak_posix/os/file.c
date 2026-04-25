@@ -1,7 +1,6 @@
 #include "ak/os/file.h"
 #include "ak/debug.h"
 
-#include <errno.h>
 #include <fcntl.h>
 #include <stdint.h>
 #include <string.h>

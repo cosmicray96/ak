@@ -43,6 +43,12 @@ ak_da_count(const ak_da* da)
 }
 
 ak_ex void
+ak_da_overwrite_zero(ak_da* da,
+                     uint32_t idx);
+ak_ex void*
+ak_da_pushback_zero(ak_da* da);
+
+ak_ex void
 ak_da_at_copy(const ak_da* da,
               uint32_t idx,
               void* item);
@@ -72,6 +78,10 @@ ak_da_overwrite(ak_da* da,
 
 ak_ex void
 ak_da_remove(ak_da* da, uint32_t idx);
+
+ak_ex void
+ak_da_remove_swaplast(ak_da* da,
+                      uint32_t idx);
 
 typedef bool (*ak_equal_fn)(const void* a,
                             const void* b);

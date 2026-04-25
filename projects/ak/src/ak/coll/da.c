@@ -39,6 +39,24 @@ ak_da_clear(ak_da* da)
 }
 
 void
+ak_da_overwrite_zero(ak_da* da, uint32_t idx)
+{
+  ak_assert(idx < da->count);
+  ak_dbuff_overwrite_zero(&da->dbuff, idx);
+}
+
+ak_ex void*
+ak_da_pushback_zero(ak_da* da)
+{
+  resize_ifneeded(da);
+
+  da->count++;
+  ak_da_overwrite_zero(da, da->count - 1);
+
+  return ak_da_at_impl(da, da->count - 1);
+}
+
+void
 ak_da_at_copy(const ak_da* da,
               uint32_t idx,
               void* item)
@@ -118,6 +136,23 @@ ak_da_remove(ak_da* da, uint32_t idx)
                           idx + 1,
                           da->count - idx -
                             1);
+  da->count--;
+}
+
+void
+ak_da_remove_swaplast(ak_da* da,
+                      uint32_t idx)
+{
+  ak_assert(idx < da->count);
+  ak_assert(da->count > 0);
+  if (idx == da->count - 1) {
+    da->count--;
+    return;
+  }
+
+  ak_dbuff_swap(
+    &da->dbuff, idx, da->count - 1);
+
   da->count--;
 }
 

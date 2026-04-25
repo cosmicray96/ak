@@ -1,4 +1,5 @@
 #include "ak/coll/dbuff.h"
+#include "ak/core/mem/ptr.h"
 #include "ak/debug.h"
 #include <stdint.h>
 #include <string.h>
@@ -83,11 +84,34 @@ ak_dbuff_at_const(const ak_dbuff* d,
 }
 
 void
+ak_dbuff_overwrite_zero(ak_dbuff* d,
+                        uint32_t idx)
+{
+  void* dest = ak_dbuff_at(d, idx);
+  memset(dest, 0, d->is);
+}
+
+void
 ak_dbuff_overwrite(ak_dbuff* d,
                    uint32_t idx,
                    const void* item)
 {
   memcpy(ak_dbuff_at(d, idx), item, d->is);
+}
+
+void
+ak_dbuff_swap(ak_dbuff* d,
+              uint32_t idx1,
+              uint32_t idx2)
+{
+  ak_assert(idx1 < d->cap);
+  ak_assert(idx2 < d->cap);
+  if (idx1 == idx2) {
+    return;
+  }
+  ak_p_swap(ak_dbuff_at(d, idx1),
+            ak_dbuff_at(d, idx2),
+            d->is);
 }
 
 void
