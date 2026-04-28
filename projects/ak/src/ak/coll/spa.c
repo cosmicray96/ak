@@ -122,14 +122,12 @@ ak_spa_insert(ak_spa* s,
 {
   ak_assert(!ak_spa_exist(s, s_idx));
 
-  uint32_t* d_idx_p =
-    ak_pbuff_at(&s->s_to_d_idxs, s_idx);
-  *d_idx_p = ak_da_count(&s->denses);
-
+  uint32_t d_idx = ak_da_count(&s->denses);
   ak_da_pushback_zero(&s->denses);
 
-  *get_s_from_d_idx_p(s, *d_idx_p) = s_idx;
-  set_item(s, *d_idx_p, item);
+  *get_d_from_s_idx_p(s, s_idx) = d_idx;
+  *get_s_from_d_idx_p(s, d_idx) = s_idx;
+  set_item(s, d_idx, item);
 }
 
 void
