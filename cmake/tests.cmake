@@ -60,5 +60,6 @@ function(cm_test_add target_name test_name)
 		RUNTIME_OUTPUT_DIRECTORY "${cm_tests_dir}/${target_name}"
 	)
 
+target_link_libraries(${test_full_name} PRIVATE m)
 	cmi_impl_add_test(${target_name} ${test_full_name})
 endfunction()

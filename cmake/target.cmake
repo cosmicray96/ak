@@ -46,6 +46,7 @@ function(cm_target_add_exe target_name)
 		"${target_name}_${CMAKE_BUILD_TYPE}"
 	)
 
+target_link_libraries(${target_name} PRIVATE m)
 	cmi_impl_add(${target_name})
 endfunction()
 
@@ -79,7 +80,8 @@ function(cm_target_add_shared target_name)
 		PRIVATE
 		"${target_name}_inside"
 	)
-	
+
+target_link_libraries(${target_name} PRIVATE m)
 	cmi_impl_add(${target_name})
 endfunction()
 
