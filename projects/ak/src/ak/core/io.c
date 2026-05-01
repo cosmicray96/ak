@@ -30,6 +30,22 @@ ak_iostream_print_u64(ak_iostream io,
   ak_iostream_write(io, buf, nn);
 }
 
+#define f_buf_count 32
+void
+ak_iostream_print_d(ak_iostream io, double d)
+{
+  char buf[f_buf_count];
+  int nn =
+    snprintf(buf, f_buf_count, "%f", d);
+
+  if (nn < 0 || nn >= f_buf_count - 1) {
+    ak_iostream_write(io, "Error", 5);
+    return;
+  }
+
+  ak_iostream_write(io, buf, nn);
+}
+
 //===== sio =====//
 //--- private ---//
 

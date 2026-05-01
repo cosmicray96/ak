@@ -49,6 +49,9 @@ ak_iostream_write_str(ak_iostream s,
 ak_ex void
 ak_iostream_print_u64(ak_iostream io,
                       uint64_t n);
+ak_ex void
+ak_iostream_print_d(ak_iostream io,
+                    double d);
 
 ak_ex ak_iostream
 ak_iostream_sio();

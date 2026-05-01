@@ -1,7 +1,9 @@
 #ifndef ak_core_math_trig_h
 #define ak_core_math_trig_h
 
+#include "ak/core/io.h"
 #include "ak/core/math/fixed.h"
+#include "ak/export.h"
 #include <stdint.h>
 typedef uint16_t ak_angle;
 
@@ -27,4 +29,13 @@ ak_angle_rad(ak_fx32 fx)
                     (65536.0f / (ak_tau_f)));
 }
 
+ak_ex ak_fx32
+ak_sin(ak_angle a);
+
+ak_ex ak_fx32
+ak_cos(ak_angle a);
+
+ak_ex void
+ak_iostream_print_angle(ak_iostream io,
+                        ak_angle ag);
 #endif

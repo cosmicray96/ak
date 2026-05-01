@@ -1,6 +1,21 @@
 #include "ak/core/math/fixed.h"
 #include "ak/core/io.h"
 
+ak_fx32
+ak_fx32_sqrt(ak_fx32 fx)
+{
+  if (fx <= 0)
+    return 0;
+  int64_t n = (int64_t)fx << ak_s_fx32_fbits;
+  int64_t x = n;
+  int64_t y = (x + 1) >> 1;
+  while (y < x) {
+    x = y;
+    y = (x + n / x) >> 1;
+  }
+  return (ak_fx32)x;
+}
+
 void
 ak_iostream_print_fx32(ak_iostream io,
                        ak_fx32 fx)

@@ -1,4 +1,5 @@
 #include "ak/program/program.h"
+#include "ak/core/math/math.h"
 #include "ak/debug.h"
 #include "ak/debug_itn.h"
 #include "ak/program/program_itn.h"
@@ -46,6 +47,8 @@ ak_program_startup()
   p.crashitem_count = 0;
 
   ak_debug_startup();
+  ak_math_startup();
+
   ak_pgm_event_startup(
     &ak_program_crash_fatal);
 }
@@ -54,6 +57,7 @@ void
 ak_program_shutdown()
 {
   ak_pgm_event_shutdown();
+  ak_math_shutdown();
   ak_debug_shutdown();
 }
 

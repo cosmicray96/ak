@@ -1,4 +1,5 @@
 #include "ak/core/math/trig.h"
+#include "ak/core/math/itn.h"
 #include <math.h>
 
 ak_fx32 ak_s_sin_lut[4096];
@@ -38,4 +39,13 @@ ak_cos(ak_angle a)
 {
   return ak_sin(
     a + 16384); // quarter circle offset
+}
+
+void
+ak_iostream_print_angle(ak_iostream io,
+                        ak_angle ag)
+{
+  double d = ((double)ag / UINT16_MAX) * 360;
+  ak_iostream_print_d(io, d);
+  ak_iostream_write(io, "Deg", 3);
 }

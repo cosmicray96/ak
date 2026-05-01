@@ -51,6 +51,42 @@ ak_fx32_div(ak_fx32 fx1, ak_fx32 fx2)
   return ((int64_t)fx1 * ak_s_fx32_fm) / fx2;
 }
 
+static int32_t
+ak_fx32_sign(ak_fx32 fx)
+{
+  int32_t raw = fx;
+  if (raw > 0)
+    return 1;
+  if (raw < 0)
+    return -1;
+  return 0;
+}
+static ak_fx32
+ak_fx32_abs(ak_fx32 fx)
+{
+  if (ak_fx32_sign(fx) < 0) {
+    return (uint32_t)(-(int64_t)fx);
+  } else {
+    return fx;
+  }
+}
+
+static int32_t
+ak_fx32_whole(ak_fx32 fx)
+{
+  return fx >> ak_s_fx32_fbits;
+}
+
+static ak_fx32
+ak_fx32_frac(ak_fx32 fx)
+{
+  fx = ak_fx32_abs(fx);
+  return fx & ((1 << ak_s_fx32_fbits) - 1);
+}
+
+ak_ex ak_fx32
+ak_fx32_sqrt(ak_fx32 fx);
+
 ak_ex void
 ak_iostream_print_fx32(ak_iostream io,
                        ak_fx32 fx);
