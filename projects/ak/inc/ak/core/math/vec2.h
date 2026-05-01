@@ -19,10 +19,10 @@ typedef struct
 static ak_vec2
 ak_vec2_make(ak_fx32 x, ak_fx32 y)
 {
-  ak_vec2 r;
-  r.x = x;
-  r.y = y;
-  return r;
+  ak_vec2 v;
+  v.x = x;
+  v.y = y;
+  return v;
 }
 
 static ak_vec2
