@@ -1,7 +1,9 @@
 #include "ak/platform/plat.h"
 #include "ak/app/event.h"
 
+#include "ak/core/mem/ptr.h"
 #include "ak/platform/core.h"
+#include "ak/platform/plat_ren.h"
 #include "ak_x11/platform/itn.h"
 
 #include <X11/X.h>
@@ -9,6 +11,19 @@
 
 //===== ak_plat =====//
 //--- private ---//
+
+struct ak_plat
+{
+  ak_alct alct;
+  Display* d;
+  Window wn;
+  Atom wm_delete;
+  int32_t width;
+  int32_t height;
+  bool key_down[ak_key_count];
+  bool visible;
+};
+
 bool
 ak_plat_visible(ak_plat* p)
 {
@@ -36,49 +51,20 @@ ak_plat_key_set(ak_plat* p,
 
 //--- public ---//
 ak_plat*
-ak_plat_startup(ak_alct alct)
+ak_plat_startup(ak_plat_ren* pr,
+                ak_alct alct)
 {
   ak_plat* p =
     ak_alct_alloc(alct, sizeof(ak_plat));
+  p->alct = alct;
 
-  p->d = XOpenDisplay(NULL);
-  p->screen = DefaultScreen(p->d);
+  p->d = ak_plat_ren_display(pr);
+  p->wn = ak_plat_ren_window(pr);
+  p->wm_delete = ak_plat_ren_wm_delete(pr);
+
+  ak_p_set_byte(
+    p->key_down, false, ak_key_count);
   p->visible = true;
-
-  uint32_t x = 10;
-  uint32_t y = 10;
-  uint32_t width = 200;
-  uint32_t height = 150;
-  uint32_t border = 1;
-
-  p->wn = XCreateSimpleWindow(
-    p->d,
-    RootWindow(p->d, p->screen),
-    x,
-    y,
-    width,
-    height,
-    border,
-    BlackPixel(p->d, p->screen),
-    WhitePixel(p->d, p->screen));
-
-  XStoreName(p->d, p->wn, "Window Title!");
-
-  p->wm_delete = XInternAtom(
-    p->d, "WM_DELETE_WINDOW", False);
-  XSetWMProtocols(
-    p->d, p->wn, &p->wm_delete, 1);
-  XSelectInput(
-    p->d,
-    p->wn,
-    ButtonPressMask | ButtonReleaseMask |
-      KeyPressMask | KeyReleaseMask |
-      PointerMotionMask | FocusChangeMask |
-      StructureNotifyMask |
-      VisibilityChangeMask);
-
-  XMapWindow(p->d, p->wn);
-  XFlush(p->d);
 
   return p;
 }
@@ -86,14 +72,18 @@ ak_plat_startup(ak_alct alct)
 void
 ak_plat_shutdown(ak_plat* p)
 {
-  XDestroyWindow(p->d, p->wn);
-  XCloseDisplay(p->d);
+  ak_alct_free(p->alct, p);
 }
 
-Display*
-ak_plat_display(ak_plat* p)
+int32_t
+ak_plat_width(ak_plat* p)
 {
-  return p->d;
+  return p->width;
+}
+int32_t
+ak_plat_height(ak_plat* p)
+{
+  return p->height;
 }
 
 void
@@ -253,6 +243,8 @@ ak_plat_eventflush(ak_plat* p, ak_app_eq* eq)
       case ConfigureNotify: {
         e.win.type = ak_winevt_resize;
 
+        p->width = ex11.xconfigure.width;
+        p->height = ex11.xconfigure.height;
         e.win.resize.w =
           ex11.xconfigure.width;
         e.win.resize.h =

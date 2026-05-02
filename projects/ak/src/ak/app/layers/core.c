@@ -5,10 +5,13 @@
 #include "ak/debug.h"
 #include "ak/os/time.h"
 #include "ak/platform/core.h"
+#include "ak/platform/plat_ren.h"
 #include "ak/program/core.h"
 #include "ak/program/event.h"
 
 #include "ak/platform/plat.h"
+#include "ak/renderer/core.h"
+#include "ak/renderer/renderer.h"
 
 //===== ak_lcore =====//
 //--- private ---//
@@ -16,7 +19,9 @@ struct ak_lcore
 {
   ak_alct alct;
   ak_app* app;
+  ak_plat_ren* pr;
   ak_plat* p;
+  ak_renderer* r;
 };
 
 //--- public ---//
@@ -42,13 +47,17 @@ on_startup(void* ctx, ak_app* app)
 {
   ak_lcore* l = ctx;
   l->app = app;
-  l->p = ak_plat_startup(l->alct);
+  l->pr = ak_plat_ren_startup(l->alct);
+  l->p = ak_plat_startup(l->pr, l->alct);
+  l->r = ak_renderer_startup(l->alct);
 }
 void
 on_shutdown(void* ctx)
 {
   ak_lcore* l = ctx;
+  ak_renderer_shutdown(l->r);
   ak_plat_shutdown(l->p);
+  ak_plat_ren_shutdown(l->pr);
 }
 
 void
@@ -95,6 +104,7 @@ void
 on_update(void* ctx, ak_dur delta)
 {
   ak_lcore* l = ctx;
+  ak_renderer_render(l->r);
 }
 
 void
