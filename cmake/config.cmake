@@ -9,6 +9,12 @@ macro(cm_c_set)
 	enable_testing()
 endmacro()
 
+#--- proj root ---#
+set(cm_proj_root_dir "")
+macro(cm_proj_root_dir_set)
+	get_filename_component(cm_proj_root_dir "${CMAKE_SOURCE_DIR}" ABSOLUTE)
+endmacro()
+
 #--- impls ---#
 set(cm_impls "")
 macro(cm_impls_append item)
@@ -16,12 +22,16 @@ macro(cm_impls_append item)
     list(SORT cm_impls)
 endmacro()
 
+#--- output dir name ---#
+set(cm_output_dir_suffix "")
+macro(cm_output_dir_suffix_set name)
+	set(cm_output_dir_suffix  ${name})
+endmacro()
+
 #--- dirs ---#
-macro(cm_output_dirs_set)
+macro(cmi_output_dirs_set)
 
-	get_filename_component(cm_proj_root_dir "${CMAKE_SOURCE_DIR}" ABSOLUTE)
-
-	string(JOIN "_" impl_suffix ${cm_impls})
+	set(impl_suffix ${cm_output_dir_suffix})
 
 	set(cm_bin_dir
 		"${cm_proj_root_dir}/_bin/${CMAKE_BUILD_TYPE}_${impl_suffix}"

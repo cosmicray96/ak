@@ -3,8 +3,11 @@ project(cmake_proj C)
 
 include("./cmake/cm.cmake")
 cm_begin()
+cm_output_dir_suffix_set(opengl_posix_x11)
 cm_impls_append(posix)
 cm_impls_append(x11)
+cm_impls_append(opengl)
+cm_impls_append(opengl_x11)
 cm_end()
 
 
