@@ -166,13 +166,13 @@ ak_plat_ren_startup(ak_alct alct)
     glXMakeCurrent(
       pr->d, pr->wn, pr->glx_ctx);
 
-    glViewport(0, 0, width, height);
-
     if (!gladLoadGLLoader(
           (GLADloadproc)
             glXGetProcAddressARB)) {
       ak_assert(false);
     }
+
+    glViewport(0, 0, width, height);
   }
 
   return pr;

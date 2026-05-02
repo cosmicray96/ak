@@ -105,6 +105,7 @@ on_update(void* ctx, ak_dur delta)
 {
   ak_lcore* l = ctx;
   ak_renderer_render(l->r);
+  ak_plat_ren_swapbuffer(l->pr);
 }
 
 void

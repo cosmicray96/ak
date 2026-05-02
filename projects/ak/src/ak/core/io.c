@@ -56,6 +56,7 @@ sio_write(void* ctx,
 {
   size_t written =
     fwrite(buff, 1, write_count, stdout);
+  fflush(stdout);
   if (written < (size_t)write_count)
     return -1;
   return (int32_t)written;
