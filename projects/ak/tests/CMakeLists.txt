@@ -1,9 +1,40 @@
 set(target_name "ak")
+set(obj_name "${target_name}_obj")
+set(target_path "${cm_proj_root_dir}/projects/ak")
+set(tests "")
 
-#cm_test_add(${target_name} dbuff)
-#cm_test_add(${target_name} debug)
-#cm_test_add(${target_name} program)
-#cm_test_add(${target_name} hmn)
-#cm_test_add(${target_name} sla)
-#cm_test_add(${target_name} spa)
-#cm_test_add(${target_name} fixed)
+
+#list(APPEND tests "dbuff")
+#list(APPEND tests "debug")
+list(APPEND tests "program")
+#list(APPEND tests "hmn")
+#list(APPEND tests "sla")
+#list(APPEND tests "spa")
+list(APPEND tests "fixed")
+
+
+foreach(t IN LISTS tests)
+
+	set(test_full_name "${target_name}_${t}")
+	add_executable(${test_full_name})
+
+	target_sources(${test_full_name}
+		PRIVATE
+		"${cm_proj_root_dir}/projects/${target_name}/tests/${t}.c"
+	)
+
+	target_link_libraries(${test_full_name}
+		PRIVATE 
+		${obj_name}
+	)
+
+	set_target_properties(${test_full_name} 
+		PROPERTIES
+		RUNTIME_OUTPUT_DIRECTORY 
+		"${cm_tests_dir}"
+	)
+
+
+endforeach()
+
+

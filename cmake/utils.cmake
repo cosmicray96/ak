@@ -1,4 +1,4 @@
-function(cm_check_build_type)
+function(cmi_check_build_type)
 	set(bt ${CMAKE_BUILD_TYPE})
 	if(NOT bt)
 		set(bt "Debug")

@@ -20,7 +20,7 @@ function(cmi_impl_add target_name)
 
 	foreach(impl_target IN LISTS cm_impl_targets)
 		target_link_libraries(${target_name} PRIVATE
-		${impl_target}
+			${impl_target}
 		)
 	endforeach()
 
@@ -46,7 +46,7 @@ function(cm_target_add_exe target_name)
 		"${target_name}_${CMAKE_BUILD_TYPE}"
 	)
 
-target_link_libraries(${target_name} PRIVATE m)
+	target_link_libraries(${target_name} PRIVATE m)
 	cmi_impl_add(${target_name})
 endfunction()
 
@@ -81,7 +81,68 @@ function(cm_target_add_shared target_name)
 		"${target_name}_inside"
 	)
 
-target_link_libraries(${target_name} PRIVATE m)
+	target_link_libraries(${target_name} PRIVATE m)
 	cmi_impl_add(${target_name})
 endfunction()
 
+
+
+
+
+function(cm_target_get_files_impl_priv target_name targ_path impl o_files)
+	file(GLOB_RECURSE files
+		"${targ_path}/src/${target_name}_${impl}/*.h"
+		"${targ_path}/src/${target_name}_${impl}/*.c"
+	)
+	set(${o_files} ${files} PARENT_SCOPE)
+endfunction()
+
+
+function(cm_target_get_files_pub target_name targ_path o_files)
+	file(GLOB_RECURSE files
+		"${targ_path}/inc/${target_name}/*.h"
+	)
+	set(${o_files} ${files} PARENT_SCOPE)
+endfunction()
+
+function(cm_target_get_files_priv target_name targ_path o_files)
+	file(GLOB_RECURSE files
+		"${targ_path}/src/${target_name}/*.h"
+		"${targ_path}/src/${target_name}/*.c"
+	)
+	set(${o_files} ${files} PARENT_SCOPE)
+endfunction()
+
+function(cm_target_get_includes_pub target_name targ_path o_dirs)
+	set(${o_dirs}
+		"${targ_path}/inc"
+		PARENT_SCOPE
+	)
+endfunction()
+function(cm_target_get_includes_priv target_name targ_path o_dirs)
+	set(${o_dirs}
+		"${targ_path}/src"
+		PARENT_SCOPE
+	)
+endfunction()
+
+function(cm_target_get_defines_pub target_name targ_path o_defs)
+	set(defs
+		"${target_name}_${CMAKE_BUILD_TYPE}"
+	)
+	set(${o_defs} ${defs} PARENT_SCOPE)
+endfunction()
+
+function(cm_target_get_defines_priv target_name targ_path o_defs)
+	set(defs
+		"${target_name}_inside"
+	)
+	set(${o_defs} ${defs} PARENT_SCOPE)
+endfunction()
+
+function(cm_target_get_defines_shared_priv target_name targ_path o_defs)
+	set(defs
+		"${target_name}_shared"
+	)
+	set(${o_defs} ${defs} PARENT_SCOPE)
+endfunction()
