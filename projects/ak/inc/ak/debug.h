@@ -23,9 +23,9 @@ ak_assert_itn(const char* file,
               const char* expr);
 
 ak_ex void
-ak_log_cic();
+ak_log_cic_itn();
 ak_ex void
-ak_log_crash();
+ak_log_crash_itn();
 
 #define ak_logging
 #ifdef ak_logging
@@ -36,6 +36,15 @@ ak_log_crash();
                __LINE__,                    \
                fmt,                         \
                ##__VA_ARGS__);              \
+  } while (0)
+
+#define ak_log_crash(fmt, ...)              \
+  do {                                      \
+    ak_log_itn(__FILE__,                    \
+               __LINE__,                    \
+               fmt,                         \
+               ##__VA_ARGS__);              \
+    ak_program_crash();                     \
   } while (0)
 
 #define ak_ec(ec)                           \
@@ -49,6 +58,19 @@ ak_log_crash();
     if (!(expr)) {                          \
       ak_assert_itn(                        \
         __FILE__, __LINE__, #expr);         \
+      ak_program_crash();                   \
+    }                                       \
+  } while (0)
+
+#define ak_log_assert(expr, fmt, ...)       \
+  do {                                      \
+    if (!(expr)) {                          \
+      ak_assert_itn(                        \
+        __FILE__, __LINE__, #expr);         \
+      ak_log_itn(__FILE__,                  \
+                 __LINE__,                  \
+                 fmt,                       \
+                 ##__VA_ARGS__);            \
       ak_program_crash();                   \
     }                                       \
   } while (0)

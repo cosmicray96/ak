@@ -80,9 +80,9 @@ ak_pgm_crashfn_reg(ak_pgm_crashfn fn,
 void
 ak_program_crash()
 {
-  ak_log_crash();
+  ak_log_crash_itn();
   if (p.in_crash) { // crash in crash
-    ak_log_cic();
+    ak_log_cic_itn();
     exit(1);
   }
   p.in_crash = true;

@@ -10,8 +10,8 @@
 #include <X11/Xutil.h>
 
 //===== ak_plat_ren =====//
-#define s_init_width 200
-#define s_init_height 150
+#define s_init_width 800
+#define s_init_height 600
 
 //--- private ---//
 struct ak_plat_ren
@@ -32,7 +32,8 @@ ak_plat_ren_startup(ak_alct alct)
   pr->alct = alct;
 
   pr->d = XOpenDisplay(NULL);
-  ak_assert(pr->d);
+  ak_log_assert(pr->d,
+                "Cannot open X11 Display.");
 
   int screen = DefaultScreen(pr->d);
 
@@ -70,14 +71,18 @@ ak_plat_ren_startup(ak_alct alct)
     fbc = glXChooseFBConfig(
       pr->d, screen, fb_attribs, &fbcount);
 
-    ak_assert(fbc);
-    ak_assert(fbcount);
+    ak_log_assert(fbc,
+                  "Cannot get glXFBConfig.");
+    ak_log_assert(
+      fbcount, "glXFBConfig count is zero.");
 
     // Pick first config
     fb = fbc[0];
 
     vi = glXGetVisualFromFBConfig(pr->d, fb);
-    ak_assert(vi);
+    ak_log_assert(vi,
+                  "Cannot get VisualInfo "
+                  "from FBConfig.");
   }
 
   uint32_t width = s_init_width;
@@ -147,7 +152,10 @@ ak_plat_ren_startup(ak_alct alct)
           glXGetProcAddressARB(
             (const GLubyte*)"glXCreateContex"
                             "tAttribsARB");
-    ak_assert(glXCreateContextAttribsARB);
+    ak_log_assert(
+      glXCreateContextAttribsARB,
+      "Cannot get "
+      "glXCreateContextAttribsARBProc.");
 
     int ctx_attribs[] = {
       GLX_CONTEXT_MAJOR_VERSION_ARB,
@@ -161,7 +169,9 @@ ak_plat_ren_startup(ak_alct alct)
 
     pr->glx_ctx = glXCreateContextAttribsARB(
       pr->d, fb, 0, True, ctx_attribs);
-    ak_assert(pr->glx_ctx);
+    ak_log_assert(
+      pr->glx_ctx,
+      "Cannot create glXContext.");
 
     glXMakeCurrent(
       pr->d, pr->wn, pr->glx_ctx);
@@ -169,7 +179,8 @@ ak_plat_ren_startup(ak_alct alct)
     if (!gladLoadGLLoader(
           (GLADloadproc)
             glXGetProcAddressARB)) {
-      ak_assert(false);
+      ak_log_assert(
+        false, "gladLoadGLLoader failed.");
     }
 
     glViewport(0, 0, width, height);

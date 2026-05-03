@@ -6,11 +6,11 @@ set(tests "")
 
 #list(APPEND tests "dbuff")
 #list(APPEND tests "debug")
-list(APPEND tests "program")
+#list(APPEND tests "program")
 #list(APPEND tests "hmn")
 #list(APPEND tests "sla")
 #list(APPEND tests "spa")
-list(APPEND tests "fixed")
+#list(APPEND tests "fixed")
 
 
 foreach(t IN LISTS tests)

@@ -2,7 +2,6 @@
 #include "ak/core/errcode.h"
 #include "ak/core/io.h"
 #include "ak/debug_itn.h"
-#include "ak/os/file.h"
 
 #include <stdarg.h>
 #include <stdbool.h>
@@ -143,7 +142,7 @@ debug d = { 0 };
 void
 ak_debug_startup()
 {
-  d.s = ak_fstream_make("./log.txt", "w");
+  d.s = ak_iostream_sio();
 
   d.sraw = (ak_iostream){ 0 };
   //    ak_frawstream_make("./lograw.txt",
@@ -158,7 +157,7 @@ ak_debug_shutdown()
 {
   const char* buf = "Debug Shutdown.\n";
   ak_iostream_write(d.s, buf, strlen(buf));
-  ak_iostream_close(&d.s);
+  // ak_iostream_close(&d.s);
 }
 
 //--- export ---//
@@ -228,7 +227,7 @@ ak_assert_itn(const char* file,
 }
 
 void
-ak_log_cic()
+ak_log_cic_itn()
 {
   char buf[256];
   fmter f = fmter_make(buf, sizeof(buf));
@@ -239,7 +238,7 @@ ak_log_cic()
     d.s, fmter_buf(&f), fmter_len(&f));
 }
 void
-ak_log_crash()
+ak_log_crash_itn()
 {
   char buf[256];
   fmter f = fmter_make(buf, sizeof(buf));

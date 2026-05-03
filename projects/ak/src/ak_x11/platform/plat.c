@@ -18,8 +18,8 @@ struct ak_plat
   Display* d;
   Window wn;
   Atom wm_delete;
-  int32_t width;
-  int32_t height;
+  uint32_t width;
+  uint32_t height;
   bool key_down[ak_key_count];
   bool visible;
 };
@@ -243,12 +243,19 @@ ak_plat_eventflush(ak_plat* p, ak_app_eq* eq)
       case ConfigureNotify: {
         e.win.type = ak_winevt_resize;
 
-        p->width = ex11.xconfigure.width;
-        p->height = ex11.xconfigure.height;
-        e.win.resize.w =
-          ex11.xconfigure.width;
-        e.win.resize.h =
-          ex11.xconfigure.height;
+        if (ex11.xconfigure.width <= 0) {
+          p->width = 1;
+        } else {
+          p->width = ex11.xconfigure.width;
+        }
+        if (ex11.xconfigure.height <= 0) {
+          p->height = 1;
+        } else {
+          p->height = ex11.xconfigure.height;
+        }
+
+        e.win.resize.w = p->width;
+        e.win.resize.h = p->height;
         ak_app_eq_push(eq, e);
         break;
       }

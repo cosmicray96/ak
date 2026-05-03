@@ -22,6 +22,13 @@ ak()
 
   ak_app* app = ak_app_make(&regs, alct);
   ak_app_run(app);
+  ak_app_destroy(app);
+
+  ak_applayer_regs_destroy(&regs);
+
+  ak_lcore_destroy(core);
+
+  ak_heap_destroy(&heap);
 
   ak_program_shutdown();
 }

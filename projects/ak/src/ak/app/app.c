@@ -4,7 +4,6 @@
 #include "ak/coll/da.h"
 #include "ak/debug.h"
 #include "ak/os/time.h"
-#include "ak/platform/core.h"
 #include "ak/program/program.h"
 #include <stdint.h>
 
@@ -194,13 +193,9 @@ ak_app_run(ak_app* a)
 
     ak_evt e = ak_app_eq_pop(&a->eq);
     while (e.type != ak_evt_none) {
-      ak_log("event: %d", e.type);
+      // ak_log("event: %d", e.type);
       if (e.type == ak_evt_type_pgm &&
           e.pgm == ak_pgm_exit_req) {
-        a->should_close = true;
-      }
-      if (e.type == ak_evt_type_win &&
-          e.win.type == ak_winevt_close) {
         a->should_close = true;
       }
 

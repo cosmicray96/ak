@@ -2,16 +2,15 @@
 #include "ak/app/app.h"
 #include "ak/app/eq.h"
 #include "ak/app/event.h"
-#include "ak/debug.h"
 #include "ak/os/time.h"
 #include "ak/platform/core.h"
 #include "ak/platform/plat_ren.h"
 #include "ak/program/core.h"
 #include "ak/program/event.h"
 
+#include "ak/gfx/core.h"
+#include "ak/gfx/gfx.h"
 #include "ak/platform/plat.h"
-#include "ak/renderer/core.h"
-#include "ak/renderer/renderer.h"
 
 //===== ak_lcore =====//
 //--- private ---//
@@ -19,10 +18,40 @@ struct ak_lcore
 {
   ak_alct alct;
   ak_app* app;
+  ak_app_eq* eq;
   ak_plat_ren* pr;
   ak_plat* p;
-  ak_renderer* r;
+  ak_gfx* gf;
+
+  bool flip;
 };
+
+bool
+on_resize(ak_lcore* l, ak_evt e)
+{
+  if (e.type != ak_evt_type_win) {
+    return false;
+  }
+  if (e.win.type != ak_winevt_resize) {
+    return false;
+  }
+  ak_gfx_resize(
+    l->gf, e.win.resize.w, e.win.resize.h);
+  return true;
+}
+
+bool
+on_win_close(ak_lcore* l, ak_evt e)
+{
+  if (e.type != ak_evt_type_win) {
+    return false;
+  }
+  if (e.win.type != ak_winevt_close) {
+    return false;
+  }
+  ak_app_close(l->app);
+  return true;
+}
 
 //--- public ---//
 ak_lcore*
@@ -47,15 +76,18 @@ on_startup(void* ctx, ak_app* app)
 {
   ak_lcore* l = ctx;
   l->app = app;
+  l->eq = 0;
   l->pr = ak_plat_ren_startup(l->alct);
   l->p = ak_plat_startup(l->pr, l->alct);
-  l->r = ak_renderer_startup(l->alct);
+  l->gf = ak_gfx_startup(l->alct);
+
+  l->flip = false;
 }
 void
 on_shutdown(void* ctx)
 {
   ak_lcore* l = ctx;
-  ak_renderer_shutdown(l->r);
+  ak_gfx_shutdown(l->gf);
   ak_plat_shutdown(l->p);
   ak_plat_ren_shutdown(l->pr);
 }
@@ -63,8 +95,11 @@ on_shutdown(void* ctx)
 void
 on_epusher(void* ctx, ak_app_eq* eq)
 {
-
   ak_lcore* l = ctx;
+  if (!l->eq) {
+    l->eq = eq;
+  }
+
   ak_pgmevt pgmevt = ak_pgm_event_pop();
   while (pgmevt != ak_pgm_none) {
     ak_evt e = { 0 };
@@ -83,19 +118,47 @@ on_event(void* ctx, ak_evt e)
 {
   ak_lcore* l = ctx;
 
+  if (on_win_close(l, e)) {
+    return true;
+  }
+
+  if (on_resize(l, e)) {
+    return true;
+  }
+
   if (e.type != ak_evt_type_win) {
     return false;
   }
   if (e.win.type != ak_winevt_key) {
     return false;
   }
-  ak_log("key: %d", e.win.key.code);
-  ak_log("mode: %d", e.win.key.mode);
-  ak_log("action: %s",
-         e.win.key.action ==
-             ak_keyaction_pressed
-           ? "pressed"
-           : "released");
+  if (e.win.key.code != ak_key_f) {
+    return false;
+  }
+  if (e.win.key.action !=
+      ak_keyaction_pressed) {
+    return false;
+  }
+  {
+    ak_evt e = { 0 };
+    e.type = ak_evt_type_win;
+    e.win.type = ak_winevt_resize;
+    e.win.resize.w = l->flip ? 800 : 400;
+    e.win.resize.h = l->flip ? 600 : 300;
+    l->flip = !l->flip;
+
+    ak_app_eq_push(l->eq, e);
+  }
+
+  /*
+ak_log("key: %d", e.win.key.code);
+ak_log("mode: %d", e.win.key.mode);
+ak_log("action: %s",
+   e.win.key.action ==
+       ak_keyaction_pressed
+     ? "pressed"
+     : "released");
+  */
 
   return false;
 }
@@ -104,7 +167,7 @@ void
 on_update(void* ctx, ak_dur delta)
 {
   ak_lcore* l = ctx;
-  ak_renderer_render(l->r);
+  ak_gfx_flush(l->gf);
   ak_plat_ren_swapbuffer(l->pr);
 }
 
