@@ -1,210 +1,186 @@
 #include "ak/gfx/gfx.h"
-#include "ak/core/io.h"
+#include "ak/core/mem/allocator.h"
 #include "ak/debug.h"
 #include "ak/gfx/core.h"
 
 #include <glad/glad.h>
 
+#include <stdint.h>
 #include <stdlib.h>
-
-//--- private ---//
-static const char* vs_src =
-  "#version 330 core\n"
-  "layout (location = 0) in vec3 aPos;\n"
-  "void main() {\n"
-  "  gl_Position = vec4(aPos, 1.0);\n"
-  "}\n";
-
-static const char* fs_src =
-  "#version 330 core\n"
-  "uniform vec4 ourColor;"
-  "out vec4 FragColor;\n"
-  "void main() {\n"
-  "  FragColor = ourColor;\n"
-  "}\n";
-
-static GLuint
-compile_shader(GLenum type, const char* src)
-{
-  GLuint s = glCreateShader(type);
-  glShaderSource(s, 1, &src, NULL);
-  glCompileShader(s);
-
-  GLint ok = 0;
-  glGetShaderiv(s, GL_COMPILE_STATUS, &ok);
-  if (!ok) {
-    GLint len = 0;
-    glGetShaderiv(
-      s, GL_INFO_LOG_LENGTH, &len);
-    char* log = malloc(len);
-    glGetShaderInfoLog(s, len, NULL, log);
-    ak_iostream_write_str(ak_iostream_sio(),
-                          log);
-    free(log);
-    ak_assert(false);
-  }
-  return s;
-}
-
-static GLuint
-make_program(void)
-{
-  GLuint vs =
-    compile_shader(GL_VERTEX_SHADER, vs_src);
-  GLuint fs = compile_shader(
-    GL_FRAGMENT_SHADER, fs_src);
-  GLuint p = glCreateProgram();
-  glAttachShader(p, vs);
-  glAttachShader(p, fs);
-  glLinkProgram(p);
-
-  GLint ok = 0;
-  glGetProgramiv(p, GL_LINK_STATUS, &ok);
-  if (!ok) {
-    GLint len = 0;
-    glGetProgramiv(
-      p, GL_INFO_LOG_LENGTH, &len);
-    char* log = malloc(len);
-    glGetProgramInfoLog(p, len, NULL, log);
-    ak_iostream_write_str(ak_iostream_sio(),
-                          log);
-    free(log);
-    ak_assert(false);
-  }
-  glDeleteShader(vs);
-  glDeleteShader(fs);
-  return p;
-}
 
 //===== ak_gfx =====//
 //--- private ---//
+
+#define s_max_vbo_size 1024 * 16 // for tests
+
 struct ak_gfx
 {
   ak_alct alct;
-  GLuint VAO;
-  GLuint VBO;
-  GLuint EBO;
 
-  GLuint program;
+  bool call_began;
 
-  float col;
+  GLuint vbo;
+  uint8_t* vbo_buf;
+  uint32_t vbo_idx;
+
+  uint32_t cur_vertsize;
+  uint32_t cur_max_trigcount;
+
+  uint32_t cur_vao;
+  GLuint cur_program;
 };
+
+static uint32_t
+get_vertcount(ak_gfx* g)
+{
+  ak_assert(g->call_began);
+  return g->vbo_idx / g->cur_vertsize;
+}
+
+static bool
+max_trigcount_reached(ak_gfx* g)
+{
+  ak_assert(g->call_began);
+  // fix?
+
+  float trigcount = (float)g->vbo_idx /
+                    (3 * g->cur_vertsize);
+  if (trigcount >= g->cur_max_trigcount) {
+    return true;
+  }
+  return false;
+}
 
 //--- public ---//
 ak_gfx*
-ak_gfx_startup(ak_alct alct)
+ak_gfx_startup(ak_plat_ren* pr, ak_alct alct)
 {
   ak_gfx* r =
     ak_alct_alloc(alct, sizeof(ak_gfx));
   r->alct = alct;
 
-  {
-    float vertices[] = {
-      0.5f,  0.5f,  0.0f, // top right
-      0.5f,  -0.5f, 0.0f, // bottom right
-      -0.5f, -0.5f, 0.0f, // bottom left
-      -0.5f, 0.5f,  0.0f  // top left
-    };
-    unsigned int indices[] = {
-      // note that we start from 0!
-      0, 1, 3, // first Triangle
-      1, 2, 3  // second Triangle
-    };
+  r->call_began = false;
 
-    GLuint VAO;
-    GLuint VBO;
-    GLuint EBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
+  r->vbo_buf =
+    ak_alct_alloc(alct, s_max_vbo_size);
+  glGenBuffers(1, &r->vbo);
+  glBindBuffer(GL_ARRAY_BUFFER, r->vbo);
+  glBufferData(GL_ARRAY_BUFFER,
+               s_max_vbo_size,
+               NULL,
+               GL_DYNAMIC_DRAW);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  r->vbo_idx = 0;
 
-    r->VAO = VAO;
-    r->VBO = VBO;
-    r->EBO = EBO;
+  r->cur_vertsize = 0;
+  r->cur_max_trigcount = 0;
 
-    glBindVertexArray(VAO);
+  r->cur_vao = 0;
+  r->cur_program = 0;
 
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER,
-                 sizeof(vertices),
-                 vertices,
-                 GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
-                 EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                 sizeof(indices),
-                 indices,
-                 GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0,
-                          3,
-                          GL_FLOAT,
-                          GL_FALSE,
-                          3 * sizeof(float),
-                          (void*)0);
-    glEnableVertexAttribArray(0);
-
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-  }
-  {
-    r->program = make_program();
-  }
   // glPolygonMode(GL_FRONT_AND_BACK,
   // GL_LINE);
 
   return r;
 }
+
 void
 ak_gfx_shutdown(ak_gfx* r)
 {
-  glDeleteVertexArrays(1, &r->VAO);
-  glDeleteBuffers(1, &r->EBO);
-  glDeleteBuffers(1, &r->VBO);
+  glDeleteBuffers(1, &r->vbo);
 
-  glDeleteProgram(r->program);
-
+  ak_alct_free(r->alct, r->vbo_buf);
   ak_alct_free(r->alct, r);
 }
-void
-ak_gfx_col_set(ak_gfx* r, float col)
-{
-  r->col = col;
-}
 
 void
-ak_gfx_resize(ak_gfx* r,
+ak_gfx_resize(ak_gfx* g,
               uint32_t w,
               uint32_t h)
 {
+  ak_assert(!g->call_began);
   glViewport(0, 0, w, h);
 }
 
 void
-ak_gfx_flush(ak_gfx* r)
+ak_gfx_call_begin(ak_gfx* g,
+                  GLuint program,
+                  GLuint vao,
+                  uint32_t vertsize)
 {
-  glClearColor(0.1f, 0.1f, 0.12f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT);
+  ak_assert(!g->call_began);
+  g->call_began = true;
 
-  glUseProgram(r->program);
+  g->vbo_idx = 0;
 
-  {
-    int vertexColorLocation =
-      glGetUniformLocation(r->program,
-                           "ourColor");
-    glUniform4f(vertexColorLocation,
-                0.0f,
-                r->col,
-                0.0f,
-                1.0f);
+  g->cur_program = program;
+  g->cur_vao = vao;
+  g->cur_vertsize = vertsize;
+  g->cur_max_trigcount =
+    s_max_vbo_size / (vertsize * 3);
+
+  glUseProgram(g->cur_program);
+  glBindVertexArray(g->cur_vao);
+}
+
+// add push_vec2, vec3, etc
+void
+ak_gfx_push_f(ak_gfx* g, float f)
+{
+  ak_assert(g->call_began);
+
+  if (max_trigcount_reached(g)) {
+    GLuint program = g->cur_program;
+    GLuint vao = g->cur_vao;
+    uint32_t vertsize = g->cur_vertsize;
+
+    ak_gfx_call_end(g);
+    ak_gfx_call_begin(
+      g, program, vao, vertsize);
   }
 
-  glBindVertexArray(r->VAO);
-  glDrawElements(
-    GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+  *(float*)(g->vbo_buf + g->vbo_idx) = f;
+  g->vbo_idx += sizeof(float);
+}
+
+void
+ak_gfx_call_end(ak_gfx* g)
+{
+  ak_assert(g->call_began);
+
+  glBindBuffer(GL_ARRAY_BUFFER, g->vbo);
+  glBufferSubData(GL_ARRAY_BUFFER,
+                  0,
+                  g->vbo_idx,
+                  g->vbo_buf);
+
+  glDrawArrays(
+    GL_TRIANGLES, 0, get_vertcount(g));
 
   glBindVertexArray(0);
   glUseProgram(0);
+
+  g->vbo_idx = 0;
+  g->cur_program = 0;
+  g->cur_vao = 0;
+
+  g->cur_vertsize = 0;
+  g->cur_max_trigcount = 0;
+
+  g->call_began = false;
+}
+
+void
+ak_gfx_frame_begin(ak_gfx* g)
+{
+  ak_assert(!g->call_began);
+
+  glClearColor(0.1f, 0.1f, 0.12f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void
+ak_gfx_frame_end(ak_gfx* g)
+{
+  // empty
 }

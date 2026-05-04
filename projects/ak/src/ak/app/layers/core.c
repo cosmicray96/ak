@@ -83,7 +83,7 @@ on_startup(void* ctx, ak_app* app)
   l->eq = 0;
   l->pr = ak_plat_ren_startup(l->alct);
   l->p = ak_plat_startup(l->pr, l->alct);
-  l->gf = ak_gfx_startup(l->alct);
+  l->gf = ak_gfx_startup(l->pr, l->alct);
 
   l->flip = false;
 }
@@ -179,7 +179,7 @@ on_update(void* ctx, ak_dur delta)
       ak_angle_rad(ak_fx32_f(t * speed)))));
   ak_gfx_col_set(l->gf, col);
 
-  ak_gfx_flush(l->gf);
+  ak_gfx_call_end(l->gf);
   ak_plat_ren_swapbuffer(l->pr);
 }
 

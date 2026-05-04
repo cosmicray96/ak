@@ -5,11 +5,10 @@
 
 #include <glad/glad.h>
 
-void
-ak_gfx_vertsize_set(ak_gfx* g,
-                    uint32_t size);
-void
-ak_gfx_bind_vao(ak_gfx* g, GLuint vao);
+GLuint
+program_make(const char* fs_src,
+             const char* vs_src);
+
 void
 ak_gfx_push_f(ak_gfx* g, float f);
 
