@@ -75,6 +75,11 @@ ak_log_crash_itn();
     }                                       \
   } while (0)
 
+#define ak_logv(var, fmt)                   \
+  do {                                      \
+    ak_log("%s: %" #fmt, #var, var);        \
+  } while (0)
+
 #else
 
 #define ak_log(fmt, ...)

@@ -4,6 +4,7 @@
 #include "ak/debug_itn.h"
 #include "ak/program/program_itn.h"
 
+#include "ak/os/time_itn.h"
 #include "ak/program/event_itn.h"
 
 #include <stdbool.h>
@@ -48,6 +49,7 @@ ak_program_startup()
 
   ak_debug_startup();
   ak_math_startup();
+  ak_time_startup();
 
   ak_pgm_event_startup(
     &ak_program_crash_fatal);
@@ -57,6 +59,7 @@ void
 ak_program_shutdown()
 {
   ak_pgm_event_shutdown();
+  ak_time_shutdown();
   ak_math_shutdown();
   ak_debug_shutdown();
 }

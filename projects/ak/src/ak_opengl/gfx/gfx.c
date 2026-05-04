@@ -17,9 +17,10 @@ static const char* vs_src =
 
 static const char* fs_src =
   "#version 330 core\n"
+  "uniform vec4 ourColor;"
   "out vec4 FragColor;\n"
   "void main() {\n"
-  "  FragColor = vec4(1.0, 0.5, 0.2, 1.0);\n"
+  "  FragColor = ourColor;\n"
   "}\n";
 
 static GLuint
@@ -84,10 +85,9 @@ struct ak_gfx
   GLuint VBO;
   GLuint EBO;
 
-  GLuint VAO2;
-  GLuint VBO2;
-  GLuint EBO2;
   GLuint program;
+
+  float col;
 };
 
 //--- public ---//
@@ -101,8 +101,8 @@ ak_gfx_startup(ak_alct alct)
   {
     float vertices[] = {
       0.5f,  0.5f,  0.0f, // top right
-      0.5f,  0.05f, 0.0f, // bottom right
-      -0.5f, 0.05f, 0.0f, // bottom left
+      0.5f,  -0.5f, 0.0f, // bottom right
+      -0.5f, -0.5f, 0.0f, // bottom left
       -0.5f, 0.5f,  0.0f  // top left
     };
     unsigned int indices[] = {
@@ -150,57 +150,6 @@ ak_gfx_startup(ak_alct alct)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
   }
   {
-    float vertices[] = {
-      0.5f,  -0.05f, 0.0f, // top right
-      0.5f,  -0.5f,  0.0f, // bottom right
-      -0.5f, -0.5f,  0.0f, // bottom left
-      -0.5f, -0.05f, 0.0f  // top left
-    };
-    unsigned int indices[] = {
-      // note that we start from 0!
-      0, 1, 3, // first Triangle
-      1, 2, 3  // second Triangle
-    };
-
-    GLuint VAO;
-    GLuint VBO;
-    GLuint EBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-
-    r->VAO2 = VAO;
-    r->VBO2 = VBO;
-    r->EBO2 = EBO;
-
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER,
-                 sizeof(vertices),
-                 vertices,
-                 GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
-                 EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                 sizeof(indices),
-                 indices,
-                 GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0,
-                          3,
-                          GL_FLOAT,
-                          GL_FALSE,
-                          3 * sizeof(float),
-                          (void*)0);
-    glEnableVertexAttribArray(0);
-
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-  }
-  {
     r->program = make_program();
   }
   // glPolygonMode(GL_FRONT_AND_BACK,
@@ -215,13 +164,14 @@ ak_gfx_shutdown(ak_gfx* r)
   glDeleteBuffers(1, &r->EBO);
   glDeleteBuffers(1, &r->VBO);
 
-  glDeleteVertexArrays(1, &r->VAO2);
-  glDeleteBuffers(1, &r->EBO2);
-  glDeleteBuffers(1, &r->VBO2);
-
   glDeleteProgram(r->program);
 
   ak_alct_free(r->alct, r);
+}
+void
+ak_gfx_col_set(ak_gfx* r, float col)
+{
+  r->col = col;
 }
 
 void
@@ -240,11 +190,18 @@ ak_gfx_flush(ak_gfx* r)
 
   glUseProgram(r->program);
 
-  glBindVertexArray(r->VAO);
-  glDrawElements(
-    GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+  {
+    int vertexColorLocation =
+      glGetUniformLocation(r->program,
+                           "ourColor");
+    glUniform4f(vertexColorLocation,
+                0.0f,
+                r->col,
+                0.0f,
+                1.0f);
+  }
 
-  glBindVertexArray(r->VAO2);
+  glBindVertexArray(r->VAO);
   glDrawElements(
     GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 

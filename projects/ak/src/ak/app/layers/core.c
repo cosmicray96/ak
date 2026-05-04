@@ -2,6 +2,8 @@
 #include "ak/app/app.h"
 #include "ak/app/eq.h"
 #include "ak/app/event.h"
+#include "ak/core/math/fixed.h"
+#include "ak/core/math/trig.h"
 #include "ak/os/time.h"
 #include "ak/platform/core.h"
 #include "ak/platform/plat_ren.h"
@@ -167,6 +169,14 @@ void
 on_update(void* ctx, ak_dur delta)
 {
   ak_lcore* l = ctx;
+
+  float speed = 2;
+  float t = ak_dur_as_secs_f(ak_dur_now());
+  float col =
+    ak_fx32_to_f(ak_fx32_abs(ak_sin(
+      ak_angle_rad(ak_fx32_f(t * speed)))));
+  ak_gfx_col_set(l->gf, col);
+
   ak_gfx_flush(l->gf);
   ak_plat_ren_swapbuffer(l->pr);
 }

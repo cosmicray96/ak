@@ -2,7 +2,6 @@
 #include <stdbool.h>
 
 //===== ak_dur =====//
-
 //--- export ---//
 ak_dur
 ak_dur_from_secs(uint64_t secs)
@@ -74,4 +73,11 @@ bool
 ak_dur_zero(ak_dur a)
 {
   return a.nanos == 0;
+}
+
+float
+ak_dur_as_secs_f(ak_dur d)
+{
+  double dou = (double)d.nanos / 1000000000;
+  return (float)dou;
 }

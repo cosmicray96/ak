@@ -4,9 +4,15 @@
 #include <time.h>
 
 //===== ak_time =====//
-//--- public ---//
-ak_dur
-ak_dur_now()
+//--- private ---//
+typedef struct
+{
+  ak_dur start;
+} timeitn;
+timeitn s_timeitn = { 0 };
+
+static ak_dur
+ak_dur_now_itn()
 {
   struct timespec ts;
   clock_gettime(CLOCK_MONOTONIC, &ts);
@@ -17,4 +23,23 @@ ak_dur_now()
     (uint64_t)ts.tv_nsec;
 
   return d;
+}
+
+//--- public ---//
+void
+ak_time_startup()
+{
+  s_timeitn.start = ak_dur_now_itn();
+}
+void
+ak_time_shutdown()
+{
+  // empty
+}
+
+ak_dur
+ak_dur_now()
+{
+  ak_dur d = ak_dur_now_itn();
+  return ak_dur_diff(d, s_timeitn.start);
 }
