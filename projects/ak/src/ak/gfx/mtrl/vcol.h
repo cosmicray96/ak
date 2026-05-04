@@ -8,17 +8,17 @@
 typedef struct ak_mtrl_vcol ak_mtrl_vcol;
 
 ak_mtrl_vcol*
-ak_mtrl_vcol_make(ak_alct alct);
+ak_mtrl_vcol_make(ak_gfx* g, ak_alct alct);
 void
 ak_mtrl_vcol_destroy(ak_mtrl_vcol* m);
 
 void
-ak_mtrl_gfx_begin(ak_mtrl_vcol* m,
-                  ak_gfx* g);
+ak_mtrl_vcol_call_begin(ak_mtrl_vcol* m);
+void
+ak_mtrl_vcol_call_end(ak_mtrl_vcol* m);
 
 void
 ak_mtrl_vcol_pushvert(ak_mtrl_vcol* m,
-                      ak_gfx* g,
                       ak_vec2 vert_pos,
                       ak_vec4 vert_col);
 

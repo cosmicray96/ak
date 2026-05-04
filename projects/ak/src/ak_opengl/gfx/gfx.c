@@ -24,7 +24,6 @@ struct ak_gfx
   uint32_t vbo_idx;
 
   uint32_t cur_vertsize;
-  uint32_t cur_max_trigcount;
 
   uint32_t cur_vao;
   GLuint cur_program;
@@ -37,18 +36,43 @@ get_vertcount(ak_gfx* g)
   return g->vbo_idx / g->cur_vertsize;
 }
 
-static bool
-max_trigcount_reached(ak_gfx* g)
+static uint32_t
+get_max_trigcount(ak_gfx* g)
 {
   ak_assert(g->call_began);
-  // fix?
+  return s_max_vbo_size /
+         (g->cur_vertsize * 3);
+}
 
-  float trigcount = (float)g->vbo_idx /
-                    (3 * g->cur_vertsize);
-  if (trigcount >= g->cur_max_trigcount) {
-    return true;
+static uint32_t
+get_max_trigsize(ak_gfx* g)
+{
+  ak_assert(g->call_began);
+  return get_max_trigcount(g) *
+         g->cur_vertsize;
+}
+
+static void
+call_reset_ifneed(ak_gfx* g)
+{
+  ak_assert(g->call_began);
+
+  uint32_t max_trigsize =
+    get_max_trigsize(g);
+
+  if (g->vbo_idx < max_trigsize) {
+    return;
   }
-  return false;
+  if (g->vbo_idx > max_trigsize) {
+    ak_assert(false);
+  }
+
+  GLuint program = g->cur_program;
+  GLuint vao = g->cur_vao;
+  uint32_t vertsize = g->cur_vertsize;
+  ak_gfx_call_end(g);
+  ak_gfx_call_begin(
+    g, program, vao, vertsize);
 }
 
 //--- public ---//
@@ -70,10 +94,10 @@ ak_gfx_startup(ak_plat_ren* pr, ak_alct alct)
                NULL,
                GL_DYNAMIC_DRAW);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
+
   r->vbo_idx = 0;
 
   r->cur_vertsize = 0;
-  r->cur_max_trigcount = 0;
 
   r->cur_vao = 0;
   r->cur_program = 0;
@@ -91,6 +115,12 @@ ak_gfx_shutdown(ak_gfx* r)
 
   ak_alct_free(r->alct, r->vbo_buf);
   ak_alct_free(r->alct, r);
+}
+
+GLuint
+ak_gfx_vbo(ak_gfx* g)
+{
+  return g->vbo;
 }
 
 void
@@ -116,10 +146,9 @@ ak_gfx_call_begin(ak_gfx* g,
   g->cur_program = program;
   g->cur_vao = vao;
   g->cur_vertsize = vertsize;
-  g->cur_max_trigcount =
-    s_max_vbo_size / (vertsize * 3);
 
   glUseProgram(g->cur_program);
+  glBindBuffer(GL_ARRAY_BUFFER, g->vbo);
   glBindVertexArray(g->cur_vao);
 }
 
@@ -129,15 +158,7 @@ ak_gfx_push_f(ak_gfx* g, float f)
 {
   ak_assert(g->call_began);
 
-  if (max_trigcount_reached(g)) {
-    GLuint program = g->cur_program;
-    GLuint vao = g->cur_vao;
-    uint32_t vertsize = g->cur_vertsize;
-
-    ak_gfx_call_end(g);
-    ak_gfx_call_begin(
-      g, program, vao, vertsize);
-  }
+  call_reset_ifneed(g);
 
   *(float*)(g->vbo_buf + g->vbo_idx) = f;
   g->vbo_idx += sizeof(float);
@@ -148,7 +169,6 @@ ak_gfx_call_end(ak_gfx* g)
 {
   ak_assert(g->call_began);
 
-  glBindBuffer(GL_ARRAY_BUFFER, g->vbo);
   glBufferSubData(GL_ARRAY_BUFFER,
                   0,
                   g->vbo_idx,
@@ -158,6 +178,7 @@ ak_gfx_call_end(ak_gfx* g)
     GL_TRIANGLES, 0, get_vertcount(g));
 
   glBindVertexArray(0);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
   glUseProgram(0);
 
   g->vbo_idx = 0;
@@ -165,7 +186,6 @@ ak_gfx_call_end(ak_gfx* g)
   g->cur_vao = 0;
 
   g->cur_vertsize = 0;
-  g->cur_max_trigcount = 0;
 
   g->call_began = false;
 }

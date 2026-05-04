@@ -85,12 +85,18 @@ on_startup(void* ctx, ak_app* app)
   l->p = ak_plat_startup(l->pr, l->alct);
   l->gf = ak_gfx_startup(l->pr, l->alct);
 
+  l->mtrl =
+    ak_mtrl_vcol_make(l->gf, l->alct);
+
   l->flip = false;
 }
 void
 on_shutdown(void* ctx)
 {
   ak_lcore* l = ctx;
+
+  ak_mtrl_vcol_destroy(l->mtrl);
+
   ak_gfx_shutdown(l->gf);
   ak_plat_shutdown(l->p);
   ak_plat_ren_shutdown(l->pr);
@@ -172,14 +178,19 @@ on_update(void* ctx, ak_dur delta)
 {
   ak_lcore* l = ctx;
 
-  float speed = 2;
-  float t = ak_dur_as_secs_f(ak_dur_now());
-  float col =
-    ak_fx32_to_f(ak_fx32_abs(ak_sin(
-      ak_angle_rad(ak_fx32_f(t * speed)))));
-  ak_gfx_col_set(l->gf, col);
+  ak_gfx_frame_begin(l->gf);
 
-  ak_gfx_call_end(l->gf);
+  ak_mtrl_vcol_call_begin(l->mtrl);
+
+  /*
+ak_mtrl_vcol_pushvert(
+l->mtrl, vert_pos, vert_col);
+  */
+
+  ak_mtrl_vcol_call_end(l->mtrl);
+
+  ak_gfx_frame_end(l->gf);
+
   ak_plat_ren_swapbuffer(l->pr);
 }
 

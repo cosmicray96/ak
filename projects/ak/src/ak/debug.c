@@ -153,7 +153,7 @@ ak_debug_startup()
 }
 
 void
-ak_debug_shutdown()
+ak_debug_shutdown(void* ctx)
 {
   const char* buf = "Debug Shutdown.\n";
   ak_iostream_write(d.s, buf, strlen(buf));

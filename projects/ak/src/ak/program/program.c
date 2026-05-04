@@ -48,20 +48,24 @@ ak_program_startup()
   p.crashitem_count = 0;
 
   ak_debug_startup();
+  ak_pgm_crashfn_reg(&ak_debug_shutdown, 0);
+
   ak_math_startup();
+  ak_pgm_crashfn_reg(&ak_math_shutdown, 0);
+
   ak_time_startup();
+  ak_pgm_crashfn_reg(&ak_time_shutdown, 0);
 
   ak_pgm_event_startup(
     &ak_program_crash_fatal);
+  ak_pgm_crashfn_reg(&ak_pgm_event_shutdown,
+                     0);
 }
 
 void
 ak_program_shutdown()
 {
-  ak_pgm_event_shutdown();
-  ak_time_shutdown();
-  ak_math_shutdown();
-  ak_debug_shutdown();
+  // empty
 }
 
 void

@@ -72,7 +72,7 @@ ak_pgm_event_startup(ak_crash_fatal_fn fn)
 }
 
 void
-ak_pgm_event_shutdown()
+ak_pgm_event_shutdown(void* ctx)
 {
   sigaction(SIGINT, &e.sigint_old, NULL);
   sigaction(SIGTERM, &e.sigterm_old, NULL);

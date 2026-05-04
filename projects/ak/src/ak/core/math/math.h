@@ -4,6 +4,6 @@
 void
 ak_math_startup();
 void
-ak_math_shutdown();
+ak_math_shutdown(void* ctx);
 
 #endif

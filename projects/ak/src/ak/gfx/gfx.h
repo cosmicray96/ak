@@ -18,6 +18,11 @@ ak_gfx_resize(ak_gfx* r,
               uint32_t h);
 
 void
+ak_gfx_frame_begin(ak_gfx* g);
+void
+ak_gfx_frame_end(ak_gfx* g);
+
+void
 ak_gfx_call_end(ak_gfx* r);
 
 void

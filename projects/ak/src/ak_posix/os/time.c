@@ -32,7 +32,7 @@ ak_time_startup()
   s_timeitn.start = ak_dur_now_itn();
 }
 void
-ak_time_shutdown()
+ak_time_shutdown(void* ctx)
 {
   // empty
 }

@@ -4,6 +4,6 @@
 void
 ak_time_startup();
 void
-ak_time_shutdown();
+ak_time_shutdown(void* ctx);
 
 #endif
