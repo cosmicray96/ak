@@ -4,6 +4,7 @@
 #include "ak/app/event.h"
 #include "ak/core/math/fixed.h"
 #include "ak/core/math/trig.h"
+#include "ak/gfx/mtrl/vcol.h"
 #include "ak/os/time.h"
 #include "ak/platform/core.h"
 #include "ak/platform/plat_ren.h"
@@ -24,6 +25,7 @@ struct ak_lcore
   ak_plat_ren* pr;
   ak_plat* p;
   ak_gfx* gf;
+  ak_mtrl_vcol* mtrl;
 
   bool flip;
 };

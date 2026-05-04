@@ -11,14 +11,13 @@ void
 ak_gfx_shutdown(ak_gfx* r);
 
 void
+ak_gfx_resize(ak_gfx* r,
+              uint32_t w,
+              uint32_t h);
+void
 ak_gfx_flush(ak_gfx* r);
 
 void
 ak_gfx_col_set(ak_gfx* r, float col);
-
-void
-ak_gfx_resize(ak_gfx* r,
-              uint32_t w,
-              uint32_t h);
 
 #endif
