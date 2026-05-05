@@ -243,17 +243,6 @@ on_update(void* ctx, ak_dur delta)
 
   ak_gfx_frame_begin(l->gf);
 
-  /*
-ak_mtrl_vcol_call_begin(l->mtrl);
-
-for (uint32_t i = 0; i < 6; i++) {
-ak_mtrl_vcol_pushvert(
-l->mtrl, verts[i].pos, verts[i].col);
-}
-
-ak_mtrl_vcol_call_end(l->mtrl);
-  */
-
   ak_mtrl_col_col_set(l->m_col,
                       verts[0].col);
   ak_mtrl_col_call_begin(l->m_col);

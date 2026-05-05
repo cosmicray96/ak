@@ -17,6 +17,9 @@ typedef struct
   ak_hmn comps;
 } ak_compstg;
 
+// use x comp here, make it a array instead
+// of map
+
 ak_compstg
 ak_compstg_make(ak_alct alct);
 void
