@@ -1,47 +1,67 @@
 #ifndef ak_game_stg_comp_h
 #define ak_game_stg_comp_h
 
-#include "ak/coll/hmn.h"
+#include "ak/coll/spa.h"
 #include "ak/core/mem/allocator.h"
+#include "ak/game/comp.h"
 #include "ak/game/stg/core.h"
 
-typedef enum
-{
-  ak_comptype_none,
-  ak_comptype_comp1,
-  ak_comptype_comp2
-} ak_comptype;
+typedef struct ak_compstg ak_compstg;
 
-typedef struct
-{
-  ak_hmn comps;
-} ak_compstg;
-
-// use x comp here, make it a array instead
-// of map
-
-ak_compstg
+ak_compstg*
 ak_compstg_make(ak_alct alct);
 void
 ak_compstg_destroy(ak_compstg* cs);
 
+bool
+ak_compstg_exist(ak_compstg* cs,
+                 ak_ett ett,
+                 ak_comp_enum ce);
+void*
+ak_compstg_at(ak_compstg* cs,
+              ak_ett ett,
+              ak_comp_enum ce);
+
 void
 ak_compstg_add(ak_compstg* cs,
                ak_ett ett,
-               ak_comptype ct,
+               ak_comp_enum ce,
                const void* comp);
 void
 ak_compstg_remove(ak_compstg* cs,
                   ak_ett ett,
-                  ak_comptype ct);
-void*
-ak_compstg_at(ak_compstg* cs,
-              ak_ett ett,
-              ak_comptype ct);
+                  ak_comp_enum ce);
 
-void*
-ak_compstg_comp1(ak_compstg* cs, ak_ett ett);
-void*
-ak_compstg_comp2(ak_compstg* cs, ak_ett ett);
+#define X(name)                             \
+  static ak_##name##_t*                     \
+    ak_compstg_at_##name(ak_compstg* cs,    \
+                         ak_ett ett)        \
+  {                                         \
+    return ak_compstg_at(                   \
+      cs, ett, ak_##name##_e);              \
+  }                                         \
+  static bool ak_compstg_exist_##name(      \
+    ak_compstg* cs, ak_ett ett)             \
+  {                                         \
+    return ak_compstg_exist(                \
+      cs, ett, ak_##name##_e);              \
+  }                                         \
+  static void ak_compstg_add_##name(        \
+    ak_compstg* cs,                         \
+    ak_ett ett,                             \
+    const ak_##name##_t* comp)              \
+  {                                         \
+    ak_compstg_add(                         \
+      cs, ett, ak_##name##_e, comp);        \
+  }                                         \
+  static void ak_compstg_remove_##name(     \
+    ak_compstg* cs, ak_ett ett)             \
+  {                                         \
+    ak_compstg_remove(                      \
+      cs, ett, ak_##name##_e);              \
+  }
+
+#include "./ak/game/comp.inc"
+#undef X
 
 #endif

@@ -3,5 +3,16 @@
 
 #include "ak/game/comp_t.h"
 
+typedef enum
+{
+#define X(name) ak_##name##_e,
+#include "ak/game/comp.inc"
+#undef X
+  ak_comp_count_e
+} ak_comp_enum;
+
+const char*
+ak_comp_to_str(ak_comp_enum ce);
+
 // mane enum, name array, etc
 #endif

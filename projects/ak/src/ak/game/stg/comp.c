@@ -1,28 +1,31 @@
 #include "ak/game/stg/comp.h"
-#include "ak/coll/hmn.h"
 #include "ak/coll/spa.h"
+#include "ak/core/mem/allocator.h"
+#include "ak/game/comp.h"
+#include <stdint.h>
 
 //===== ak_compstg =====//
+//--- private ---//
+struct ak_compstg
+{
+  ak_alct alct;
+  ak_spa spas[ak_comp_count_e];
+};
 
 //--- public ---//
-ak_compstg
+ak_compstg*
 ak_compstg_make(ak_alct alct)
 {
-  ak_compstg cs = { 0 };
-  cs.comps =
-    ak_hmn_make(sizeof(ak_spa), alct);
-  {
-    ak_spa spa =
-      ak_spa_make(sizeof(ak_comp1), alct);
-    ak_hmn_insert_u64(
-      &cs.comps, ak_comptype_comp1, &spa);
-  }
-  {
-    ak_spa spa =
-      ak_spa_make(sizeof(ak_comp2), alct);
-    ak_hmn_insert_u64(
-      &cs.comps, ak_comptype_comp2, &spa);
-  }
+  ak_compstg* cs =
+    ak_alct_alloc(alct, sizeof(ak_compstg));
+  cs->alct = alct;
+
+#define X(name)                             \
+  cs->spas[ak_##name##_e] = ak_spa_make(    \
+    sizeof(ak_##name##_t), alct);
+
+#include "ak/game/comp.inc"
+#undef X
 
   return cs;
 }
@@ -30,67 +33,42 @@ ak_compstg_make(ak_alct alct)
 void
 ak_compstg_destroy(ak_compstg* cs)
 {
-  ak_comptype key = { 0 };
-  ak_spa* spa = { 0 };
-  ak_hmn_iter it =
-    ak_hmn_iter_make(&cs->comps);
-  while (ak_hmn_iter_next_u64(
-    &it, (uint64_t*)&key, (void**)&spa)) {
-    ak_spa_destroy(spa);
+  for (uint32_t i = 0; i < ak_comp_count_e;
+       i++) {
+    ak_spa_destroy(&cs->spas[i]);
   }
+  ak_alct_free(cs->alct, cs);
 }
 
-void
-ak_compstg_add(ak_compstg* cs,
-               ak_ett ett,
-               ak_comptype ct,
-               const void* comp)
+bool
+ak_compstg_exist(ak_compstg* cs,
+                 ak_ett ett,
+                 ak_comp_enum ce)
 {
-  ak_spa* spa = ak_hmn_at_u64(
-    &cs->comps, ak_comptype_comp1);
-  ak_spa_insert(spa, ett, comp);
-}
-
-void
-ak_compstg_remove(ak_compstg* cs,
-                  ak_ett ett,
-                  ak_comptype ct)
-{
-  ak_spa* spa = ak_hmn_at_u64(
-    &cs->comps, ak_comptype_comp1);
-  ak_spa_remove(spa, ett);
+  return ak_spa_exist(&cs->spas[ce], ett);
 }
 
 void*
 ak_compstg_at(ak_compstg* cs,
               ak_ett ett,
-              ak_comptype ct)
+              ak_comp_enum ce)
 {
-  ak_spa* spa =
-    ak_hmn_at_u64(&cs->comps, ct);
-  if (ak_spa_exist(spa, ett)) {
-    return ak_spa_at(spa, ett);
-  }
-  return 0;
+  return ak_spa_at(&cs->spas[ce], ett);
 }
 
-void*
-ak_compstg_comp1(ak_compstg* cs, ak_ett ett)
+void
+ak_compstg_add(ak_compstg* cs,
+               ak_ett ett,
+               ak_comp_enum ce,
+               const void* comp)
 {
-  ak_spa* spa = ak_hmn_at_u64(
-    &cs->comps, ak_comptype_comp1);
-  if (ak_spa_exist(spa, ett)) {
-    return ak_spa_at(spa, ett);
-  }
-  return 0;
+  ak_spa_insert(&cs->spas[ce], ett, comp);
 }
-void*
-ak_compstg_comp2(ak_compstg* cs, ak_ett ett)
+
+void
+ak_compstg_remove(ak_compstg* cs,
+                  ak_ett ett,
+                  ak_comp_enum ce)
 {
-  ak_spa* spa = ak_hmn_at_u64(
-    &cs->comps, ak_comptype_comp2);
-  if (ak_spa_exist(spa, ett)) {
-    return ak_spa_at(spa, ett);
-  }
-  return 0;
+  ak_spa_remove(&cs->spas[ce], ett);
 }

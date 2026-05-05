@@ -1,4 +1,4 @@
-message("Cmake Template. Language: C, Version: 9")
+message("Cmake Template. Language: C, Version: 10")
 
 include("${CMAKE_CURRENT_LIST_DIR}/config.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/target.cmake")
