@@ -11,13 +11,16 @@ program_make(const char* fs_src,
 
 void
 ak_gfx_call_begin(ak_gfx* g,
-                  GLuint program,
-                  GLuint vao,
                   uint32_t vertsize);
-GLuint
-ak_gfx_vbo(ak_gfx* g);
+void
+ak_gfx_call_end(ak_gfx* g);
 
 void
-ak_gfx_push_f(ak_gfx* g, float f);
+ak_gfx_buff_bind(ak_gfx* g);
+void
+ak_gfx_buff_unbind(ak_gfx* g);
+
+void
+ak_gfx_vertpush(ak_gfx* g, const void* v);
 
 #endif

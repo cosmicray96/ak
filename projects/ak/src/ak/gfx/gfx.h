@@ -22,10 +22,4 @@ ak_gfx_frame_begin(ak_gfx* g);
 void
 ak_gfx_frame_end(ak_gfx* g);
 
-void
-ak_gfx_call_end(ak_gfx* r);
-
-void
-ak_gfx_col_set(ak_gfx* r, float col);
-
 #endif

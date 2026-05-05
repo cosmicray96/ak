@@ -2,8 +2,8 @@
 #include "ak/app/app.h"
 #include "ak/app/eq.h"
 #include "ak/app/event.h"
-#include "ak/core/math/fixed.h"
-#include "ak/core/math/trig.h"
+#include "ak/core/math/vec2.h"
+#include "ak/gfx/mtrl/col.h"
 #include "ak/gfx/mtrl/vcol.h"
 #include "ak/os/time.h"
 #include "ak/platform/core.h"
@@ -25,7 +25,8 @@ struct ak_lcore
   ak_plat_ren* pr;
   ak_plat* p;
   ak_gfx* gf;
-  ak_mtrl_vcol* mtrl;
+  ak_mtrl_vcol* m_vcol;
+  ak_mtrl_col* m_col;
 
   bool flip;
 };
@@ -85,8 +86,10 @@ on_startup(void* ctx, ak_app* app)
   l->p = ak_plat_startup(l->pr, l->alct);
   l->gf = ak_gfx_startup(l->pr, l->alct);
 
-  l->mtrl =
+  l->m_vcol =
     ak_mtrl_vcol_make(l->gf, l->alct);
+  l->m_col =
+    ak_mtrl_col_make(l->gf, l->alct);
 
   l->flip = false;
 }
@@ -95,7 +98,7 @@ on_shutdown(void* ctx)
 {
   ak_lcore* l = ctx;
 
-  ak_mtrl_vcol_destroy(l->mtrl);
+  ak_mtrl_vcol_destroy(l->m_vcol);
 
   ak_gfx_shutdown(l->gf);
   ak_plat_shutdown(l->p);
@@ -173,21 +176,99 @@ ak_log("action: %s",
   return false;
 }
 
+typedef struct
+{
+  ak_vec2 pos;
+  ak_vec4 col;
+} vert;
+
 void
 on_update(void* ctx, ak_dur delta)
 {
   ak_lcore* l = ctx;
+  vert verts[6] = {
+    // Triangle 1
+    {
+      ak_vec2_make(ak_fx32_f(-0.5f),
+                   ak_fx32_f(-0.5f)),
+      ak_vec4_make(ak_fx32_f(1.0f),
+                   ak_fx32_f(0.0f),
+                   ak_fx32_f(0.0f),
+                   ak_fx32_f(1.0f)) // red
+    },
+    {
+      ak_vec2_make(ak_fx32_f(0.5f),
+                   ak_fx32_f(-0.5f)),
+      ak_vec4_make(ak_fx32_f(0.0f),
+                   ak_fx32_f(1.0f),
+                   ak_fx32_f(0.0f),
+                   ak_fx32_f(1.0f)) // green
+    },
+    {
+      ak_vec2_make(ak_fx32_f(0.5f),
+                   ak_fx32_f(0.5f)),
+      ak_vec4_make(ak_fx32_f(0.0f),
+                   ak_fx32_f(0.0f),
+                   ak_fx32_f(1.0f),
+                   ak_fx32_f(1.0f)) // blue
+    },
+
+    // Triangle 2
+    {
+      ak_vec2_make(ak_fx32_f(-0.5f),
+                   ak_fx32_f(-0.5f)),
+      ak_vec4_make(
+        ak_fx32_f(1.0f),
+        ak_fx32_f(0.0f),
+        ak_fx32_f(1.0f),
+        ak_fx32_f(1.0f)) // magenta
+    },
+    {
+      ak_vec2_make(ak_fx32_f(0.5f),
+                   ak_fx32_f(0.5f)),
+      ak_vec4_make(ak_fx32_f(0.0f),
+                   ak_fx32_f(1.0f),
+                   ak_fx32_f(1.0f),
+                   ak_fx32_f(1.0f)) // cyan
+    },
+    {
+      ak_vec2_make(ak_fx32_f(-0.5f),
+                   ak_fx32_f(0.5f)),
+      ak_vec4_make(ak_fx32_f(1.0f),
+                   ak_fx32_f(1.0f),
+                   ak_fx32_f(0.0f),
+                   ak_fx32_f(1.0f)) // yellow
+    }
+  };
 
   ak_gfx_frame_begin(l->gf);
 
-  ak_mtrl_vcol_call_begin(l->mtrl);
-
   /*
+ak_mtrl_vcol_call_begin(l->mtrl);
+
+for (uint32_t i = 0; i < 6; i++) {
 ak_mtrl_vcol_pushvert(
-l->mtrl, vert_pos, vert_col);
+l->mtrl, verts[i].pos, verts[i].col);
+}
+
+ak_mtrl_vcol_call_end(l->mtrl);
   */
 
-  ak_mtrl_vcol_call_end(l->mtrl);
+  ak_mtrl_col_col_set(l->m_col,
+                      verts[0].col);
+  ak_mtrl_col_call_begin(l->m_col);
+  for (uint32_t i = 0; i < 3; i++) {
+    ak_mtrl_col_pushvert(l->m_col,
+                         verts[i].pos);
+  }
+  ak_mtrl_col_call_end(l->m_col);
+
+  ak_mtrl_vcol_call_begin(l->m_vcol);
+  for (uint32_t i = 3; i < 6; i++) {
+    ak_mtrl_vcol_pushvert(
+      l->m_vcol, verts[i].pos, verts[i].col);
+  }
+  ak_mtrl_vcol_call_end(l->m_vcol);
 
   ak_gfx_frame_end(l->gf);
 

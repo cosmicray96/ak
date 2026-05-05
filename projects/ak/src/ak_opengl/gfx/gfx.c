@@ -1,7 +1,10 @@
 #include "ak/gfx/gfx.h"
 #include "ak/core/mem/allocator.h"
+#include "ak/core/mem/ptr.h"
 #include "ak/debug.h"
 #include "ak/gfx/core.h"
+
+#include "ak_opengl/gfx/gfx_itn.h"
 
 #include <glad/glad.h>
 
@@ -24,9 +27,6 @@ struct ak_gfx
   uint32_t vbo_idx;
 
   uint32_t cur_vertsize;
-
-  uint32_t cur_vao;
-  GLuint cur_program;
 };
 
 static uint32_t
@@ -67,12 +67,83 @@ call_reset_ifneed(ak_gfx* g)
     ak_assert(false);
   }
 
-  GLuint program = g->cur_program;
-  GLuint vao = g->cur_vao;
   uint32_t vertsize = g->cur_vertsize;
   ak_gfx_call_end(g);
-  ak_gfx_call_begin(
-    g, program, vao, vertsize);
+  ak_gfx_call_begin(g, vertsize);
+}
+
+static bool
+exact_triangles(ak_gfx* g)
+{
+  ak_assert(g->call_began);
+  return g->vbo_idx %
+           (g->cur_vertsize * 3) ==
+         0;
+}
+
+//--- internal ---//
+void
+ak_gfx_buff_bind(ak_gfx* g)
+{
+  glBindBuffer(GL_ARRAY_BUFFER, g->vbo);
+}
+
+void
+ak_gfx_buff_unbind(ak_gfx* g)
+{
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void
+ak_gfx_call_begin(ak_gfx* g,
+                  uint32_t vertsize)
+{
+  ak_assert(!g->call_began);
+  g->call_began = true;
+
+  g->vbo_idx = 0;
+
+  g->cur_vertsize = vertsize;
+
+  glBindBuffer(GL_ARRAY_BUFFER, g->vbo);
+}
+
+void
+ak_gfx_vertpush(ak_gfx* g, const void* v)
+{
+  ak_assert(g->call_began);
+
+  call_reset_ifneed(g);
+
+  ak_p_cpy(g->vbo_buf + g->vbo_idx,
+           v,
+           g->cur_vertsize);
+  g->vbo_idx += g->cur_vertsize;
+}
+
+void
+ak_gfx_call_end(ak_gfx* g)
+{
+  ak_assert(g->call_began);
+  ak_assert(exact_triangles(g));
+
+  glBufferSubData(GL_ARRAY_BUFFER,
+                  0,
+                  g->vbo_idx,
+                  g->vbo_buf);
+
+  glDrawArrays(
+    GL_TRIANGLES, 0, get_vertcount(g));
+
+  glBindVertexArray(0);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glUseProgram(0);
+
+  g->vbo_idx = 0;
+
+  g->cur_vertsize = 0;
+
+  g->call_began = false;
 }
 
 //--- public ---//
@@ -99,9 +170,6 @@ ak_gfx_startup(ak_plat_ren* pr, ak_alct alct)
 
   r->cur_vertsize = 0;
 
-  r->cur_vao = 0;
-  r->cur_program = 0;
-
   // glPolygonMode(GL_FRONT_AND_BACK,
   // GL_LINE);
 
@@ -117,12 +185,6 @@ ak_gfx_shutdown(ak_gfx* r)
   ak_alct_free(r->alct, r);
 }
 
-GLuint
-ak_gfx_vbo(ak_gfx* g)
-{
-  return g->vbo;
-}
-
 void
 ak_gfx_resize(ak_gfx* g,
               uint32_t w,
@@ -130,64 +192,6 @@ ak_gfx_resize(ak_gfx* g,
 {
   ak_assert(!g->call_began);
   glViewport(0, 0, w, h);
-}
-
-void
-ak_gfx_call_begin(ak_gfx* g,
-                  GLuint program,
-                  GLuint vao,
-                  uint32_t vertsize)
-{
-  ak_assert(!g->call_began);
-  g->call_began = true;
-
-  g->vbo_idx = 0;
-
-  g->cur_program = program;
-  g->cur_vao = vao;
-  g->cur_vertsize = vertsize;
-
-  glUseProgram(g->cur_program);
-  glBindBuffer(GL_ARRAY_BUFFER, g->vbo);
-  glBindVertexArray(g->cur_vao);
-}
-
-// add push_vec2, vec3, etc
-void
-ak_gfx_push_f(ak_gfx* g, float f)
-{
-  ak_assert(g->call_began);
-
-  call_reset_ifneed(g);
-
-  *(float*)(g->vbo_buf + g->vbo_idx) = f;
-  g->vbo_idx += sizeof(float);
-}
-
-void
-ak_gfx_call_end(ak_gfx* g)
-{
-  ak_assert(g->call_began);
-
-  glBufferSubData(GL_ARRAY_BUFFER,
-                  0,
-                  g->vbo_idx,
-                  g->vbo_buf);
-
-  glDrawArrays(
-    GL_TRIANGLES, 0, get_vertcount(g));
-
-  glBindVertexArray(0);
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-  glUseProgram(0);
-
-  g->vbo_idx = 0;
-  g->cur_program = 0;
-  g->cur_vao = 0;
-
-  g->cur_vertsize = 0;
-
-  g->call_began = false;
 }
 
 void
