@@ -25,5 +25,15 @@ typedef struct
   };
 } ak_comp_tu;
 
+ak_ex ak_comp_tu
+ak_comp_tu_make(ak_comp_enum ce,
+                const void* comp);
+ak_ex void
+ak_comp_tu_make_ip(ak_comp_tu* ctu,
+                   ak_comp_enum ce,
+                   const void* comp);
+ak_ex void*
+ak_comp_tu_comp(ak_comp_tu* tu);
+
 // mane enum, name array, etc
 #endif

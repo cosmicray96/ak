@@ -42,33 +42,55 @@ ak_compstg_destroy(ak_compstg* cs)
 
 bool
 ak_compstg_exist(ak_compstg* cs,
-                 ak_ett ett,
+                 ak_ett e,
                  ak_comp_enum ce)
 {
-  return ak_spa_exist(&cs->spas[ce], ett);
+  return ak_spa_exist(&cs->spas[ce], e);
 }
 
 void*
 ak_compstg_at(ak_compstg* cs,
-              ak_ett ett,
+              ak_ett e,
               ak_comp_enum ce)
 {
-  return ak_spa_at(&cs->spas[ce], ett);
+  return ak_spa_at(&cs->spas[ce], e);
+}
+
+void
+ak_compstg_overwrite(ak_compstg* cs,
+                     ak_ett e,
+                     ak_comp_enum ce,
+                     const void* comp)
+{
+  ak_spa_overwrite(&cs->spas[ce], e, comp);
 }
 
 void
 ak_compstg_add(ak_compstg* cs,
-               ak_ett ett,
+               ak_ett e,
                ak_comp_enum ce,
                const void* comp)
 {
-  ak_spa_insert(&cs->spas[ce], ett, comp);
+  ak_spa_insert(&cs->spas[ce], e, comp);
 }
 
 void
 ak_compstg_remove(ak_compstg* cs,
-                  ak_ett ett,
+                  ak_ett e,
                   ak_comp_enum ce)
 {
-  ak_spa_remove(&cs->spas[ce], ett);
+  ak_spa_remove(&cs->spas[ce], e);
+}
+
+void
+ak_compstg_remove_all(ak_compstg* cs,
+                      ak_ett e)
+{
+  uint32_t count = ak_comp_count_e;
+  for (uint32_t i = 0; i < count; i++) {
+    ak_spa* spa = &cs->spas[i];
+    if (ak_spa_exist(spa, e)) {
+      ak_spa_remove(spa, e);
+    }
+  }
 }

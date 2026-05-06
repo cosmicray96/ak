@@ -27,8 +27,15 @@ void
 ak_ettstg_newett(ak_ettstg* es,
                  ak_ett e,
                  ak_ett pt);
+
+typedef void (
+  *ak_ettstg_remove_fn)(void* ctx, ak_ett e);
 void
-ak_ettstg_remove(ak_ettstg* es, ak_ett e);
+ak_ettstg_remove_cb(
+  ak_ettstg* es,
+  ak_ett e,
+  ak_ettstg_remove_fn remove_fn,
+  void* remove_ctx);
 
 ak_ett
 ak_ettstg_parent(ak_ettstg* es, ak_ett e);

@@ -15,22 +15,31 @@ ak_compstg_destroy(ak_compstg* cs);
 
 bool
 ak_compstg_exist(ak_compstg* cs,
-                 ak_ett ett,
+                 ak_ett e,
                  ak_comp_enum ce);
 void*
 ak_compstg_at(ak_compstg* cs,
-              ak_ett ett,
+              ak_ett e,
               ak_comp_enum ce);
+void
+ak_compstg_overwrite(ak_compstg* cs,
+                     ak_ett e,
+                     ak_comp_enum ce,
+                     const void* comp);
 
 void
 ak_compstg_add(ak_compstg* cs,
-               ak_ett ett,
+               ak_ett e,
                ak_comp_enum ce,
                const void* comp);
 void
 ak_compstg_remove(ak_compstg* cs,
-                  ak_ett ett,
+                  ak_ett e,
                   ak_comp_enum ce);
+
+void
+ak_compstg_remove_all(ak_compstg* cs,
+                      ak_ett e);
 
 #define X(name)                             \
   static ak_##name##_t*                     \

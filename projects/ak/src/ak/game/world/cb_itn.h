@@ -9,23 +9,34 @@
 
 typedef enum
 {
-  cmd_none,
-  cmd_ett_new,
-  cmd_ett_remove,
-  cmd_comp_add,
-  cmd_comp_remove
-} ak_worldcmd;
+  ak_world_cmd_ett_new,
+  ak_world_cmd_ett_remove,
+  ak_world_cmd_comp_modify,
+  ak_world_cmd_comp_add,
+  ak_world_cmd_comp_remove
+} ak_world_cmd;
 typedef struct
 {
-  ak_worldcmd c;
+  ak_world_cmd cmd;
   ak_ett e;
-  ak_comp_tu tu;
-} ak_worldcmd_item;
+  ak_ett pt;
+  ak_comp_tu ctu;
+} ak_world_cmditem;
 
 ak_world_cb
 ak_world_cb_make(ak_ettgen* eg,
                  ak_alct alct);
 void
 ak_world_cb_destroy(ak_world_cb* gc);
+
+uint32_t
+ak_world_cb_count(ak_world_cb* wcb);
+bool
+ak_world_cb_peek(ak_world_cb* wcb,
+                 uint32_t idx,
+                 ak_world_cmditem* o_item);
+bool
+ak_world_cb_pop(ak_world_cb* wcb,
+                ak_world_cmditem* o_item);
 
 #endif

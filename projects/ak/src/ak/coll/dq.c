@@ -52,6 +52,12 @@ ak_dq_destroy(ak_dq* q)
   q->count = 0;
 }
 
+uint32_t
+ak_dq_count(const ak_dq* q)
+{
+  return q->count;
+}
+
 void
 ak_dq_push(ak_dq* q, const void* item)
 {
@@ -79,12 +85,17 @@ ak_dq_pop(ak_dq* q, void* item)
   return true;
 }
 
-void*
-ak_dq_peek(ak_dq* q)
+bool
+ak_dq_peek(ak_dq* q,
+           uint32_t idx,
+           void* item)
 {
-  if (q->count == 0) {
-    return 0;
+  if (idx >= q->count) {
+    return false;
   }
+  uint32_t ridx = (q->ridx + idx) %
+                  ak_dbuff_cap(&q->dbuff);
 
-  return ak_dbuff_at(&q->dbuff, q->ridx);
+  ak_dbuff_at_copy(&q->dbuff, ridx, item);
+  return true;
 }

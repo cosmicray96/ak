@@ -28,7 +28,7 @@ bool
 ak_worldview_comp_exist(ak_worldview* w,
                         ak_ett ett,
                         ak_comp_enum ce);
-void*
+const void*
 ak_worldview_comp_at(ak_worldview* w,
                      ak_ett ett,
                      ak_comp_enum ce);

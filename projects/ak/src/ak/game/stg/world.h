@@ -27,27 +27,36 @@ ak_world_ett_new(ak_world* w,
                  ak_ett e,
                  ak_ett pt);
 void
-ak_world_ett_remove(ak_world* w, ak_ett e);
+ak_world_ett_remove_cb(
+  ak_world* w,
+  ak_ett e,
+  ak_ettstg_remove_fn remove_fn,
+  void* remove_ctx);
 ak_ett
 ak_world_ett_parent(ak_world* w, ak_ett e);
 
 bool
 ak_world_comp_exist(ak_world* w,
-                    ak_ett ett,
+                    ak_ett e,
                     ak_comp_enum ce);
 void*
 ak_world_comp_at(ak_world* w,
-                 ak_ett ett,
+                 ak_ett e,
                  ak_comp_enum ce);
+void
+ak_world_comp_overwrite(ak_world* w,
+                        ak_ett e,
+                        ak_comp_enum ce,
+                        const void* comp);
 
 void
 ak_world_comp_add(ak_world* w,
-                  ak_ett ett,
+                  ak_ett e,
                   ak_comp_enum ce,
                   const void* comp);
 void
 ak_world_comp_remove(ak_world* w,
-                     ak_ett ett,
+                     ak_ett e,
                      ak_comp_enum ce);
 
 #define X(name)                             \

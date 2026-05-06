@@ -43,10 +43,17 @@ ak_world_ett_new(ak_world* w,
 }
 
 void
-ak_world_ett_remove(ak_world* w, ak_ett e)
+ak_world_ett_remove_cb(
+  ak_world* w,
+  ak_ett e,
+  ak_ettstg_remove_fn remove_fn,
+  void* remove_ctx)
 {
-  ak_ettstg_remove(&w->es, e);
+  ak_compstg_remove_all(w->cs, e);
+  ak_ettstg_remove_cb(
+    &w->es, e, remove_fn, remove_ctx);
 }
+
 ak_ett
 ak_world_ett_parent(ak_world* w, ak_ett e)
 {
@@ -67,6 +74,15 @@ ak_world_comp_at(ak_world* w,
                  ak_comp_enum ce)
 {
   return ak_compstg_at(w->cs, e, ce);
+}
+
+void
+ak_world_comp_overwrite(ak_world* w,
+                        ak_ett e,
+                        ak_comp_enum ce,
+                        const void* comp)
+{
+  ak_compstg_overwrite(w->cs, e, ce, comp);
 }
 
 void

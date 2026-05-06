@@ -29,13 +29,21 @@ new_ettitn(ak_ettstg* es,
 }
 
 static void
-remove_ettitn(ak_ettstg* es, ak_ett e)
+remove_ettitn(ak_ettstg* es,
+              ak_ett e,
+              ak_ettstg_remove_fn remove_fn,
+              void* remove_ctx)
 {
   ak_ett c = ak_ettstg_firstchild(es, e);
   while (c) {
     ak_ett next = ak_ettstg_nextsib(es, c);
-    remove_ettitn(es, c);
+    remove_ettitn(
+      es, c, remove_fn, remove_ctx);
     c = next;
+  }
+
+  if (remove_fn) {
+    remove_fn(remove_ctx, e);
   }
   ak_spa_remove(&es->etts, e);
 }
@@ -139,7 +147,11 @@ ak_ettstg_prevsib(ak_ettstg* es, ak_ett e)
 }
 
 void
-ak_ettstg_remove(ak_ettstg* es, ak_ett e)
+ak_ettstg_remove_cb(
+  ak_ettstg* es,
+  ak_ett e,
+  ak_ettstg_remove_fn remove_fn,
+  void* remove_ctx)
 {
   ak_assert(e != es->root);
 
@@ -157,7 +169,8 @@ ak_ettstg_remove(ak_ettstg* es, ak_ett e)
 
   eitn->pt = 0;
   eitn->ns = 0;
-  remove_ettitn(es, e);
+  remove_ettitn(
+    es, e, remove_fn, remove_ctx);
 }
 
 //===== ak_ettstg_itdfs =====//

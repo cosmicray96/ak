@@ -17,6 +17,11 @@ ak_world_cb_ett_remove(ak_world_cb* wcb,
                        ak_ett e);
 
 void
+ak_world_cb_comp_modify(ak_world_cb* wcb,
+                        ak_ett ett,
+                        ak_comp_enum ce,
+                        const void* comp);
+void
 ak_world_cb_comp_add(ak_world_cb* wcb,
                      ak_ett ett,
                      ak_comp_enum ce,
