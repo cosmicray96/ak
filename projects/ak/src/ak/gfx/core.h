@@ -5,10 +5,4 @@
 
 typedef struct ak_gfx ak_gfx;
 
-typedef enum
-{
-  ak_mtrltype_none,
-  ak_mtrltype_vcol,
-} ak_mtrltype;
-
 #endif

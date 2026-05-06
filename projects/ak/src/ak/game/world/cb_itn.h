@@ -23,6 +23,13 @@ typedef struct
   ak_comp_tu ctu;
 } ak_world_cmditem;
 
+struct ak_world_cb
+{
+  ak_alct alct;
+  ak_ettgen* eg;
+  ak_dq cmds;
+};
+
 ak_world_cb
 ak_world_cb_make(ak_ettgen* eg,
                  ak_alct alct);

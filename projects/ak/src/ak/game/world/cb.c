@@ -7,14 +7,6 @@
 #include "ak/game/world/cb_itn.h"
 
 //===== ak_gcmdbuff  =====//
-
-//--- private ---//
-struct ak_world_cb
-{
-  ak_alct alct;
-  ak_ettgen* eg;
-  ak_dq cmds;
-};
 //--- internal ---//
 ak_world_cb
 ak_world_cb_make(ak_ettgen* eg, ak_alct alct)

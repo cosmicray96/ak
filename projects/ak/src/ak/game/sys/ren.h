@@ -2,18 +2,19 @@
 #define ak_game_sys_ren_h
 
 #include "ak/core/mem/allocator.h"
-#include "ak/game/stg/world.h"
+#include "ak/game/world/view.h"
+#include "ak/gfx/core.h"
 typedef struct
 {
+  ak_gfx* gf;
+  ak_world_v* wv;
+} ak_sys_ren;
 
-} ak_gren;
-
-ak_gren
-ak_gren_make(ak_world* w, ak_alct alct);
+ak_sys_ren
+ak_sys_ren_make(ak_gfx* gf,
+                ak_world_v* wv,
+                ak_alct alct);
 void
-ak_gren_destroy(ak_gren* gr);
-
-void
-ak_gren_update(ak_gren* gr);
+ak_sys_ren_destroy(ak_sys_ren* r);
 
 #endif

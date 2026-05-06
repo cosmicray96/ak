@@ -31,4 +31,26 @@ ak_world_cb_comp_remove(ak_world_cb* wcb,
                         ak_ett ett,
                         ak_comp_enum ce);
 
+#define X(name)                             \
+  void ak_world_cb_comp_##name##_modify(    \
+    ak_world_cb* wcb,                       \
+    ak_ett e,                               \
+    ak_comp_enum ce,                        \
+    const ak_##name##_t* comp)              \
+  {                                         \
+    ak_world_cb_comp_modify(                \
+      wcb, e, ce, (const void*)comp);       \
+  }                                         \
+  void ak_world_cb_comp_##name##_add(       \
+    ak_world_cb* wcb,                       \
+    ak_ett e,                               \
+    ak_comp_enum ce,                        \
+    const ak_##name##_t* comp)              \
+  {                                         \
+    ak_world_cb_comp_add(                   \
+      wcb, e, ce, (const void*)comp);       \
+  }
+#include "./ak/game/comp.inc"
+#undef X
+
 #endif
