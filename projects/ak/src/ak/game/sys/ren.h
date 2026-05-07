@@ -4,11 +4,13 @@
 #include "ak/core/mem/allocator.h"
 #include "ak/game/world/view.h"
 #include "ak/gfx/core.h"
+#include "ak/gfx/mtrl/mtrl.h"
 typedef struct
 {
   ak_alct alct;
   ak_gfx* gf;
   ak_world_v* wv;
+  ak_mtrl_col* mtrl;
 } ak_sys_ren;
 
 ak_sys_ren

@@ -28,6 +28,9 @@ ak_ettstg_newett(ak_ettstg* es,
                  ak_ett e,
                  ak_ett pt);
 
+ak_ett
+ak_ettstg_leftmost(ak_ettstg* es, ak_ett e);
+
 typedef void (
   *ak_ettstg_remove_fn)(void* ctx, ak_ett e);
 void

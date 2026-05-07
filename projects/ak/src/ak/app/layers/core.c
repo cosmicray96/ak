@@ -3,8 +3,9 @@
 #include "ak/app/eq.h"
 #include "ak/app/event.h"
 #include "ak/core/math/vec2.h"
-#include "ak/gfx/mtrl/col.h"
-#include "ak/gfx/mtrl/vcol.h"
+#include "ak/gfx/mtrl/col_itn.h"
+#include "ak/gfx/mtrl/mtrl.h"
+#include "ak/gfx/mtrl/vcol_itn.h"
 #include "ak/os/time.h"
 #include "ak/platform/core.h"
 #include "ak/platform/plat_ren.h"
@@ -71,6 +72,12 @@ void
 ak_lcore_destroy(ak_lcore* l)
 {
   ak_alct_free(l->alct, l);
+}
+
+ak_gfx*
+ak_lcore_gfx(ak_lcore* l)
+{
+  return l->gf;
 }
 
 //===== ak_applayer =====//

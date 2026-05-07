@@ -34,6 +34,13 @@ ak_world_ett_remove_cb(
   void* remove_ctx);
 ak_ett
 ak_world_ett_parent(ak_world* w, ak_ett e);
+ak_ett
+ak_world_ett_firstchild(ak_world* w,
+                        ak_ett e);
+ak_ett
+ak_world_ett_nextsib(ak_world* w, ak_ett e);
+ak_ett
+ak_world_ett_leftmost(ak_world* w, ak_ett e);
 
 bool
 ak_world_comp_exist(ak_world* w,
@@ -90,32 +97,5 @@ ak_world_comp_remove(ak_world* w,
 
 #include "./ak/game/comp.inc"
 #undef X
-
-//===== ak_world_itdfs =====//
-typedef struct
-{
-  ak_world* w;
-  ak_ettstg_itdfs ettit;
-} ak_world_itdfs;
-ak_world_itdfs
-ak_world_itdfs_make(ak_world* w,
-                    ak_ett root);
-bool
-ak_world_itdfs_next(ak_world_itdfs* it,
-                    ak_ett* o_e);
-
-//===== ak_world_itchild =====//
-typedef struct
-{
-  ak_world* w;
-  ak_ett child;
-  bool started;
-} ak_world_itchild;
-ak_world_itchild
-ak_world_itchild_make(ak_world* w,
-                      ak_ett pt);
-bool
-ak_world_itchild_next(ak_world_itchild* it,
-                      ak_ett* o_e);
 
 #endif

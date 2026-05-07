@@ -2,11 +2,13 @@
 #define ak_app_layers_world_h
 
 #include "ak/app/app.h"
+#include "ak/app/layers/core.h"
 #include "ak/core/mem/allocator.h"
 typedef struct ak_lworld ak_lworld;
 
 ak_lworld*
-ak_lworld_make(ak_alct alct);
+ak_lworld_make(ak_lcore* lcore,
+               ak_alct alct);
 void
 ak_lworld_destroy(ak_lworld* l);
 

@@ -6,7 +6,7 @@
 typedef struct
 {
   ak_tf2d tf;
-} ak_tf_t;
+} ak_tf2d_t;
 typedef struct
 {
   char ph;

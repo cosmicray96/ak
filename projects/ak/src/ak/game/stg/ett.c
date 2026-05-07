@@ -173,10 +173,8 @@ ak_ettstg_remove_cb(
     es, e, remove_fn, remove_ctx);
 }
 
-//===== ak_ettstg_itdfs =====//
-//--- private ---//
-static ak_ett
-get_leftmost(ak_ettstg* es, ak_ett e)
+ak_ett
+ak_ettstg_leftmost(ak_ettstg* es, ak_ett e)
 {
   ak_ett c = ak_ettstg_firstchild(es, e);
   while (c) {
@@ -186,6 +184,7 @@ get_leftmost(ak_ettstg* es, ak_ett e)
   return e;
 }
 
+//===== ak_ettstg_itdfs =====//
 //--- public ---//
 ak_ettstg_itdfs
 ak_ettstg_itdfs_make(ak_ettstg* es,
@@ -194,7 +193,7 @@ ak_ettstg_itdfs_make(ak_ettstg* es,
   ak_ettstg_itdfs it = { 0 };
   it.es = es;
   it.root = root;
-  it.last = get_leftmost(es, root);
+  it.last = ak_ettstg_leftmost(es, root);
   it.started = false;
   return it;
 }
@@ -216,7 +215,8 @@ ak_ettstg_itdfs_next(ak_ettstg_itdfs* it,
   ak_ett ns =
     ak_ettstg_nextsib(it->es, it->last);
   if (ns) {
-    it->last = get_leftmost(it->es, ns);
+    it->last =
+      ak_ettstg_leftmost(it->es, ns);
   } else {
     it->last =
       ak_ettstg_parent(it->es, it->last);

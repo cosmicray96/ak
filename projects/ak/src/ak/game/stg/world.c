@@ -59,6 +59,22 @@ ak_world_ett_parent(ak_world* w, ak_ett e)
 {
   return ak_ettstg_parent(&w->es, e);
 }
+ak_ett
+ak_world_ett_firstchild(ak_world* w,
+                        ak_ett e)
+{
+  return ak_ettstg_firstchild(&w->es, e);
+}
+ak_ett
+ak_world_ett_nextsib(ak_world* w, ak_ett e)
+{
+  return ak_ettstg_nextsib(&w->es, e);
+}
+ak_ett
+ak_world_ett_leftmost(ak_world* w, ak_ett e)
+{
+  return ak_ettstg_leftmost(&w->es, e);
+}
 
 bool
 ak_world_comp_exist(ak_world* w,
@@ -100,51 +116,4 @@ ak_world_comp_remove(ak_world* w,
                      ak_comp_enum ce)
 {
   ak_compstg_remove(w->cs, e, ce);
-}
-
-//===== ak_world_itdfs =====//
-//--- public ---//
-ak_world_itdfs
-ak_world_itdfs_make(ak_world* w, ak_ett root)
-{
-  ak_world_itdfs it = { 0 };
-  it.w = w;
-  it.ettit =
-    ak_ettstg_itdfs_make(&w->es, root);
-  return it;
-}
-bool
-ak_world_itdfs_next(ak_world_itdfs* it,
-                    ak_ett* o_e)
-{
-  return ak_ettstg_itdfs_next(&it->ettit,
-                              o_e);
-}
-
-//===== ak_world_itchild =====//
-//--- public ---//
-ak_world_itchild
-ak_world_itchild_make(ak_world* w, ak_ett pt)
-{
-  ak_world_itchild it = { 0 };
-  it.w = w;
-  it.child =
-    ak_ettstg_firstchild(&w->es, pt);
-  it.started = false;
-  return it;
-}
-bool
-ak_world_itchild_next(ak_world_itchild* it,
-                      ak_ett* o_e)
-{
-  if (!it->started) {
-    it->started = true;
-    *o_e = it->child;
-    return it->child != 0;
-  }
-
-  it->child =
-    ak_ettstg_nextsib(&it->w->es, it->child);
-  *o_e = it->child;
-  return it->child != 0;
 }
