@@ -1,6 +1,7 @@
 #include "ak/ak.h"
 #include "ak/app/app.h"
 #include "ak/app/layers/core.h"
+#include "ak/app/layers/world.h"
 #include "ak/core/mem/heap.h"
 #include "ak/program/program.h"
 
@@ -16,9 +17,15 @@ ak()
   ak_applayer lcore =
     ak_lcore_to_applayer(core);
 
+  ak_lworld* world =
+    ak_lworld_make(core, alct);
+  ak_applayer lworld =
+    ak_lworld_to_applayer(world);
+
   ak_applayer_regs regs =
     ak_applayer_regs_make(alct);
   ak_applayer_regs_push(&regs, lcore);
+  ak_applayer_regs_push(&regs, lworld);
 
   ak_app* app = ak_app_make(&regs, alct);
   ak_app_run(app);
@@ -26,6 +33,7 @@ ak()
 
   ak_applayer_regs_destroy(&regs);
 
+  ak_lworld_destroy(world);
   ak_lcore_destroy(core);
 
   ak_heap_destroy(&heap);

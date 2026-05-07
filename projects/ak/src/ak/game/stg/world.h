@@ -66,36 +66,4 @@ ak_world_comp_remove(ak_world* w,
                      ak_ett e,
                      ak_comp_enum ce);
 
-#define X(name)                             \
-  static ak_##name##_t*                     \
-    ak_world_comp_at_##name(ak_world* w,    \
-                            ak_ett ett)     \
-  {                                         \
-    return ak_world_comp_at(                \
-      w, ett, ak_##name##_e);               \
-  }                                         \
-  static bool ak_world_comp_exist_##name(   \
-    ak_world* w, ak_ett ett)                \
-  {                                         \
-    return ak_world_comp_exist(             \
-      w, ett, ak_##name##_e);               \
-  }                                         \
-  static void ak_world_comp_add_##name(     \
-    ak_world* w,                            \
-    ak_ett ett,                             \
-    const ak_##name##_t* comp)              \
-  {                                         \
-    ak_world_comp_add(                      \
-      w, ett, ak_##name##_e, comp);         \
-  }                                         \
-  static void ak_world_comp_remove_##name(  \
-    ak_world* w, ak_ett ett)                \
-  {                                         \
-    ak_world_comp_remove(                   \
-      w, ett, ak_##name##_e);               \
-  }
-
-#include "./ak/game/comp.inc"
-#undef X
-
 #endif

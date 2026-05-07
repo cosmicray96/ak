@@ -32,7 +32,7 @@ struct ak_lcore
   bool flip;
 };
 
-bool
+static bool
 on_resize(ak_lcore* l, ak_evt e)
 {
   if (e.type != ak_evt_type_win) {
@@ -46,7 +46,7 @@ on_resize(ak_lcore* l, ak_evt e)
   return true;
 }
 
-bool
+static bool
 on_win_close(ak_lcore* l, ak_evt e)
 {
   if (e.type != ak_evt_type_win) {
@@ -83,7 +83,7 @@ ak_lcore_gfx(ak_lcore* l)
 //===== ak_applayer =====//
 //--- private ---//
 
-void
+static void
 on_startup(void* ctx, ak_app* app)
 {
   ak_lcore* l = ctx;
@@ -100,7 +100,8 @@ on_startup(void* ctx, ak_app* app)
 
   l->flip = false;
 }
-void
+
+static void
 on_shutdown(void* ctx)
 {
   ak_lcore* l = ctx;
@@ -112,7 +113,7 @@ on_shutdown(void* ctx)
   ak_plat_ren_shutdown(l->pr);
 }
 
-void
+static void
 on_epusher(void* ctx, ak_app_eq* eq)
 {
   ak_lcore* l = ctx;
@@ -133,7 +134,7 @@ on_epusher(void* ctx, ak_app_eq* eq)
   ak_plat_eventflush(l->p, eq);
 }
 
-bool
+static bool
 on_event(void* ctx, ak_evt e)
 {
   ak_lcore* l = ctx;
@@ -189,10 +190,11 @@ typedef struct
   ak_vec4 col;
 } vert;
 
-void
+static void
 on_update(void* ctx, ak_dur delta)
 {
   ak_lcore* l = ctx;
+  return;
   vert verts[6] = {
     // Triangle 1
     {
@@ -267,14 +269,13 @@ on_update(void* ctx, ak_dur delta)
   ak_mtrl_vcol_call_end(l->m_vcol);
 
   ak_gfx_frame_end(l->gf);
-
-  ak_plat_ren_swapbuffer(l->pr);
 }
 
-void
+static void
 on_upost(void* ctx, ak_dur delta)
 {
   ak_lcore* l = ctx;
+  ak_plat_ren_swapbuffer(l->pr);
 }
 
 //--- public ---//

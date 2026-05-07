@@ -47,14 +47,12 @@ ak_world_v_comp_exist(ak_world_v* wv,
 }
 
 #define X(name)                             \
-  ak_##name##_t* ak_world_v_comp_##name(    \
+  ak_##name##_t ak_world_v_comp_##name(     \
     ak_world_v* wv, ak_ett e)               \
   {                                         \
-    if (!ak_world_comp_exist(               \
-          wv->w, e, ak_##name##_e)) {       \
-      return 0;                             \
-    }                                       \
-    return (ak_##name##_t*)                 \
+    ak_assert(ak_world_comp_exist(          \
+      wv->w, e, ak_##name##_e));            \
+    return *(ak_##name##_t*)                \
       ak_world_comp_at(                     \
         wv->w, e, ak_##name##_e);           \
   }

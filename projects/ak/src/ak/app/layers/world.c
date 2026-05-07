@@ -8,6 +8,7 @@
 #include "ak/core/math/trig.h"
 #include "ak/core/math/vec2.h"
 #include "ak/game/comp_t.h"
+#include "ak/game/stg/core.h"
 #include "ak/game/stg/ettgen.h"
 #include "ak/game/stg/world.h"
 #include "ak/game/sys/ren.h"
@@ -16,6 +17,7 @@
 #include "ak/game/world/cbflush.h"
 #include "ak/game/world/view.h"
 #include "ak/game/world/view_itn.h"
+#include "ak/gfx/mtrl/vcol_itn.h"
 
 //===== ak_lworld =====//
 //--- private ---//
@@ -53,29 +55,27 @@ ak_lworld_destroy(ak_lworld* l)
 //===== ak_applayer =====//
 //--- private ---//
 
-void
-push_data(ak_lworld* l)
+static void
+push_child(ak_lworld* l, float x, float y)
 {
-  ak_tf2d_t tf2d = { 0 };
-  tf2d.tf = ak_tf2d_make(
-    ak_vec2_make(ak_fx32_f(0), ak_fx32_f(0)),
-    ak_angle_deg(ak_fx32_f(0)),
-    ak_vec2_make(ak_fx32_f(0.5f),
-                 ak_fx32_f(0.5f)));
+  ak_ett root = ak_world_v_ett_root(&l->wv);
+  ak_ett e =
+    ak_world_cb_ett_new(&l->wcb, root);
 
-  ak_world_cb_comp_tf2d_add(
-    &l->wcb,
-    ak_world_v_ett_root(&l->wv),
-    &tf2d);
+  ak_tf2d_t tf = { 0 };
+  tf = ak_tf2d_make(
+    ak_vec2_make(ak_fx32_f(x), ak_fx32_f(y)),
+    ak_angle_deg(ak_fx32_f(0)),
+    ak_vec2_make(ak_fx32_f(0.1f),
+                 ak_fx32_f(0.1f)));
+  ak_world_cb_comp_tf2d_add(&l->wcb, e, tf);
 
   ak_rect_t rect = { 0 };
   ak_world_cb_comp_rect_add(
-    &l->wcb,
-    ak_world_v_ett_root(&l->wv),
-    &rect);
+    &l->wcb, e, rect);
 }
 
-void
+static void
 on_startup(void* ctx, ak_app* app)
 {
   ak_lworld* l = ctx;
@@ -89,10 +89,18 @@ on_startup(void* ctx, ak_app* app)
   l->sys_ren = ak_sys_ren_make(
     ak_lcore_gfx(l->lcore), &l->wv, l->alct);
 
-  push_data(l);
+  push_child(l, 0, 0);
+  push_child(l, 0.5f, 0);
+  push_child(l, 0.5f, 0.5f);
+  push_child(l, 0, 0.5f);
+  push_child(l, -0.5f, 0);
+  push_child(l, -0.5f, -0.5f);
+  push_child(l, 0, -0.5f);
+  push_child(l, 0.5f, -0.5f);
+  push_child(l, -0.5f, 0.5f);
 }
 
-void
+static void
 on_shutdown(void* ctx)
 {
   ak_lworld* l = ctx;
@@ -112,14 +120,14 @@ on_event(void* ctx, ak_evt e)
   return false;
 }
 
-void
+static void
 on_update(void* ctx, ak_dur delta)
 {
   ak_lworld* l = ctx;
   ak_sys_ren_render(&l->sys_ren);
 }
 
-void
+static void
 on_upost(void* ctx, ak_dur delta)
 {
   ak_lworld* l = ctx;

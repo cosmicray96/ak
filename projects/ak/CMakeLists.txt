@@ -13,7 +13,7 @@ cm_target_get_defines_priv(${target_name} ${targ_path} defs_priv)
 cm_target_get_defines_shared_priv(${target_name} ${targ_path} defs_shared)
 
 
-add_library(${obj_name} SHARED
+add_library(${obj_name} OBJECT
 )
 target_sources(${obj_name}
 	PUBLIC
@@ -70,7 +70,8 @@ target_sources(${obj_name}
 )
 
 #--- target ---#
-add_library(${target_name} SHARED)
+add_library(ak SHARED
+)
 set_target_properties(${target_name} 
 	PROPERTIES 
 	LINKER_LANGUAGE C

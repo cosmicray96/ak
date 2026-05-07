@@ -21,12 +21,17 @@ ak_ex bool
 ak_world_v_comp_exist(ak_world_v* w,
                       ak_ett ett,
                       ak_comp_enum ce);
-
 #define X(name)                             \
-  ak_ex ak_##name##_t*                      \
+  ak_ex ak_##name##_t                       \
     ak_world_v_comp_##name(ak_world_v* w,   \
-                           ak_ett e);
-
+                           ak_ett e);       \
+  static bool                               \
+    ak_world_v_comp_##name##_exist(         \
+      ak_world_v* w, ak_ett e)              \
+  {                                         \
+    return ak_world_v_comp_exist(           \
+      w, e, ak_##name##_e);                 \
+  }
 #include "ak/game/comp.inc"
 #undef X
 

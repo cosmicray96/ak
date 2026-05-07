@@ -3,10 +3,8 @@
 
 #include "ak/core/math/tf2d.h"
 
-typedef struct
-{
-  ak_tf2d tf;
-} ak_tf2d_t;
+typedef ak_tf2d ak_tf2d_t;
+
 typedef struct
 {
   char ph;

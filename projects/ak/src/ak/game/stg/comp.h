@@ -41,36 +41,4 @@ void
 ak_compstg_remove_all(ak_compstg* cs,
                       ak_ett e);
 
-#define X(name)                             \
-  static ak_##name##_t*                     \
-    ak_compstg_at_##name(ak_compstg* cs,    \
-                         ak_ett ett)        \
-  {                                         \
-    return ak_compstg_at(                   \
-      cs, ett, ak_##name##_e);              \
-  }                                         \
-  static bool ak_compstg_exist_##name(      \
-    ak_compstg* cs, ak_ett ett)             \
-  {                                         \
-    return ak_compstg_exist(                \
-      cs, ett, ak_##name##_e);              \
-  }                                         \
-  static void ak_compstg_add_##name(        \
-    ak_compstg* cs,                         \
-    ak_ett ett,                             \
-    const ak_##name##_t* comp)              \
-  {                                         \
-    ak_compstg_add(                         \
-      cs, ett, ak_##name##_e, comp);        \
-  }                                         \
-  static void ak_compstg_remove_##name(     \
-    ak_compstg* cs, ak_ett ett)             \
-  {                                         \
-    ak_compstg_remove(                      \
-      cs, ett, ak_##name##_e);              \
-  }
-
-#include "./ak/game/comp.inc"
-#undef X
-
 #endif
