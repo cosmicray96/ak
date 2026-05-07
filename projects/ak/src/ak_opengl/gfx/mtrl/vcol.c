@@ -58,10 +58,10 @@ ak_mtrl_vcol_make(ak_gfx* g, ak_alct alct)
 
   m->program = program_make(fs_src, vs_src);
 
-  ak_gfx_buff_bind(g);
-
   glGenVertexArrays(1, &m->vao);
   glBindVertexArray(m->vao);
+
+  ak_gfx_buff_bind(g);
 
   glVertexAttribPointer(0,
                         2,

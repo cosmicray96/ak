@@ -16,6 +16,16 @@
 
 #define s_max_vbo_size 1024 * 16 // for tests
 
+// worst case: 1 byte per vert & rounding
+#define s_max_quad_count                    \
+  ((s_max_vbo_size + 3) / 4)
+
+// 6 idx per quad
+#define s_max_ebo_count                     \
+  (s_max_quad_count * 6)
+#define s_max_ebo_size                      \
+  (s_max_ebo_count * sizeof(uint16_t))
+
 struct ak_gfx
 {
   ak_alct alct;
@@ -26,6 +36,9 @@ struct ak_gfx
   uint8_t* vbo_buf;
   uint32_t vbo_idx;
 
+  GLuint ebo;
+  uint16_t* ebo_buf;
+
   uint32_t cur_vertsize;
 };
 
@@ -35,21 +48,11 @@ get_vertcount(ak_gfx* g)
   ak_assert(g->call_began);
   return g->vbo_idx / g->cur_vertsize;
 }
-
 static uint32_t
-get_max_trigcount(ak_gfx* g)
+get_quadcount(ak_gfx* g)
 {
   ak_assert(g->call_began);
-  return s_max_vbo_size /
-         (g->cur_vertsize * 3);
-}
-
-static uint32_t
-get_max_trigsize(ak_gfx* g)
-{
-  ak_assert(g->call_began);
-  return get_max_trigcount(g) *
-         g->cur_vertsize;
+  return g->vbo_idx / (4 * g->cur_vertsize);
 }
 
 static void
@@ -57,14 +60,11 @@ call_reset_ifneed(ak_gfx* g)
 {
   ak_assert(g->call_began);
 
-  uint32_t max_trigsize =
-    get_max_trigsize(g);
-
-  if (g->vbo_idx < max_trigsize) {
+  uint32_t bytes_for_one_quad =
+    g->cur_vertsize * 4;
+  if (g->vbo_idx + bytes_for_one_quad <=
+      s_max_vbo_size) {
     return;
-  }
-  if (g->vbo_idx > max_trigsize) {
-    ak_assert(false);
   }
 
   uint32_t vertsize = g->cur_vertsize;
@@ -73,11 +73,11 @@ call_reset_ifneed(ak_gfx* g)
 }
 
 static bool
-exact_triangles(ak_gfx* g)
+exact_quads(ak_gfx* g)
 {
   ak_assert(g->call_began);
   return g->vbo_idx %
-           (g->cur_vertsize * 3) ==
+           (g->cur_vertsize * 4) ==
          0;
 }
 
@@ -86,11 +86,14 @@ void
 ak_gfx_buff_bind(ak_gfx* g)
 {
   glBindBuffer(GL_ARRAY_BUFFER, g->vbo);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
+               g->ebo);
 }
 
 void
 ak_gfx_buff_unbind(ak_gfx* g)
 {
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
@@ -105,7 +108,7 @@ ak_gfx_call_begin(ak_gfx* g,
 
   g->cur_vertsize = vertsize;
 
-  glBindBuffer(GL_ARRAY_BUFFER, g->vbo);
+  // glBindBuffer(GL_ARRAY_BUFFER, g->vbo);
 }
 
 void
@@ -125,19 +128,19 @@ void
 ak_gfx_call_end(ak_gfx* g)
 {
   ak_assert(g->call_began);
-  ak_assert(exact_triangles(g));
+  ak_assert(exact_quads(g));
 
+  glBindBuffer(GL_ARRAY_BUFFER, g->vbo);
   glBufferSubData(GL_ARRAY_BUFFER,
                   0,
                   g->vbo_idx,
                   g->vbo_buf);
-
-  glDrawArrays(
-    GL_TRIANGLES, 0, get_vertcount(g));
-
-  glBindVertexArray(0);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
-  glUseProgram(0);
+
+  glDrawElements(GL_TRIANGLES,
+                 get_quadcount(g) * 6,
+                 GL_UNSIGNED_SHORT,
+                 0);
 
   g->vbo_idx = 0;
 
@@ -156,17 +159,43 @@ ak_gfx_startup(ak_plat_ren* pr, ak_alct alct)
 
   r->call_began = false;
 
-  r->vbo_buf =
-    ak_alct_alloc(alct, s_max_vbo_size);
-  glGenBuffers(1, &r->vbo);
-  glBindBuffer(GL_ARRAY_BUFFER, r->vbo);
-  glBufferData(GL_ARRAY_BUFFER,
-               s_max_vbo_size,
-               NULL,
-               GL_DYNAMIC_DRAW);
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  {
+    r->vbo_buf =
+      ak_alct_alloc(alct, s_max_vbo_size);
+    glGenBuffers(1, &r->vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, r->vbo);
+    glBufferData(GL_ARRAY_BUFFER,
+                 s_max_vbo_size,
+                 NULL,
+                 GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-  r->vbo_idx = 0;
+    r->vbo_idx = 0;
+  }
+  {
+    r->ebo_buf =
+      ak_alct_alloc(alct, s_max_ebo_size);
+    for (uint32_t q = 0;
+         q < s_max_quad_count;
+         q++) {
+      uint32_t v = q * 4; // vertex base
+      uint32_t e = q * 6; // ebo base
+      r->ebo_buf[e + 0] = v + 0;
+      r->ebo_buf[e + 1] = v + 1;
+      r->ebo_buf[e + 2] = v + 2;
+      r->ebo_buf[e + 3] = v + 2;
+      r->ebo_buf[e + 4] = v + 3;
+      r->ebo_buf[e + 5] = v + 0;
+    }
+    glGenBuffers(1, &r->ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
+                 r->ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                 s_max_ebo_size,
+                 r->ebo_buf,
+                 GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  }
 
   r->cur_vertsize = 0;
 

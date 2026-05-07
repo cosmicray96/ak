@@ -64,10 +64,10 @@ ak_mtrl_col_make(ak_gfx* g, ak_alct alct)
     m->program, "u_col");
   glUseProgram(0);
 
-  ak_gfx_buff_bind(g);
-
   glGenVertexArrays(1, &m->vao);
   glBindVertexArray(m->vao);
+
+  ak_gfx_buff_bind(g);
 
   glVertexAttribPointer(0,
                         2,
@@ -110,7 +110,6 @@ ak_mtrl_col_call_begin(ak_mtrl_col* m)
 {
   ak_assert(!m->call_begin);
 
-  ak_gfx_call_begin(m->g, sizeof(vert));
   glUseProgram(m->program);
   glBindVertexArray(m->vao);
 
@@ -119,6 +118,7 @@ ak_mtrl_col_call_begin(ak_mtrl_col* m)
               m->col_g,
               m->col_b,
               m->col_a);
+  ak_gfx_call_begin(m->g, sizeof(vert));
 
   m->call_begin = true;
 }

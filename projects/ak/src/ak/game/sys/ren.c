@@ -68,29 +68,34 @@ ak_sys_ren_render(ak_sys_ren* r)
 
     ak_vec2 tl = ak_vec2_make(
       ak_fx32_sub(tf.pos.x, half_w),
-      ak_fx32_sub(tf.pos.y, half_h));
+      ak_fx32_add(tf.pos.y, half_h));
 
     ak_vec2 tr = ak_vec2_make(
+      ak_fx32_add(tf.pos.x, half_w),
+      ak_fx32_add(tf.pos.y, half_h));
+
+    ak_vec2 br = ak_vec2_make(
       ak_fx32_add(tf.pos.x, half_w),
       ak_fx32_sub(tf.pos.y, half_h));
 
     ak_vec2 bl = ak_vec2_make(
       ak_fx32_sub(tf.pos.x, half_w),
-      ak_fx32_add(tf.pos.y, half_h));
+      ak_fx32_sub(tf.pos.y, half_h));
 
-    ak_vec2 br = ak_vec2_make(
-      ak_fx32_add(tf.pos.x, half_w),
-      ak_fx32_add(tf.pos.y, half_h));
-
-    /* triangle 1 */
     ak_mtrl_col_pushvert(r->mtrl, tl);
-    ak_mtrl_col_pushvert(r->mtrl, bl);
     ak_mtrl_col_pushvert(r->mtrl, tr);
-
-    /* triangle 2 */
-    ak_mtrl_col_pushvert(r->mtrl, tr);
-    ak_mtrl_col_pushvert(r->mtrl, bl);
     ak_mtrl_col_pushvert(r->mtrl, br);
+    ak_mtrl_col_pushvert(r->mtrl, bl);
+
+    /*
+ak_mtrl_col_pushvert(r->mtrl, tl);
+ak_mtrl_col_pushvert(r->mtrl, bl);
+ak_mtrl_col_pushvert(r->mtrl, tr);
+
+ak_mtrl_col_pushvert(r->mtrl, tr);
+ak_mtrl_col_pushvert(r->mtrl, bl);
+ak_mtrl_col_pushvert(r->mtrl, br);
+    */
   }
 
   ak_mtrl_col_call_end(r->mtrl);
