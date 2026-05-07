@@ -18,16 +18,12 @@ ak_mtrlreg_at(ak_mtrlreg* mr,
               ak_mtrl_enum me,
               uint32_t idx);
 
+uint32_t
+ak_mtrlreg_new(ak_mtrlreg* mr,
+               ak_mtrl_enum me);
 void
 ak_mtrlreg_remove(ak_mtrlreg* mr,
                   ak_mtrl_enum me,
                   uint32_t idx);
-
-#define X(name)                             \
-  uint32_t ak_mtrlreg_##name##_new(         \
-    ak_mtrlreg* mr, ak_alct alct);
-
-#include "ak/gfx/mtrl/mtrl.inc"
-#undef X
 
 #endif

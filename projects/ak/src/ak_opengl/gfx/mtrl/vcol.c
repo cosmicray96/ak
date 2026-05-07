@@ -1,8 +1,9 @@
-#include "ak/gfx/mtrl/vcol.h"
 #include "ak/core/math/vec4.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/gfx/core.h"
 #include "ak/gfx/gfx.h"
+#include "ak/gfx/mtrl/mtrl.h"
+#include "ak/gfx/mtrl/vcol_itn.h"
 #include "ak_opengl/gfx/gfx_itn.h"
 
 #include <glad/glad.h>

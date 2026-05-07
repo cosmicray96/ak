@@ -1,9 +1,10 @@
-#include "ak/gfx/mtrl/col.h"
 #include "ak/core/math/fixed.h"
 #include "ak/core/math/vec4.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/debug.h"
 #include "ak/gfx/core.h"
+#include "ak/gfx/mtrl/col_itn.h"
+#include "ak/gfx/mtrl/mtrl.h"
 #include "ak_opengl/gfx/gfx_itn.h"
 
 #include <glad/glad.h>

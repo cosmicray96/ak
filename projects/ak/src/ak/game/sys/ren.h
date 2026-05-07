@@ -6,6 +6,7 @@
 #include "ak/gfx/core.h"
 typedef struct
 {
+  ak_alct alct;
   ak_gfx* gf;
   ak_world_v* wv;
 } ak_sys_ren;
@@ -16,5 +17,8 @@ ak_sys_ren_make(ak_gfx* gf,
                 ak_alct alct);
 void
 ak_sys_ren_destroy(ak_sys_ren* r);
+
+void
+ak_sys_ren_render(ak_sys_ren* r);
 
 #endif

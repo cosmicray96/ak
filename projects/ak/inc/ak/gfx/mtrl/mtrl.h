@@ -1,8 +1,14 @@
 #ifndef ak_gfx_mtrl_mtrl_h
 #define ak_gfx_mtrl_mtrl_h
 
-#include "ak/gfx/mtrl/col.h"
-#include "ak/gfx/mtrl/vcol.h"
+#include "ak/core/math/vec4.h"
+
+typedef struct ak_mtrl_vcol ak_mtrl_vcol;
+
+typedef struct ak_mtrl_col ak_mtrl_col;
+void
+ak_mtrl_col_col_set(ak_mtrl_col* m,
+                    ak_vec4 col);
 
 typedef enum
 {
