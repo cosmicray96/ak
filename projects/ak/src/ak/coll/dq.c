@@ -52,6 +52,14 @@ ak_dq_destroy(ak_dq* q)
   q->count = 0;
 }
 
+void
+ak_dq_clear(ak_dq* q)
+{
+  q->ridx = 0;
+  q->widx = 0;
+  q->count = 0;
+}
+
 uint32_t
 ak_dq_count(const ak_dq* q)
 {

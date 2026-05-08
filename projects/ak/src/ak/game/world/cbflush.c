@@ -1,6 +1,9 @@
 #include "ak/game/world/cbflush.h"
+#include "ak/core/math/mat3x3.h"
+#include "ak/core/math/tf2d.h"
 #include "ak/debug.h"
 #include "ak/game/comp.h"
+#include "ak/game/comp_t.h"
 #include "ak/game/stg/core.h"
 #include "ak/game/stg/ettgen.h"
 #include "ak/game/stg/world.h"
@@ -14,15 +17,21 @@ ett_remove_cb(void* eg, ak_ett e)
 
 void
 ak_world_cb_flush(ak_world* w,
-                  ak_world_cb* wcb,
+                  ak_wcb* wcb,
                   ak_ettgen* eg)
 {
   ak_world_cmditem item = { 0 };
-  while (ak_world_cb_pop(wcb, &item)) {
+  ak_tf2d_t tf2d = ak_tf2d_identity();
+  ak_tfmat3g_t mat3 = ak_mat3x3_identity();
+  while (ak_wcb_pop(wcb, &item)) {
 
     switch (item.cmd) {
       case ak_world_cmd_ett_new: {
         ak_world_ett_new(w, item.e, item.pt);
+        ak_world_comp_add(
+          w, item.e, ak_tf2d_e, &tf2d);
+        ak_world_comp_add(
+          w, item.e, ak_tfmat3g_e, &mat3);
         break;
       }
       case ak_world_cmd_ett_remove: {
@@ -30,20 +39,21 @@ ak_world_cb_flush(ak_world* w,
           w, item.e, &ett_remove_cb, eg);
         break;
       }
-      case ak_world_cmd_comp_modify: {
-        ak_world_comp_overwrite(
-          w,
-          item.e,
-          item.ctu.ce,
-          ak_comp_tu_comp(&item.ctu));
-        break;
-      }
       case ak_world_cmd_comp_add: {
-        ak_world_comp_add(
-          w,
-          item.e,
-          item.ctu.ce,
-          ak_comp_tu_comp(&item.ctu));
+        if (ak_world_comp_exist(
+              w, item.e, item.ctu.ce)) {
+          ak_world_comp_overwrite(
+            w,
+            item.e,
+            item.ctu.ce,
+            ak_comp_tu_comp(&item.ctu));
+        } else {
+          ak_world_comp_add(
+            w,
+            item.e,
+            item.ctu.ce,
+            ak_comp_tu_comp(&item.ctu));
+        }
         break;
       }
       case ak_world_cmd_comp_remove: {

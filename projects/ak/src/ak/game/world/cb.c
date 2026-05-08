@@ -7,11 +7,39 @@
 #include "ak/game/world/cb_itn.h"
 
 //===== ak_gcmdbuff  =====//
-//--- internal ---//
-ak_world_cb
-ak_world_cb_make(ak_ettgen* eg, ak_alct alct)
+//--- private ---//
+static void
+comp_add(ak_wcb* wcb,
+         ak_ett e,
+         ak_comp_enum ce,
+         const void* comp)
 {
-  ak_world_cb wcb;
+  ak_world_cmditem item = { 0 };
+  item.cmd = ak_world_cmd_comp_add;
+  item.e = e;
+  ak_comp_tu_make_ip(&item.ctu, ce, comp);
+
+  ak_dq_push(&wcb->cmds, &item);
+}
+
+static void
+comp_remove(ak_wcb* wcb,
+            ak_ett e,
+            ak_comp_enum ce)
+{
+  ak_world_cmditem item = { 0 };
+  item.cmd = ak_world_cmd_comp_remove;
+  item.e = e;
+  item.ctu.ce = ce;
+
+  ak_dq_push(&wcb->cmds, &item);
+}
+
+//--- internal ---//
+ak_wcb
+ak_wcb_make(ak_ettgen* eg, ak_alct alct)
+{
+  ak_wcb wcb;
   wcb.alct = alct;
   wcb.eg = eg;
   wcb.cmds = ak_dq_make(
@@ -20,7 +48,7 @@ ak_world_cb_make(ak_ettgen* eg, ak_alct alct)
 }
 
 void
-ak_world_cb_destroy(ak_world_cb* wcb)
+ak_wcb_destroy(ak_wcb* wcb)
 {
   ak_dq_destroy(&wcb->cmds);
   wcb->eg = 0;
@@ -28,30 +56,29 @@ ak_world_cb_destroy(ak_world_cb* wcb)
 }
 
 uint32_t
-ak_world_cb_count(ak_world_cb* wcb)
+ak_wcb_count(ak_wcb* wcb)
 {
   return ak_dq_count(&wcb->cmds);
 }
 
 bool
-ak_world_cb_peek(ak_world_cb* wcb,
-                 uint32_t idx,
-                 ak_world_cmditem* o_item)
+ak_wcb_peek(ak_wcb* wcb,
+            uint32_t idx,
+            ak_world_cmditem* o_item)
 {
   return ak_dq_peek(&wcb->cmds, idx, o_item);
 }
 
 bool
-ak_world_cb_pop(ak_world_cb* wcb,
-                ak_world_cmditem* o_item)
+ak_wcb_pop(ak_wcb* wcb,
+           ak_world_cmditem* o_item)
 {
   return ak_dq_pop(&wcb->cmds, o_item);
 }
 
 //--- export ---//
 ak_ett
-ak_world_cb_ett_new(ak_world_cb* wcb,
-                    ak_ett pt)
+ak_wcb_ett_new(ak_wcb* wcb, ak_ett pt)
 {
   ak_ett e = ak_ettgen_new(wcb->eg);
   ak_world_cmditem item = { 0 };
@@ -65,8 +92,7 @@ ak_world_cb_ett_new(ak_world_cb* wcb,
 }
 
 void
-ak_world_cb_ett_remove(ak_world_cb* wcb,
-                       ak_ett e)
+ak_wcb_ett_remove(ak_wcb* wcb, ak_ett e)
 {
   ak_world_cmditem item = { 0 };
   item.cmd = ak_world_cmd_ett_remove;
@@ -75,43 +101,16 @@ ak_world_cb_ett_remove(ak_world_cb* wcb,
   ak_dq_push(&wcb->cmds, &item);
 }
 
-void
-ak_world_cb_comp_modify(ak_world_cb* wcb,
-                        ak_ett e,
-                        ak_comp_enum ce,
-                        const void* comp)
-{
-  ak_world_cmditem item = { 0 };
-  item.cmd = ak_world_cmd_comp_modify;
-  item.e = e;
-  ak_comp_tu_make_ip(&item.ctu, ce, comp);
-
-  ak_dq_push(&wcb->cmds, &item);
-}
-
-void
-ak_world_cb_comp_add(ak_world_cb* wcb,
-                     ak_ett e,
-                     ak_comp_enum ce,
-                     const void* comp)
-{
-  ak_world_cmditem item = { 0 };
-  item.cmd = ak_world_cmd_comp_add;
-  item.e = e;
-  ak_comp_tu_make_ip(&item.ctu, ce, comp);
-
-  ak_dq_push(&wcb->cmds, &item);
-}
-
-void
-ak_world_cb_comp_remove(ak_world_cb* wcb,
-                        ak_ett e,
-                        ak_comp_enum ce)
-{
-  ak_world_cmditem item = { 0 };
-  item.cmd = ak_world_cmd_comp_remove;
-  item.e = e;
-  item.ctu.ce = ce;
-
-  ak_dq_push(&wcb->cmds, &item);
-}
+#define X(name)                             \
+  ak_ex void ak_wcb_comp_##name##_add(      \
+    ak_wcb* wcb,                            \
+    ak_ett e,                               \
+    ak_##name##_t comp)                     \
+  {                                         \
+    comp_add(wcb, e, ak_##name##_t, &comp); \
+  }                                         \
+  ak_ex void ak_wcb_comp_##name##_remove(   \
+    ak_wcb* wcb, ak_ett e)                  \
+  {                                         \
+    comp_remove(wcb, e, ak_##name##_e);     \
+  }

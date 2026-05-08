@@ -4,14 +4,14 @@
 #include "ak/game/stg/world.h"
 #include "ak/game/world/view.h"
 
-struct ak_world_v
+struct ak_wv
 {
   ak_world* w;
 };
 
-ak_world_v
-ak_world_v_make(ak_world* w);
+ak_wv
+ak_wv_make(ak_world* w);
 void
-ak_world_v_destroy(ak_world_v* wv);
+ak_wv_destroy(ak_wv* wv);
 
 #endif

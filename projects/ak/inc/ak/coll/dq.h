@@ -19,6 +19,8 @@ ak_dq_make(uint32_t itemsize,
            ak_alct alct);
 ak_ex void
 ak_dq_destroy(ak_dq* q);
+ak_ex void
+ak_dq_clear(ak_dq* q);
 
 ak_ex uint32_t
 ak_dq_count(const ak_dq* q);

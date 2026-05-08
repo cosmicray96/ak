@@ -7,7 +7,7 @@
 
 void
 ak_world_cb_flush(ak_world* w,
-                  ak_world_cb* cb,
+                  ak_wcb* cb,
                   ak_ettgen* eg);
 
 #endif

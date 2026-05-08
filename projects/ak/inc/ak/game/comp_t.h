@@ -1,9 +1,11 @@
 #ifndef ak_game_comp_t_h
 #define ak_game_comp_t_h
 
+#include "ak/core/math/mat3x3.h"
 #include "ak/core/math/tf2d.h"
 
 typedef ak_tf2d ak_tf2d_t;
+typedef ak_mat3x3 ak_tfmat3g_t;
 
 typedef struct
 {

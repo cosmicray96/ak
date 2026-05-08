@@ -17,7 +17,6 @@
 #include "ak/game/world/cbflush.h"
 #include "ak/game/world/view.h"
 #include "ak/game/world/view_itn.h"
-#include "ak/gfx/mtrl/vcol_itn.h"
 
 //===== ak_lworld =====//
 //--- private ---//
@@ -30,8 +29,8 @@ struct ak_lworld
 
   ak_ettgen eg;
   ak_world w;
-  ak_world_v wv;
-  ak_world_cb wcb;
+  ak_wv wv;
+  ak_wcb wcb;
 
   ak_sys_ren sys_ren;
 };
@@ -54,13 +53,20 @@ ak_lworld_destroy(ak_lworld* l)
 
 //===== ak_applayer =====//
 //--- private ---//
+static void
+set_root(ak_lworld* l)
+{
+
+  ak_ett root = ak_wv_ett_root(&l->wv);
+  ak_tf2d_t tf = ak_tf2d_identity();
+  ak_wcb_comp_tf2d_add(&l->wcb, root, tf);
+}
 
 static void
 push_child(ak_lworld* l, float x, float y)
 {
-  ak_ett root = ak_world_v_ett_root(&l->wv);
-  ak_ett e =
-    ak_world_cb_ett_new(&l->wcb, root);
+  ak_ett root = ak_wv_ett_root(&l->wv);
+  ak_ett e = ak_wcb_ett_new(&l->wcb, root);
 
   ak_tf2d_t tf = { 0 };
   tf = ak_tf2d_make(
@@ -68,11 +74,10 @@ push_child(ak_lworld* l, float x, float y)
     ak_angle_deg(ak_fx32_f(0)),
     ak_vec2_make(ak_fx32_f(0.1f),
                  ak_fx32_f(0.1f)));
-  ak_world_cb_comp_tf2d_add(&l->wcb, e, tf);
+  ak_wcb_comp_tf2d_add(&l->wcb, e, tf);
 
   ak_rect_t rect = { 0 };
-  ak_world_cb_comp_rect_add(
-    &l->wcb, e, rect);
+  ak_wcb_comp_rect_add(&l->wcb, e, rect);
 }
 
 static void
@@ -83,11 +88,13 @@ on_startup(void* ctx, ak_app* app)
   l->eg = ak_ettgen_make(l->alct);
   l->w = ak_world_make(ak_ettgen_new(&l->eg),
                        l->alct);
-  l->wv = ak_world_v_make(&l->w);
-  l->wcb = ak_world_cb_make(&l->eg, l->alct);
+  l->wv = ak_wv_make(&l->w);
+  l->wcb = ak_wcb_make(&l->eg, l->alct);
 
   l->sys_ren = ak_sys_ren_make(
     ak_lcore_gfx(l->lcore), &l->wv, l->alct);
+
+  set_root(l);
 
   push_child(l, 0, 0);
   push_child(l, 0.5f, 0);

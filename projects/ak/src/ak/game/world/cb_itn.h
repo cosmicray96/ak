@@ -11,10 +11,10 @@ typedef enum
 {
   ak_world_cmd_ett_new,
   ak_world_cmd_ett_remove,
-  ak_world_cmd_comp_modify,
   ak_world_cmd_comp_add,
   ak_world_cmd_comp_remove
 } ak_world_cmd;
+
 typedef struct
 {
   ak_world_cmd cmd;
@@ -23,27 +23,26 @@ typedef struct
   ak_comp_tu ctu;
 } ak_world_cmditem;
 
-struct ak_world_cb
+struct ak_wcb
 {
   ak_alct alct;
   ak_ettgen* eg;
   ak_dq cmds;
 };
 
-ak_world_cb
-ak_world_cb_make(ak_ettgen* eg,
-                 ak_alct alct);
+ak_wcb
+ak_wcb_make(ak_ettgen* eg, ak_alct alct);
 void
-ak_world_cb_destroy(ak_world_cb* gc);
+ak_wcb_destroy(ak_wcb* gc);
 
 uint32_t
-ak_world_cb_count(ak_world_cb* wcb);
+ak_wcb_count(ak_wcb* wcb);
 bool
-ak_world_cb_peek(ak_world_cb* wcb,
-                 uint32_t idx,
-                 ak_world_cmditem* o_item);
+ak_wcb_peek(ak_wcb* wcb,
+            uint32_t idx,
+            ak_world_cmditem* o_item);
 bool
-ak_world_cb_pop(ak_world_cb* wcb,
-                ak_world_cmditem* o_item);
+ak_wcb_pop(ak_wcb* wcb,
+           ak_world_cmditem* o_item);
 
 #endif
