@@ -54,7 +54,7 @@ ak_tf2d_to_mat3x3(ak_tf2d tf)
 }
 
 static ak_tf2d
-ak_mat3_to_tf2d(ak_mat3x3 m)
+ak_mat3x3_to_tf2d(ak_mat3x3 m)
 {
   ak_tf2d tf;
 

@@ -7,6 +7,7 @@
 #include "ak/core/math/tf2d.h"
 #include "ak/core/math/trig.h"
 #include "ak/core/math/vec2.h"
+#include "ak/debug.h"
 #include "ak/game/comp_t.h"
 #include "ak/game/stg/core.h"
 #include "ak/game/stg/ettgen.h"
@@ -161,7 +162,7 @@ on_event(void* ctx, ak_evt e)
   ak_ett root = ak_wv_ett_root(&l->wv);
   ak_tf2d tf = ak_wv_comp_tf2d(&l->wv, root);
   tf.pos.x =
-    ak_fx32_add(tf.pos.x, ak_fx32_f(0.1f));
+    ak_fx32_add(tf.pos.x, ak_fx32_f(0.2f));
   ak_wcb_comp_tf2d_add(&l->wcb, root, tf);
 
   return false;

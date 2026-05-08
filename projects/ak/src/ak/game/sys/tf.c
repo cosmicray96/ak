@@ -1,6 +1,7 @@
 #include "ak/game/sys/tf.h"
 #include "ak/coll/spa.h"
 #include "ak/core/math/mat3x3.h"
+#include "ak/debug.h"
 #include "ak/game/comp_t.h"
 #include "ak/game/world/cb.h"
 #include "ak/game/world/view.h"
@@ -37,12 +38,22 @@ ak_sys_tf_update(ak_sys_tf* stf)
     &stf->it, ak_wv_ett_root(stf->wv));
   ak_spa_clear(&stf->gmat3s);
 
-  ak_log("-++");
   ak_ett e = 0;
+  {
+    if (!ak_wv_itdfs_pre_next(&stf->it,
+                              &e)) {
+      ak_assert(false);
+    }
+    ak_assert(!ak_wv_ett_parent(stf->wv, e));
+
+    ak_tf2d_t tf =
+      ak_wv_comp_tf2d(stf->wv, e);
+    ak_mat3x3 mat = ak_tf2d_to_mat3x3(tf);
+    ak_spa_insert(&stf->gmat3s, e, &mat);
+    ak_wcb_comp_gmat3_add(stf->wcb, e, mat);
+  }
   while (
     ak_wv_itdfs_pre_next(&stf->it, &e)) {
-
-    ak_logv(e, d);
 
     ak_assert(
       ak_wv_comp_tf2d_exist(stf->wv, e));
@@ -50,15 +61,7 @@ ak_sys_tf_update(ak_sys_tf* stf)
       ak_wv_comp_gmat3_exist(stf->wv, e));
 
     ak_ett pt = ak_wv_ett_parent(stf->wv, e);
-    if (!pt) {
-      ak_tf2d_t tf =
-        ak_wv_comp_tf2d(stf->wv, e);
-      ak_mat3x3 mat = ak_tf2d_to_mat3x3(tf);
-      ak_spa_insert(&stf->gmat3s, e, &mat);
-      ak_wcb_comp_gmat3_add(
-        stf->wcb, e, mat);
-      continue;
-    }
+    ak_assert(pt);
 
     ak_mat3x3 mat_pt = *(
       ak_mat3x3*)ak_spa_at(&stf->gmat3s, pt);

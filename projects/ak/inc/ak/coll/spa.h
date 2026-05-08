@@ -9,8 +9,8 @@ typedef struct ak_spa ak_spa;
 struct ak_spa
 {
   ak_pbuff s_to_d_idxs;
+  ak_da d_to_s_idxs;
   ak_da denses;
-  uint32_t itemsize;
 };
 
 ak_ex ak_spa

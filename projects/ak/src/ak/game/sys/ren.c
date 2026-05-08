@@ -49,13 +49,15 @@ ak_sys_ren_render(ak_sys_ren* r)
     r->wv, ak_wv_ett_root(r->wv));
   ak_ett e = 0;
   while (ak_wv_itdfs_pt_next(&it, &e)) {
+    ak_assert(
+      ak_wv_comp_gmat3_exist(r->wv, e));
 
-    if (!ak_wv_comp_rect_exist(r->wv, e) ||
-        !ak_wv_comp_tf2d_exist(r->wv, e)) {
+    if (!ak_wv_comp_rect_exist(r->wv, e)) {
       continue;
     }
 
-    ak_tf2d_t tf = ak_wv_comp_tf2d(r->wv, e);
+    ak_tf2d_t tf = ak_mat3x3_to_tf2d(
+      ak_wv_comp_gmat3(r->wv, e));
 
     ak_fx32 half_w =
       ak_fx32_div(tf.scale.x, ak_fx32_f(2));
