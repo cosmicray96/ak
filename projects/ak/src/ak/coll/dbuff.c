@@ -55,13 +55,13 @@ ak_dbuff_destroy(ak_dbuff* d)
 void
 ak_dbuff_at_copy(const ak_dbuff* d,
                  uint32_t idx,
-                 void* item)
+                 void* o_item)
 {
   ak_assert(idx < d->cap);
 
   const void* ptr =
     ak_dbuff_at_const(d, idx);
-  memcpy(item, ptr, d->is);
+  memcpy(o_item, ptr, d->is);
 }
 void*
 ak_dbuff_at(ak_dbuff* d, uint32_t idx)

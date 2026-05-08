@@ -55,7 +55,7 @@ ak_dbuff_growthrate(const ak_dbuff* d)
 ak_ex void
 ak_dbuff_at_copy(const ak_dbuff* d,
                  uint32_t idx,
-                 void* item);
+                 void* o_item);
 ak_ex void*
 ak_dbuff_at(ak_dbuff* d, uint32_t idx);
 ak_ex const void*

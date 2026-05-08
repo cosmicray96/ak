@@ -45,20 +45,17 @@ ak_sys_ren_render(ak_sys_ren* r)
 
   ak_mtrl_col_call_begin(r->mtrl);
 
-  ak_wv_itdfs it = ak_wv_itdfs_make(
+  ak_wv_itdfs_pt it = ak_wv_itdfs_pt_make(
     r->wv, ak_wv_ett_root(r->wv));
   ak_ett e = 0;
-  while (ak_wv_itdfs_next(&it, &e)) {
+  while (ak_wv_itdfs_pt_next(&it, &e)) {
 
-    if (!ak_world_v_comp_rect_exist(r->wv,
-                                    e) ||
-        !ak_world_v_comp_tf2d_exist(r->wv,
-                                    e)) {
+    if (!ak_wv_comp_rect_exist(r->wv, e) ||
+        !ak_wv_comp_tf2d_exist(r->wv, e)) {
       continue;
     }
 
-    ak_tf2d_t tf =
-      ak_world_v_comp_tf2d(r->wv, e);
+    ak_tf2d_t tf = ak_wv_comp_tf2d(r->wv, e);
 
     ak_fx32 half_w =
       ak_fx32_div(tf.scale.x, ak_fx32_f(2));

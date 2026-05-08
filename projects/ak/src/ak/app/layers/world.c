@@ -12,6 +12,7 @@
 #include "ak/game/stg/ettgen.h"
 #include "ak/game/stg/world.h"
 #include "ak/game/sys/ren.h"
+#include "ak/game/sys/tf.h"
 #include "ak/game/world/cb.h"
 #include "ak/game/world/cb_itn.h"
 #include "ak/game/world/cbflush.h"
@@ -33,6 +34,7 @@ struct ak_lworld
   ak_wcb wcb;
 
   ak_sys_ren sys_ren;
+  ak_sys_tf sys_tf;
 };
 
 //--- public ---//
@@ -60,6 +62,9 @@ set_root(ak_lworld* l)
   ak_ett root = ak_wv_ett_root(&l->wv);
   ak_tf2d_t tf = ak_tf2d_identity();
   ak_wcb_comp_tf2d_add(&l->wcb, root, tf);
+
+  ak_mat3x3 mat = ak_mat3x3_identity();
+  ak_wcb_comp_gmat3_add(&l->wcb, root, mat);
 }
 
 static void
@@ -94,23 +99,38 @@ on_startup(void* ctx, ak_app* app)
   l->sys_ren = ak_sys_ren_make(
     ak_lcore_gfx(l->lcore), &l->wv, l->alct);
 
+  l->sys_tf =
+    ak_sys_tf_make(&l->wv, &l->wcb, l->alct);
+
   set_root(l);
 
   push_child(l, 0, 0);
   push_child(l, 0.5f, 0);
   push_child(l, 0.5f, 0.5f);
+
   push_child(l, 0, 0.5f);
   push_child(l, -0.5f, 0);
   push_child(l, -0.5f, -0.5f);
+
   push_child(l, 0, -0.5f);
   push_child(l, 0.5f, -0.5f);
   push_child(l, -0.5f, 0.5f);
+
+  ak_world_cb_flush(&l->w, &l->wcb, &l->eg);
 }
 
 static void
 on_shutdown(void* ctx)
 {
   ak_lworld* l = ctx;
+
+  ak_sys_tf_destroy(&l->sys_tf);
+  ak_sys_ren_destroy(&l->sys_ren);
+
+  ak_wcb_destroy(&l->wcb);
+  ak_wv_destroy(&l->wv);
+  ak_world_destroy(&l->w);
+  ak_ettgen_destroy(&l->eg);
 }
 
 void
@@ -124,6 +144,26 @@ on_event(void* ctx, ak_evt e)
 {
   ak_lworld* l = ctx;
 
+  if (e.type != ak_evt_type_win) {
+    return false;
+  }
+  if (e.win.type != ak_winevt_key) {
+    return false;
+  }
+  if (e.win.key.code != ak_key_a) {
+    return false;
+  }
+  if (e.win.key.action !=
+      ak_keyaction_pressed) {
+    return false;
+  }
+
+  ak_ett root = ak_wv_ett_root(&l->wv);
+  ak_tf2d tf = ak_wv_comp_tf2d(&l->wv, root);
+  tf.pos.x =
+    ak_fx32_add(tf.pos.x, ak_fx32_f(0.1f));
+  ak_wcb_comp_tf2d_add(&l->wcb, root, tf);
+
   return false;
 }
 
@@ -131,6 +171,7 @@ static void
 on_update(void* ctx, ak_dur delta)
 {
   ak_lworld* l = ctx;
+  ak_sys_tf_update(&l->sys_tf);
   ak_sys_ren_render(&l->sys_ren);
 }
 

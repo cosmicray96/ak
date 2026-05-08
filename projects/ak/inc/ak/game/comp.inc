@@ -1,5 +1,5 @@
   X(tf2d) \
-  X(tfmat3g) \
+  X(gmat3) \
   X(camera) \
   X(screen) \
   X(rect) \

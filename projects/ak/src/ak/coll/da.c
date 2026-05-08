@@ -59,10 +59,10 @@ ak_da_pushback_zero(ak_da* da)
 void
 ak_da_at_copy(const ak_da* da,
               uint32_t idx,
-              void* item)
+              void* o_item)
 {
   ak_assert(idx < da->count);
-  ak_dbuff_at_copy(&da->dbuff, idx, item);
+  ak_dbuff_at_copy(&da->dbuff, idx, o_item);
 }
 
 void*

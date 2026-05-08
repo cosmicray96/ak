@@ -84,6 +84,14 @@ ak_fx32_frac(ak_fx32 fx)
   return fx & ((1 << ak_s_fx32_fbits) - 1);
 }
 
+static ak_fx32
+ak_fx32_lerp(ak_fx32 a, ak_fx32 b, ak_fx32 t)
+{
+  // t is fx32 in [0, 1]
+  return ak_fx32_add(
+    a, ak_fx32_mul(ak_fx32_sub(b, a), t));
+}
+
 ak_ex ak_fx32
 ak_fx32_sqrt(ak_fx32 fx);
 

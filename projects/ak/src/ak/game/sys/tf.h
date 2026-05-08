@@ -1,6 +1,7 @@
 #ifndef ak_game_sys_tf_h
 #define ak_game_sys_tf_h
 
+#include "ak/coll/spa.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/game/world/cb.h"
 #include "ak/game/world/view.h"
@@ -9,6 +10,8 @@ typedef struct
   ak_alct alct;
   ak_wv* wv;
   ak_wcb* wcb;
+  ak_wv_itdfs_pre it;
+  ak_spa gmat3s;
 } ak_sys_tf;
 
 ak_sys_tf

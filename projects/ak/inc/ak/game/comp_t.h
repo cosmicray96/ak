@@ -5,7 +5,7 @@
 #include "ak/core/math/tf2d.h"
 
 typedef ak_tf2d ak_tf2d_t;
-typedef ak_mat3x3 ak_tfmat3g_t;
+typedef ak_mat3x3 ak_gmat3_t;
 
 typedef struct
 {

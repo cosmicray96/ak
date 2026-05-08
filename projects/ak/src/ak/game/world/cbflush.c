@@ -22,7 +22,7 @@ ak_world_cb_flush(ak_world* w,
 {
   ak_world_cmditem item = { 0 };
   ak_tf2d_t tf2d = ak_tf2d_identity();
-  ak_tfmat3g_t mat3 = ak_mat3x3_identity();
+  ak_gmat3_t mat3 = ak_mat3x3_identity();
   while (ak_wcb_pop(wcb, &item)) {
 
     switch (item.cmd) {
@@ -31,7 +31,7 @@ ak_world_cb_flush(ak_world* w,
         ak_world_comp_add(
           w, item.e, ak_tf2d_e, &tf2d);
         ak_world_comp_add(
-          w, item.e, ak_tfmat3g_e, &mat3);
+          w, item.e, ak_gmat3_e, &mat3);
         break;
       }
       case ak_world_cmd_ett_remove: {

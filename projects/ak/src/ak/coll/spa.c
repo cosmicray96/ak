@@ -96,6 +96,19 @@ ak_spa_destroy(ak_spa* s)
   ak_da_destroy(&s->denses);
 }
 
+void
+ak_spa_clear(ak_spa* s)
+{
+  uint32_t count = ak_da_count(&s->denses);
+  for (uint32_t i = 1; i < count; i++) {
+    uint32_t* sidx =
+      get_s_from_d_idx_p(s, i);
+    *get_d_from_s_idx_p(s, *sidx) = 0;
+  }
+  ak_da_clear(&s->denses);
+  add_dummy(s);
+}
+
 bool
 ak_spa_exist(ak_spa* s, uint32_t s_idx)
 {

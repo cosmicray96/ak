@@ -3,6 +3,7 @@
 
 #include "ak/core/io.h"
 #include "ak/core/math/fixed.h"
+#include "ak/core/math/vec2.h"
 #include "ak/export.h"
 #include <stdint.h>
 typedef uint16_t ak_angle;
@@ -34,6 +35,15 @@ ak_sin(ak_angle a);
 
 ak_ex ak_fx32
 ak_cos(ak_angle a);
+
+ak_ex ak_angle
+ak_atan2(ak_fx32 y, ak_fx32 x);
+
+static ak_angle
+ak_atan2_vec2(ak_vec2 v)
+{
+  return ak_atan2(v.y, v.x);
+}
 
 ak_ex void
 ak_iostream_print_angle(ak_iostream io,

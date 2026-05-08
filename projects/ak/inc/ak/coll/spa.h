@@ -18,6 +18,9 @@ ak_spa_make(uint32_t itemsize, ak_alct alct);
 ak_ex void
 ak_spa_destroy(ak_spa* s);
 
+ak_ex void
+ak_spa_clear(ak_spa* s);
+
 ak_ex bool
 ak_spa_exist(ak_spa* s, uint32_t s_idx);
 

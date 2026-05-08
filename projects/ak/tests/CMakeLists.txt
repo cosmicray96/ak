@@ -10,7 +10,7 @@ set(tests "")
 #list(APPEND tests "hmn")
 #list(APPEND tests "sla")
 #list(APPEND tests "spa")
-#list(APPEND tests "fixed")
+list(APPEND tests "fixed")
 
 
 foreach(t IN LISTS tests)

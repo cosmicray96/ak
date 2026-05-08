@@ -1,5 +1,6 @@
 #include "ak/game/world/view.h"
 #include "ak/coll/dq.h"
+#include "ak/debug.h"
 #include "ak/game/stg/core.h"
 #include "ak/game/stg/world.h"
 #include "ak/game/world/view_itn.h"
@@ -61,10 +62,10 @@ ak_wv_comp_exist(ak_wv* wv,
 
 //===== ak_world_v_itdfs =====//
 //--- export ---//
-ak_wv_itdfs
-ak_wv_itdfs_make(ak_wv* wv, ak_ett root)
+ak_wv_itdfs_pt
+ak_wv_itdfs_pt_make(ak_wv* wv, ak_ett root)
 {
-  ak_wv_itdfs it = { 0 };
+  ak_wv_itdfs_pt it = { 0 };
   it.wv = wv;
   it.root = root;
   it.last =
@@ -74,8 +75,8 @@ ak_wv_itdfs_make(ak_wv* wv, ak_ett root)
 }
 
 bool
-ak_wv_itdfs_next(ak_wv_itdfs* it,
-                 ak_ett* o_e)
+ak_wv_itdfs_pt_next(ak_wv_itdfs_pt* it,
+                    ak_ett* o_e)
 {
   if (!it->started) {
     it->started = true;
@@ -98,6 +99,59 @@ ak_wv_itdfs_next(ak_wv_itdfs* it,
   }
 
   *o_e = it->last;
+  return true;
+}
+
+//===== ak_wv_itdfs_pre =====//
+//--- private ---//
+ak_wv_itdfs_pre
+ak_wv_itdfs_pre_make(ak_wv* wv,
+                     ak_ett root,
+                     ak_alct alct)
+{
+  ak_wv_itdfs_pre it = { 0 };
+  it.wv = wv;
+  it.s = ak_ds_make(sizeof(ak_ett), alct);
+  ak_ds_push(&it.s, &root);
+  return it;
+}
+
+void
+ak_wv_itdfs_pre_destroy(ak_wv_itdfs_pre* it)
+{
+  ak_ds_destroy(&it->s);
+}
+
+void
+ak_wv_itdfs_pre_reset(ak_wv_itdfs_pre* it,
+                      ak_ett root)
+{
+  ak_ds_clear(&it->s);
+  ak_ds_push(&it->s, &root);
+}
+
+bool
+ak_wv_itdfs_pre_next(ak_wv_itdfs_pre* it,
+                     ak_ett* o_e)
+{
+  ak_ett e = 0;
+  if (!ak_ds_pop(&it->s, &e)) {
+    return false;
+  }
+
+  ak_ett ns =
+    ak_world_ett_nextsib(it->wv->w, e);
+  if (ns) {
+    ak_ds_push(&it->s, &ns);
+  }
+
+  ak_ett fc =
+    ak_world_ett_firstchild(it->wv->w, e);
+  if (fc) {
+    ak_ds_push(&it->s, &fc);
+  }
+
+  *o_e = e;
   return true;
 }
 
@@ -163,10 +217,11 @@ bool
 ak_wv_itbfs_next(ak_wv_itbfs* it,
                  ak_ett* o_e)
 {
+  ak_assert(false);
   if (!ak_dq_pop(&it->q, o_e)) {
     return false;
   }
-
+  // bad
   ak_wv_itchild cit =
     ak_wv_itchild_make(it->wv, *o_e);
   ak_ett c = 0;

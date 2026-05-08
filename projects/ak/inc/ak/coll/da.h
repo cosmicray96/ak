@@ -51,7 +51,7 @@ ak_da_pushback_zero(ak_da* da);
 ak_ex void
 ak_da_at_copy(const ak_da* da,
               uint32_t idx,
-              void* item);
+              void* o_item);
 
 ak_ex void*
 ak_da_at_impl(ak_da* da, uint32_t idx);

@@ -109,5 +109,41 @@ ak_mat3x3_to_f(ak_mat3x3 m, float out[9])
   for (int i = 0; i < 9; i++)
     out[i] = ak_fx32_to_f(m.v[i]);
 }
+static ak_vec2
+ak_mat3x3_get_pos(ak_mat3x3 m)
+{
+  return ak_vec2_make(m.m[2][0], m.m[2][1]);
+}
+
+static ak_vec2
+ak_mat3x3_get_scale(ak_mat3x3 m)
+{
+  // column lengths
+
+  ak_fx32 sx = ak_fx32_sqrt(ak_fx32_add(
+    ak_fx32_mul(m.m[0][0], m.m[0][0]),
+    ak_fx32_mul(m.m[0][1], m.m[0][1])));
+
+  ak_fx32 sy = ak_fx32_sqrt(ak_fx32_add(
+    ak_fx32_mul(m.m[1][0], m.m[1][0]),
+    ak_fx32_mul(m.m[1][1], m.m[1][1])));
+
+  return ak_vec2_make(sx, sy);
+}
+
+/*
+static ak_angle
+ak_mat3x3_get_rot(ak_mat3x3 m)
+{
+  // rotation is encoded in first column:
+  //
+  // [ sx*cos ]
+  // [ sx*sin ]
+  //
+  // atan2(y, x)
+
+  return ak_atan2(m.m[0][1], m.m[0][0]);
+}
+*/
 
 #endif

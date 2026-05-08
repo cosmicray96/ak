@@ -2,6 +2,7 @@
 #define ak_game_world_view_h
 
 #include "ak/coll/dq.h"
+#include "ak/coll/ds.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/export.h"
 #include "ak/game/comp.h"
@@ -33,24 +34,45 @@ ak_wv_comp_exist(ak_wv* w,
 #include "ak/game/comp.inc"
 #undef X
 
-//===== ak_world_v_itdfs =====//
+//===== ak_world_v_itdfs_pt =====//
 typedef struct
 {
   ak_wv* wv;
   ak_ett root;
   ak_ett last;
   bool started;
-} ak_wv_itdfs;
-ak_wv_itdfs
-ak_wv_itdfs_make(ak_wv* v, ak_ett root);
+} ak_wv_itdfs_pt;
+ak_wv_itdfs_pt
+ak_wv_itdfs_pt_make(ak_wv* v, ak_ett root);
 bool
-ak_wv_itdfs_next(ak_wv_itdfs* it,
-                 ak_ett* o_e);
+ak_wv_itdfs_pt_next(ak_wv_itdfs_pt* it,
+                    ak_ett* o_e);
+
+//===== ak_world_v_itdfs_pt =====//
+typedef struct
+{
+  ak_wv* wv;
+  ak_ds s;
+} ak_wv_itdfs_pre;
+ak_wv_itdfs_pre
+ak_wv_itdfs_pre_make(ak_wv* v,
+                     ak_ett root,
+                     ak_alct alct);
+void
+ak_wv_itdfs_pre_destroy(ak_wv_itdfs_pre* it);
+void
+ak_wv_itdfs_pre_reset(ak_wv_itdfs_pre* it,
+                      ak_ett root);
+
+bool
+ak_wv_itdfs_pre_next(ak_wv_itdfs_pre* it,
+                     ak_ett* o_e);
 
 //===== ak_world_v_itchild =====//
 typedef struct
 {
   ak_wv* wv;
+  ak_dq q;
   ak_ett pt;
   ak_ett child;
   bool started;
