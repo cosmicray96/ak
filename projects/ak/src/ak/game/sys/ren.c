@@ -34,6 +34,7 @@ ak_sys_ren_destroy(ak_sys_ren* r)
 void
 ak_sys_ren_render(ak_sys_ren* r)
 {
+
   ak_gfx_frame_begin(r->gf);
 
   ak_mtrl_col_col_set(

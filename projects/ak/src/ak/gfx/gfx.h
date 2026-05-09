@@ -3,11 +3,11 @@
 
 #include "ak/core/mem/allocator.h"
 #include "ak/gfx/core.h"
-#include "ak/platform/plat_ren.h"
+#include "ak/platform/plat_base.h"
 #include <stdint.h>
 
 ak_gfx*
-ak_gfx_startup(ak_plat_ren* pr,
+ak_gfx_startup(ak_plat_base* pr,
                ak_alct alct);
 void
 ak_gfx_shutdown(ak_gfx* r);

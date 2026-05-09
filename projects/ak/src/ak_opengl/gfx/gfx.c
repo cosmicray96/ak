@@ -151,7 +151,8 @@ ak_gfx_call_end(ak_gfx* g)
 
 //--- public ---//
 ak_gfx*
-ak_gfx_startup(ak_plat_ren* pr, ak_alct alct)
+ak_gfx_startup(ak_plat_base* pr,
+               ak_alct alct)
 {
   ak_gfx* r =
     ak_alct_alloc(alct, sizeof(ak_gfx));

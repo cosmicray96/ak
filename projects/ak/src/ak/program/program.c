@@ -65,7 +65,10 @@ ak_program_startup()
 void
 ak_program_shutdown()
 {
-  // empty
+  ak_pgm_event_shutdown(0);
+  ak_time_shutdown(0);
+  ak_math_shutdown(0);
+  ak_debug_shutdown(0);
 }
 
 void
@@ -94,6 +97,5 @@ ak_program_crash()
   }
   p.in_crash = true;
   run_crashfns();
-  ak_program_shutdown();
   exit(1);
 }

@@ -3,7 +3,6 @@
 
 #include "ak/core/mem/ptr.h"
 #include "ak/platform/core.h"
-#include "ak/platform/plat_ren.h"
 #include "ak_x11/platform/itn.h"
 
 #include <X11/X.h>
@@ -51,7 +50,7 @@ ak_plat_key_set(ak_plat* p,
 
 //--- public ---//
 ak_plat*
-ak_plat_startup(ak_plat_ren* pr,
+ak_plat_startup(ak_plat_base* pr,
                 ak_alct alct)
 {
   ak_plat* p =

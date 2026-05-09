@@ -68,6 +68,12 @@ ak_spa_clear(ak_spa* s)
   add_dummy(s);
 }
 
+uint32_t
+ak_spa_count(const ak_spa* s)
+{
+  return ak_da_count(&s->denses) - 1;
+}
+
 bool
 ak_spa_exist(ak_spa* s, uint32_t s_idx)
 {
@@ -140,4 +146,11 @@ ak_spa_remove(ak_spa* s, uint32_t s_idx)
   ak_da_remove_swaplast(&s->denses, d_idx);
   ak_da_remove_swaplast(&s->d_to_s_idxs,
                         d_idx);
+}
+
+void*
+ak_spa_at_didx(ak_spa* s, uint32_t d_idx)
+{
+  ak_assert(false);
+  return 0;
 }

@@ -8,7 +8,7 @@
 #include "ak/gfx/mtrl/vcol_itn.h"
 #include "ak/os/time.h"
 #include "ak/platform/core.h"
-#include "ak/platform/plat_ren.h"
+#include "ak/platform/plat_base.h"
 #include "ak/program/core.h"
 #include "ak/program/event.h"
 
@@ -23,7 +23,7 @@ struct ak_lcore
   ak_alct alct;
   ak_app* app;
   ak_app_eq* eq;
-  ak_plat_ren* pr;
+  ak_plat_base* pr;
   ak_plat* p;
   ak_gfx* gf;
   ak_mtrl_vcol* m_vcol;
@@ -89,7 +89,7 @@ on_startup(void* ctx, ak_app* app)
   ak_lcore* l = ctx;
   l->app = app;
   l->eq = 0;
-  l->pr = ak_plat_ren_startup(l->alct);
+  l->pr = ak_plat_base_startup(l->alct);
   l->p = ak_plat_startup(l->pr, l->alct);
   l->gf = ak_gfx_startup(l->pr, l->alct);
 
@@ -110,7 +110,7 @@ on_shutdown(void* ctx)
 
   ak_gfx_shutdown(l->gf);
   ak_plat_shutdown(l->p);
-  ak_plat_ren_shutdown(l->pr);
+  ak_plat_base_shutdown(l->pr);
 }
 
 static void
@@ -275,7 +275,7 @@ static void
 on_upost(void* ctx, ak_dur delta)
 {
   ak_lcore* l = ctx;
-  ak_plat_ren_swapbuffer(l->pr);
+  ak_plat_base_swapbuffer(l->pr);
 }
 
 //--- public ---//

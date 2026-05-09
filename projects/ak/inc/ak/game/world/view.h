@@ -23,16 +23,24 @@ ak_wv_comp_exist(ak_wv* w,
                  ak_ett ett,
                  ak_comp_enum ce);
 #define X(name)                             \
-  ak_ex ak_##name##_t ak_wv_comp_##name(    \
-    ak_wv* w, ak_ett e);                    \
+  ak_ex ak_as_comp_t(name)                  \
+    ak_wv_comp_##name(ak_wv* w, ak_ett e);  \
   static bool ak_wv_comp_##name##_exist(    \
     ak_wv* w, ak_ett e)                     \
   {                                         \
     return ak_wv_comp_exist(                \
-      w, e, ak_##name##_e);                 \
+      w, e, ak_as_comp_e(name));            \
   }
 #include "ak/game/comp.inc"
 #undef X
+
+//===== ak_world_v_itdfs_pt  =====//
+typedef struct
+{
+  ak_wv* wv;
+  ak_comp_enum ce;
+  uint32_t idx;
+} ak_wv_itcomp;
 
 //===== ak_world_v_itdfs_pt =====//
 typedef struct

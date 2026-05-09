@@ -94,3 +94,15 @@ ak_compstg_remove_all(ak_compstg* cs,
     }
   }
 }
+
+uint32_t
+ak_compstg_count(ak_compstg* cs,
+                 ak_comp_enum ce)
+{
+  return ak_spa_count(&cs->spas[ce]);
+}
+
+void*
+ak_compstg_at_idx(ak_compstg* cs,
+                  ak_comp_enum ce,
+                  uint32_t idx);

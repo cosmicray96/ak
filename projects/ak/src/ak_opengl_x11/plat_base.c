@@ -1,4 +1,4 @@
-#include "ak/platform/plat_ren.h"
+#include "ak/platform/plat_base.h"
 #include "ak/debug.h"
 #include "ak_x11/platform/itn.h"
 
@@ -8,6 +8,7 @@
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <string.h>
 
 //===== ak_plat_ren =====//
 #define s_init_width 800
@@ -24,11 +25,11 @@ struct ak_plat_ren
 };
 
 //--- public ---//
-ak_plat_ren*
-ak_plat_ren_startup(ak_alct alct)
+ak_plat_base*
+ak_plat_base_startup(ak_alct alct)
 {
-  ak_plat_ren* pr =
-    ak_alct_alloc(alct, sizeof(ak_plat_ren));
+  ak_plat_base* pr = ak_alct_alloc(
+    alct, sizeof(ak_plat_base));
   pr->alct = alct;
 
   pr->d = XOpenDisplay(NULL);
@@ -36,6 +37,37 @@ ak_plat_ren_startup(ak_alct alct)
                 "Cannot open X11 Display.");
 
   int screen = DefaultScreen(pr->d);
+
+  {
+    int glx_major = 0, glx_minor = 0;
+    ak_log_assert(
+      glXQueryVersion(
+        pr->d, &glx_major, &glx_minor),
+      "glXQueryVersion failed.");
+    ak_log_assert(
+      (glx_major > 1) ||
+        (glx_major == 1 && glx_minor >= 3),
+      "GLX 1.3 or higher required.");
+
+    // GLX_ARB_create_context_profile
+    // (implies GLX_ARB_create_context)
+    const char* glx_exts =
+      glXQueryExtensionsString(pr->d,
+                               screen);
+    ak_log_assert(
+      glx_exts,
+      "glXQueryExtensionsString failed.");
+
+    // strstr is fine here; extension tokens
+    // don't overlap in ways that cause false
+    // positives
+    ak_log_assert(
+      strstr(
+        glx_exts,
+        "GLX_ARB_create_context_profile"),
+      "GLX_ARB_create_context_profile "
+      "required.");
+  }
 
   GLXFBConfig* fbc = 0;
   GLXFBConfig fb = 0;
@@ -190,7 +222,7 @@ ak_plat_ren_startup(ak_alct alct)
 }
 
 void
-ak_plat_ren_shutdown(ak_plat_ren* pr)
+ak_plat_base_shutdown(ak_plat_base* pr)
 {
   glXMakeCurrent(pr->d, None, NULL);
   glXDestroyContext(pr->d, pr->glx_ctx);
@@ -202,35 +234,35 @@ ak_plat_ren_shutdown(ak_plat_ren* pr)
 }
 
 void
-ak_plat_ren_swapbuffer(ak_plat_ren* pr)
+ak_plat_base_swapbuffer(ak_plat_base* pr)
 {
   glXSwapBuffers(pr->d, pr->wn);
 }
 
 Display*
-ak_plat_ren_display(ak_plat_ren* pr)
+ak_plat_ren_display(ak_plat_base* pr)
 {
   return pr->d;
 }
 Window
-ak_plat_ren_window(ak_plat_ren* pr)
+ak_plat_ren_window(ak_plat_base* pr)
 {
   return pr->wn;
 }
 Atom
-ak_plat_ren_wm_delete(ak_plat_ren* pr)
+ak_plat_ren_wm_delete(ak_plat_base* pr)
 {
   return pr->wm_delete;
 }
 
 int32_t
-ak_plat_ren_init_width(ak_plat_ren* pr)
+ak_plat_ren_init_width(ak_plat_base* pr)
 {
   return s_init_width;
 }
 
 int32_t
-ak_plat_ren_init_height(ak_plat_ren* pr)
+ak_plat_ren_init_height(ak_plat_base* pr)
 {
   return s_init_height;
 }

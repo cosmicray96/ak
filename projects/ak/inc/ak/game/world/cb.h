@@ -18,7 +18,7 @@ ak_wcb_ett_remove(ak_wcb* wcb, ak_ett e);
   ak_ex void ak_wcb_comp_##name##_add(      \
     ak_wcb* wcb,                            \
     ak_ett e,                               \
-    ak_##name##_t comp);                    \
+    ak_as_comp_t(name) comp);               \
   ak_ex void ak_wcb_comp_##name##_remove(   \
     ak_wcb* wcb, ak_ett e);
 

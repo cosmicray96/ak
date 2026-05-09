@@ -4,11 +4,11 @@
 #include "ak/app/eq.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/platform/core.h"
-#include "ak/platform/plat_ren.h"
+#include "ak/platform/plat_base.h"
 #include <stdint.h>
 
 ak_plat*
-ak_plat_startup(ak_plat_ren* pr,
+ak_plat_startup(ak_plat_base* pr,
                 ak_alct alct);
 void
 ak_plat_shutdown(ak_plat* p);

@@ -21,6 +21,9 @@ ak_spa_destroy(ak_spa* s);
 ak_ex void
 ak_spa_clear(ak_spa* s);
 
+ak_ex uint32_t
+ak_spa_count(const ak_spa* s);
+
 ak_ex bool
 ak_spa_exist(ak_spa* s, uint32_t s_idx);
 
@@ -38,5 +41,8 @@ ak_spa_overwrite(ak_spa* s,
 
 ak_ex void
 ak_spa_remove(ak_spa* s, uint32_t s_idx);
+
+ak_ex void*
+ak_spa_at_didx(ak_spa* s, uint32_t d_idx);
 
 #endif

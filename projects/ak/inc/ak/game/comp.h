@@ -3,9 +3,12 @@
 
 #include "ak/game/comp_t.h"
 
+#define ak_as_comp_t(name) ak_##name##_t
+#define ak_as_comp_e(name) ak_##name##_e
+
 typedef enum
 {
-#define X(name) ak_##name##_e,
+#define X(name) ak_as_comp_e(name),
 #include "ak/game/comp.inc"
 #undef X
   ak_comp_count_e
@@ -19,7 +22,7 @@ typedef struct
   ak_comp_enum ce;
   union
   {
-#define X(name) ak_##name##_t name;
+#define X(name) ak_as_comp_t(name) name;
 #include "ak/game/comp.inc"
 #undef X
   };

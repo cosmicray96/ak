@@ -48,14 +48,14 @@ ak_wv_comp_exist(ak_wv* wv,
 }
 
 #define X(name)                             \
-  ak_##name##_t ak_wv_comp_##name(          \
-    ak_wv* wv, ak_ett e)                    \
+  ak_as_comp_t(name)                        \
+    ak_wv_comp_##name(ak_wv* wv, ak_ett e)  \
   {                                         \
     ak_assert(ak_world_comp_exist(          \
-      wv->w, e, ak_##name##_e));            \
-    return *(ak_##name##_t*)                \
+      wv->w, e, ak_as_comp_e(name)));       \
+    return *(ak_as_comp_t(name)*)           \
       ak_world_comp_at(                     \
-        wv->w, e, ak_##name##_e);           \
+        wv->w, e, ak_as_comp_e(name));      \
   }
 #include "ak/game/comp.inc"
 #undef X

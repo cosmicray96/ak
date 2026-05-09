@@ -159,6 +159,8 @@ on_event(void* ctx, ak_evt e)
     return false;
   }
 
+  ak_app_close(l->app);
+
   ak_ett root = ak_wv_ett_root(&l->wv);
   ak_tf2d tf = ak_wv_comp_tf2d(&l->wv, root);
   tf.pos.x =
