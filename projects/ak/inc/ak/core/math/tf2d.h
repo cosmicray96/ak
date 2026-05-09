@@ -2,6 +2,8 @@
 #define ak_core_math_tf2d_h
 
 #include "ak/core/math/mat3x3.h"
+#include "ak/core/math/vec2.h"
+#include "ak/export.h"
 
 typedef struct
 {
@@ -53,30 +55,11 @@ ak_tf2d_to_mat3x3(ak_tf2d tf)
   return m;
 }
 
-static ak_tf2d
-ak_mat3x3_to_tf2d(ak_mat3x3 m)
-{
-  ak_tf2d tf;
+ak_ex ak_tf2d
+ak_mat3x3_to_tf2d(ak_mat3x3 m);
 
-  tf.pos =
-    ak_vec2_make(m.m[2][0], m.m[2][1]);
+// tl, tr, br, bl
+ak_ex void
+ak_tf2d_to_4corner(ak_tf2d tf, ak_vec2 v[4]);
 
-  // scale is the length of each rotation
-  // column
-  ak_vec2 col0 =
-    ak_vec2_make(m.m[0][0], m.m[0][1]);
-  ak_vec2 col1 =
-    ak_vec2_make(m.m[1][0], m.m[1][1]);
-  tf.scale = ak_vec2_make(ak_vec2_len(col0),
-                          ak_vec2_len(col1));
-
-  // atan2(sx*sin, sx*cos) — sx cancels,
-  // leaving the angle NOTE: assumes positive
-  // scale. negative scale (flipped sprites)
-  // will produce wrong rotation. divide by
-  // scale first if needed.
-  tf.rot = ak_atan2(m.m[0][1], m.m[0][0]);
-
-  return tf;
-}
 #endif

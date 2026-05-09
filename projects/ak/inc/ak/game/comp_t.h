@@ -3,6 +3,7 @@
 
 #include "ak/core/math/mat3x3.h"
 #include "ak/core/math/tf2d.h"
+#include "ak/gfx/mtrl.h"
 
 typedef ak_tf2d ak_tf2d_t;
 typedef ak_mat3x3 ak_gmat3_t;
@@ -24,5 +25,10 @@ typedef struct
 {
   char ph;
 } ak_mtrl_t;
+
+typedef struct
+{
+  ak_mtrl_enum me;
+} ak_mtrltype_t;
 
 #endif

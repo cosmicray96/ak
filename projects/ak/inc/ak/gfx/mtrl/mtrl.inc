@@ -1,2 +1,0 @@
-X(col) \
-X(vcol)

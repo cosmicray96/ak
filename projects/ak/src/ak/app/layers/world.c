@@ -7,6 +7,7 @@
 #include "ak/core/math/tf2d.h"
 #include "ak/core/math/trig.h"
 #include "ak/core/math/vec2.h"
+#include "ak/core/math/vec4.h"
 #include "ak/debug.h"
 #include "ak/game/comp_t.h"
 #include "ak/game/stg/core.h"
@@ -69,21 +70,45 @@ set_root(ak_lworld* l)
 }
 
 static void
-push_child(ak_lworld* l, float x, float y)
+push_child(ak_lworld* l,
+           float x,
+           float y,
+           float c)
 {
   ak_ett root = ak_wv_ett_root(&l->wv);
   ak_ett e = ak_wcb_ett_new(&l->wcb, root);
 
+  float scale = 0.5f;
   ak_tf2d_t tf = { 0 };
   tf = ak_tf2d_make(
     ak_vec2_make(ak_fx32_f(x), ak_fx32_f(y)),
     ak_angle_deg(ak_fx32_f(0)),
-    ak_vec2_make(ak_fx32_f(0.1f),
-                 ak_fx32_f(0.1f)));
+    ak_vec2_make(ak_fx32_f(scale),
+                 ak_fx32_f(scale)));
   ak_wcb_comp_tf2d_add(&l->wcb, e, tf);
 
   ak_rect_t rect = { 0 };
   ak_wcb_comp_rect_add(&l->wcb, e, rect);
+
+  ak_mtrl_col_t col = { 0 };
+
+  col.col[0] = ak_vec4_make(ak_fx32_f(1.0f),
+                            ak_fx32_f(0.0f),
+                            ak_fx32_f(0.0f),
+                            ak_fx32_f(1.0f));
+  col.col[1] = ak_vec4_make(ak_fx32_f(0.0f),
+                            ak_fx32_f(1.0f),
+                            ak_fx32_f(0.0f),
+                            ak_fx32_f(1.0f));
+  col.col[2] = ak_vec4_make(ak_fx32_f(0.0f),
+                            ak_fx32_f(0.0f),
+                            ak_fx32_f(1.0f),
+                            ak_fx32_f(1.0f));
+  col.col[3] = ak_vec4_make(ak_fx32_f(1.0f),
+                            ak_fx32_f(0.0f),
+                            ak_fx32_f(1.0f),
+                            ak_fx32_f(1.0f));
+  ak_wcb_comp_mtrl_col_add(&l->wcb, e, col);
 }
 
 static void
@@ -105,17 +130,19 @@ on_startup(void* ctx, ak_app* app)
 
   set_root(l);
 
-  push_child(l, 0, 0);
-  push_child(l, 0.5f, 0);
-  push_child(l, 0.5f, 0.5f);
+  push_child(l, 0, 0, 1.0f);
+  /*
+push_child(l, 0.5f, 0, 0.1f);
+push_child(l, 0.5f, 0.5f, 0.2f);
 
-  push_child(l, 0, 0.5f);
-  push_child(l, -0.5f, 0);
-  push_child(l, -0.5f, -0.5f);
+push_child(l, 0, 0.5f, 0.3f);
+push_child(l, -0.5f, 0, 0.4f);
+push_child(l, -0.5f, -0.5f, 0.4f);
 
-  push_child(l, 0, -0.5f);
-  push_child(l, 0.5f, -0.5f);
-  push_child(l, -0.5f, 0.5f);
+push_child(l, 0, -0.5f, 0.5f);
+push_child(l, 0.5f, -0.5f, 0.6f);
+push_child(l, -0.5f, 0.5f, 0.7f);
+  */
 
   ak_world_cb_flush(&l->w, &l->wcb, &l->eg);
 }
@@ -158,8 +185,6 @@ on_event(void* ctx, ak_evt e)
       ak_keyaction_pressed) {
     return false;
   }
-
-  ak_app_close(l->app);
 
   ak_ett root = ak_wv_ett_root(&l->wv);
   ak_tf2d tf = ak_wv_comp_tf2d(&l->wv, root);
