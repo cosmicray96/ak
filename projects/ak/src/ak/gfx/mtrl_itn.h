@@ -14,10 +14,13 @@
     ak_##name##_make(ak_gfx* g,             \
                      ak_alct alct);         \
   void ak_##name##_destroy(void* m);        \
-  void ak_##name##_call_begin(void* m);     \
+  void ak_##name##_call_begin(              \
+    void* m, const ak_mat3x3* vp);          \
   void ak_##name##_call_end(void* m);       \
   void ak_##name##_pushquad(                \
-    void* m, ak_tf2d tf, const void* comp);
+    void* m,                                \
+    const ak_mat3x3* gmat3,                 \
+    const void* comp);
 
 #include "ak/gfx/mtrl.inc"
 #undef X

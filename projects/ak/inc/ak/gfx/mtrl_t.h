@@ -4,7 +4,7 @@
 #include "ak/core/math/vec4.h"
 typedef struct
 {
-  ak_vec4 col[4];
+  ak_vec4 col;
 } ak_mtrl_col_t;
 
 typedef struct

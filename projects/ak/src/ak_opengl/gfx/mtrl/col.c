@@ -1,6 +1,5 @@
 #include "ak/core/math/fixed.h"
-#include "ak/core/math/tf2d.h"
-#include "ak/core/math/vec2.h"
+#include "ak/core/math/mat3x3.h"
 #include "ak/core/math/vec4.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/debug.h"
@@ -9,6 +8,8 @@
 #include "ak/gfx/mtrl_t.h"
 #include "ak_opengl/gfx/gfx_itn.h"
 
+#include <stddef.h>
+
 #include <glad/glad.h>
 
 //===== ak_mtrl_col =====//
@@ -16,11 +17,18 @@
 
 static const char* vs_src =
   "#version 330 core\n"
-  "layout (location = 0) in vec2 vi_pos;\n"
-  "layout (location = 1) in vec4 vi_col;\n"
+  "layout (location = 0) in vec2 vi_cor;\n"
+  "layout (location = 1) in vec3 vi_m1;\n"
+  "layout (location = 2) in vec3 vi_m2;\n"
+  "layout (location = 3) in vec3 vi_m3;\n"
+  "layout (location = 4) in vec4 vi_col;\n"
+  "uniform mat3 u_vp;\n"
   "out vec4 vo_col;\n"
   "void main() {\n"
-  "  gl_Position = vec4(vi_pos, 0.0, 1.0);\n"
+  "  mat3 m = mat3(vi_m1, vi_m2, vi_m3);\n"
+  "  vec3 pos = u_vp * m * vec3(vi_cor, "
+  "1.0);\n"
+  "  gl_Position = vec4(pos.xy, 0.0, 1.0);\n"
   "  vo_col = vi_col;\n"
   "}\n";
 
@@ -34,13 +42,9 @@ static const char* fs_src =
 
 typedef struct
 {
-  float x;
-  float y;
-  float r;
-  float g;
-  float b;
-  float a;
-} vert;
+  float m3x3[9];
+  float r, g, b, a;
+} quad;
 
 struct ak_mtrl_col
 {
@@ -48,7 +52,7 @@ struct ak_mtrl_col
   ak_gfx* g;
   GLuint vao;
   GLuint program;
-  GLuint col_loc;
+  GLuint vp_loc;
   bool call_begin;
 };
 
@@ -62,31 +66,70 @@ ak_mtrl_col_make(ak_gfx* g, ak_alct alct)
   m->g = g;
 
   m->program = program_make(fs_src, vs_src);
+  m->vp_loc =
+    glGetUniformLocation(m->program, "u_vp");
+  ak_assert(m->vp_loc != -1);
 
   glGenVertexArrays(1, &m->vao);
   glBindVertexArray(m->vao);
 
-  ak_gfx_buff_bind(g);
+  ak_gfx_buff_bind_ebo(g);
 
+  ak_gfx_buff_bind_vbo(g);
   glVertexAttribPointer(0,
                         2,
                         GL_FLOAT,
                         GL_FALSE,
-                        sizeof(vert),
+                        2 * sizeof(float),
                         (void*)0);
   glEnableVertexAttribArray(0);
 
-  glVertexAttribPointer(1,
-                        4,
-                        GL_FLOAT,
-                        GL_FALSE,
-                        sizeof(vert),
-                        (void*)8);
+  ak_gfx_buff_bind_ivbo(g);
+  glVertexAttribPointer(
+    1,
+    3,
+    GL_FLOAT,
+    GL_FALSE,
+    sizeof(quad),
+    (void*)offsetof(quad, m3x3[0]));
   glEnableVertexAttribArray(1);
+  glVertexAttribDivisor(1, 1);
+
+  glVertexAttribPointer(
+    2,
+    3,
+    GL_FLOAT,
+    GL_FALSE,
+    sizeof(quad),
+    (void*)offsetof(quad, m3x3[3]));
+  glEnableVertexAttribArray(2);
+  glVertexAttribDivisor(2, 1);
+
+  glVertexAttribPointer(
+    3,
+    3,
+    GL_FLOAT,
+    GL_FALSE,
+    sizeof(quad),
+    (void*)offsetof(quad, m3x3[6]));
+  glEnableVertexAttribArray(3);
+  glVertexAttribDivisor(3, 1);
+
+  glVertexAttribPointer(
+    4,
+    4,
+    GL_FLOAT,
+    GL_FALSE,
+    sizeof(quad),
+    (void*)offsetof(quad, r));
+  glEnableVertexAttribArray(4);
+  glVertexAttribDivisor(4, 1);
 
   glBindVertexArray(0);
 
-  ak_gfx_buff_unbind(g);
+  ak_gfx_buff_unbind_vbo(g);
+  ak_gfx_buff_unbind_ivbo(g);
+  ak_gfx_buff_unbind_ebo(g);
 
   m->call_begin = false;
 
@@ -104,15 +147,21 @@ ak_mtrl_col_destroy(void* mtrl)
 
 //--- export ---//
 void
-ak_mtrl_col_call_begin(void* mtrl)
+ak_mtrl_col_call_begin(void* mtrl,
+                       const ak_mat3x3* vp)
 {
   ak_mtrl_col* m = mtrl;
   ak_assert(!m->call_begin);
 
   glUseProgram(m->program);
+  float vp_f[9] = { 0 };
+  ak_mat3x3_to_f(vp, vp_f);
+  glUniformMatrix3fv(
+    m->vp_loc, 1, GL_FALSE, vp_f);
+
   glBindVertexArray(m->vao);
 
-  ak_gfx_call_begin(m->g, sizeof(vert));
+  ak_gfx_call_begin(m->g, sizeof(quad));
 
   m->call_begin = true;
 }
@@ -130,24 +179,18 @@ ak_mtrl_col_call_end(void* mtrl)
 
 void
 ak_mtrl_col_pushquad(void* mtrl,
-                     ak_tf2d tf,
+                     const ak_mat3x3* gmat3,
                      const void* comp)
 {
   ak_mtrl_col* m = mtrl;
   const ak_mtrl_col_t* c = comp;
   ak_assert(m->call_begin);
-  ak_vec2 vs[4];
-  ak_tf2d_to_4corner(tf, vs);
 
-  for (uint32_t i = 0; i < 4; i++) {
-    vert v = { 0 };
-    v.x = ak_fx32_to_f(vs[i].x);
-    v.y = ak_fx32_to_f(vs[i].y);
-    v.r = ak_fx32_to_f(c->col[i].r);
-    v.g = ak_fx32_to_f(c->col[i].g);
-    v.b = ak_fx32_to_f(c->col[i].b);
-    v.a = ak_fx32_to_f(c->col[i].a);
+  quad q = { .r = ak_fx32_to_f(c->col.r),
+             .g = ak_fx32_to_f(c->col.g),
+             .b = ak_fx32_to_f(c->col.b),
+             .a = ak_fx32_to_f(c->col.a) };
+  ak_mat3x3_to_f(gmat3, q.m3x3);
 
-    ak_gfx_vertpush(m->g, &v);
-  }
+  ak_gfx_pushquad(m->g, &q);
 }

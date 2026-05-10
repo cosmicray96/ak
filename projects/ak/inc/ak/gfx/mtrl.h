@@ -1,6 +1,7 @@
 #ifndef ak_gfx_mtrl_mtrl_h
 #define ak_gfx_mtrl_mtrl_h
 
+#include "ak/core/math/mat3x3.h"
 #include "ak/core/math/tf2d.h"
 #include "ak/gfx/mtrl_t.h"
 
@@ -18,11 +19,12 @@ typedef enum
 
 typedef struct
 {
-  void (*call_begin)(void* ctx);
+  void (*call_begin)(void* ctx,
+                     const ak_mat3x3* vp);
   void (*call_end)(void* ctx);
 
   void (*push_quad)(void* ctx,
-                    ak_tf2d tf,
+                    const ak_mat3x3* gmat3,
                     const void* comp);
   void* ctx;
 } ak_mtrl;

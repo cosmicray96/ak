@@ -104,10 +104,11 @@ ak_mat3x3_from_transform(ak_vec2 pos,
 }
 
 static void
-ak_mat3x3_to_f(ak_mat3x3 m, float out[9])
+ak_mat3x3_to_f(const ak_mat3x3* m,
+               float out[9])
 {
   for (int i = 0; i < 9; i++)
-    out[i] = ak_fx32_to_f(m.v[i]);
+    out[i] = ak_fx32_to_f(m->v[i]);
 }
 static ak_vec2
 ak_mat3x3_get_pos(ak_mat3x3 m)
@@ -129,6 +130,29 @@ ak_mat3x3_get_scale(ak_mat3x3 m)
     ak_fx32_mul(m.m[1][1], m.m[1][1])));
 
   return ak_vec2_make(sx, sy);
+}
+
+static ak_mat3x3
+ak_mat3x3_inv_fast(const ak_mat3x3* m)
+{
+  // transpose the rotation block (top-left
+  // 2x2)
+  ak_mat3x3 r = { 0 };
+  r.m[0][0] = m->m[0][0];
+  r.m[0][1] = m->m[1][0];
+  r.m[1][0] = m->m[0][1];
+  r.m[1][1] = m->m[1][1];
+  r.m[2][2] = ak_fx32_i(1);
+
+  // negate the translation transformed by
+  // transposed rotation
+  ak_vec2 t =
+    ak_vec2_make(m->m[2][0], m->m[2][1]);
+  ak_vec2 it = ak_mat3x3_mul_dir(r, t);
+  r.m[2][0] = -it.x;
+  r.m[2][1] = -it.y;
+
+  return r;
 }
 
 /*

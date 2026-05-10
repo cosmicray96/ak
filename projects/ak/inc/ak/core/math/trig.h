@@ -30,6 +30,14 @@ ak_angle_rad(ak_fx32 fx)
                     (65536.0f / (ak_tau_f)));
 }
 
+static ak_fx32
+ak_angle_to_rad(ak_angle a)
+{
+  float rad =
+    ((float)a) * (ak_tau_f / 65536.0f);
+  return ak_fx32_f(rad);
+}
+
 ak_ex ak_fx32
 ak_sin(ak_angle a);
 

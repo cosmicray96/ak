@@ -11,16 +11,24 @@ program_make(const char* fs_src,
 
 void
 ak_gfx_call_begin(ak_gfx* g,
-                  uint32_t vertsize);
+                  uint32_t quadsize);
 void
 ak_gfx_call_end(ak_gfx* g);
 
 void
-ak_gfx_buff_bind(ak_gfx* g);
-void
-ak_gfx_buff_unbind(ak_gfx* g);
+ak_gfx_pushquad(ak_gfx* g, const void* q);
 
 void
-ak_gfx_vertpush(ak_gfx* g, const void* v);
+ak_gfx_buff_bind_vbo(ak_gfx* g);
+void
+ak_gfx_buff_unbind_vbo(ak_gfx* g);
+void
+ak_gfx_buff_bind_ivbo(ak_gfx* g);
+void
+ak_gfx_buff_unbind_ivbo(ak_gfx* g);
+void
+ak_gfx_buff_bind_ebo(ak_gfx* g);
+void
+ak_gfx_buff_unbind_ebo(ak_gfx* g);
 
 #endif
