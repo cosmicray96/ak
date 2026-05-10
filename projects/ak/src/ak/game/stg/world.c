@@ -117,3 +117,20 @@ ak_world_comp_remove(ak_world* w,
 {
   ak_compstg_remove(w->cs, e, ce);
 }
+
+uint32_t
+ak_world_comp_count(ak_world* w,
+                    ak_comp_enum ce)
+{
+  return ak_compstg_count(w->cs, ce);
+}
+
+void*
+ak_world_comp_at_idx(ak_world* w,
+                     ak_comp_enum ce,
+                     uint32_t idx,
+                     ak_ett* o_e)
+{
+  return ak_compstg_at_idx(
+    w->cs, ce, idx, o_e);
+}

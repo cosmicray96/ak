@@ -34,13 +34,20 @@ ak_wv_comp_exist(ak_wv* w,
 #include "ak/game/comp.inc"
 #undef X
 
-//===== ak_world_v_itdfs_pt  =====//
+//===== ak_wv_itcomp =====//
 typedef struct
 {
   ak_wv* wv;
   ak_comp_enum ce;
   uint32_t idx;
 } ak_wv_itcomp;
+ak_ex ak_wv_itcomp
+ak_wv_itcomp_make(ak_wv* wv,
+                  ak_comp_enum ce);
+ak_ex bool
+ak_wv_itcomp_next(ak_wv_itcomp* it,
+                  ak_ett* o_e,
+                  void* o_comp);
 
 //===== ak_world_v_itdfs_pt =====//
 typedef struct

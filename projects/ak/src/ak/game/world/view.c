@@ -1,5 +1,6 @@
 #include "ak/game/world/view.h"
 #include "ak/coll/dq.h"
+#include "ak/core/mem/ptr.h"
 #include "ak/debug.h"
 #include "ak/game/stg/core.h"
 #include "ak/game/stg/world.h"
@@ -59,6 +60,35 @@ ak_wv_comp_exist(ak_wv* wv,
   }
 #include "ak/game/comp.inc"
 #undef X
+
+//===== ak_wv_itcomp =====//
+//--- export ---//
+ak_wv_itcomp
+ak_wv_itcomp_make(ak_wv* wv, ak_comp_enum ce)
+{
+  ak_wv_itcomp it = { 0 };
+  it.wv = wv;
+  it.ce = ce;
+  it.idx = 0;
+  return it;
+}
+
+bool
+ak_wv_itcomp_next(ak_wv_itcomp* it,
+                  ak_ett* o_e,
+                  void* o_comp)
+{
+  if (it->idx >= ak_world_comp_count(
+                   it->wv->w, it->ce)) {
+    return false;
+  }
+  void* comp = ak_world_comp_at_idx(
+    it->wv->w, it->ce, it->idx, o_e);
+  ak_p_cpy(
+    o_comp, comp, ak_comp_sizes[it->ce]);
+  it->idx++;
+  return true;
+}
 
 //===== ak_world_v_itdfs =====//
 //--- export ---//

@@ -105,4 +105,9 @@ ak_compstg_count(ak_compstg* cs,
 void*
 ak_compstg_at_idx(ak_compstg* cs,
                   ak_comp_enum ce,
-                  uint32_t idx);
+                  uint32_t idx,
+                  ak_ett* o_e)
+{
+  return ak_spa_at_didx(
+    &cs->spas[ce], idx, o_e);
+}

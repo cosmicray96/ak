@@ -1,5 +1,6 @@
 #include "ak/core/math/fixed.h"
 #include "ak/core/math/mat3x3.h"
+#include "ak/core/math/vec3.h"
 #include "ak/core/math/vec4.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/debug.h"
@@ -25,12 +26,13 @@ static const char* vs_src =
   "uniform mat3 u_vp;\n"
   "out vec4 vo_col;\n"
   "void main() {\n"
-  "  mat3 m = mat3(vi_m1, vi_m2, vi_m3);\n"
-  "  vec3 pos = u_vp * m * vec3(vi_cor, "
-  "1.0);\n"
-  "  gl_Position = vec4(pos.xy, 0.0, 1.0);\n"
-  "  vo_col = vi_col;\n"
+  "mat3 m = mat3(vi_m1, vi_m2, vi_m3);\n"
+  "vec3 pos = u_vp * m * vec3(vi_cor,1.0);\n"
+  "gl_Position = vec4(pos.xy, 0.0, 1.0);\n"
+  "vo_col = vi_col;\n"
   "}\n";
+
+//"  gl_Position = vec4(pos.xy, 0.0, 1.0);\n"
 
 static const char* fs_src =
   "#version 330 core\n"
@@ -66,9 +68,11 @@ ak_mtrl_col_make(ak_gfx* g, ak_alct alct)
   m->g = g;
 
   m->program = program_make(fs_src, vs_src);
+  glUseProgram(m->program);
   m->vp_loc =
     glGetUniformLocation(m->program, "u_vp");
-  ak_assert(m->vp_loc != -1);
+  // ak_assert(m->vp_loc != -1);
+  glUseProgram(0);
 
   glGenVertexArrays(1, &m->vao);
   glBindVertexArray(m->vao);
@@ -186,10 +190,22 @@ ak_mtrl_col_pushquad(void* mtrl,
   const ak_mtrl_col_t* c = comp;
   ak_assert(m->call_begin);
 
+  ak_mat3x3 vp = { 0 };
+  vp.m[0][0] = 1;
+  vp.m[1][1] = -1;
+  vp.m[2][2] = 4096;
+  ak_mat3x3 mm = ak_mat3x3_mul(vp, *gmat3);
+  ak_vec2 corner = {
+    .x = ak_fx32_f(-0.5f),
+    .y = ak_fx32_f(-0.5f),
+  };
+  ak_vec2 vv = ak_mat3x3_mul_dir(mm, corner);
+
   quad q = { .r = ak_fx32_to_f(c->col.r),
              .g = ak_fx32_to_f(c->col.g),
              .b = ak_fx32_to_f(c->col.b),
              .a = ak_fx32_to_f(c->col.a) };
+
   ak_mat3x3_to_f(gmat3, q.m3x3);
 
   ak_gfx_pushquad(m->g, &q);

@@ -58,38 +58,48 @@ ak_sys_ren_destroy(ak_sys_ren* r)
 void
 ak_sys_ren_render(ak_sys_ren* r)
 {
-
-  ak_log_assert(false,
-                "link ak_screen_t, make "
-                "comp iter for camera");
   ak_fx32 pixelsize = ak_fx32_f(1.0f);
   ak_ett root = ak_wv_ett_root(r->wv);
   ak_screen_t screen =
     ak_wv_comp_screen(r->wv, root);
-  ak_mat3x3 cmat3x3 =
-    ak_wv_comp_gmat3(r->wv, root);
-  ak_mat3x3 cimat3x3 =
-    ak_mat3x3_inv_fast(&cmat3x3);
-  ak_mat3x3 proj = ak_mat3x3_identity();
+
+  ak_ett e_cam = 0;
   {
-    ak_fx32 sx = ak_fx32_div(
-      ak_fx32_mul(pixelsize,
-                  ak_fx32_f(2.0f)),
-      ak_fx32_f(screen.w));
-    ak_fx32 sy = ak_fx32_div(
-      ak_fx32_mul(pixelsize,
-                  ak_fx32_f(-2.0f)),
-      ak_fx32_f(screen.h));
-    proj.m[0][0] = sx;
-    proj.m[1][1] = sy;
+    ak_camera_t cam = { 0 };
+    ak_wv_itcomp it =
+      ak_wv_itcomp_make(r->wv, ak_camera_e);
+    if (!ak_wv_itcomp_next(
+          &it, &e_cam, &cam)) {
+      return;
+    }
   }
-  ak_mat3x3 vp =
-    ak_mat3x3_mul(proj, cimat3x3);
+
+  ak_mat3x3 vp = { 0 };
+  {
+    ak_mat3x3 cmat3x3 =
+      ak_wv_comp_gmat3(r->wv, e_cam);
+    ak_mat3x3 cimat3x3 =
+      ak_mat3x3_inv_fast(&cmat3x3);
+    ak_mat3x3 proj = ak_mat3x3_identity();
+    {
+      ak_fx32 sx = ak_fx32_div(
+        ak_fx32_mul(pixelsize,
+                    ak_fx32_f(2.0f)),
+        ak_fx32_f(screen.w));
+      ak_fx32 sy = ak_fx32_div(
+        ak_fx32_mul(pixelsize,
+                    ak_fx32_f(-2.0f)),
+        ak_fx32_f(screen.h));
+      proj.m[0][0] = sx;
+      proj.m[1][1] = sy;
+    }
+    vp = ak_mat3x3_mul(proj, cimat3x3);
+  }
 
   ak_gfx_frame_begin(r->gf);
   ak_mtrl m =
     ak_mtrlstg_at(r->ms, ak_mtrl_mtrl_col_e);
-  m.call_begin(m.ctx, &cmat3x3);
+  m.call_begin(m.ctx, &vp);
 
   ak_wv_itdfs_pt it = ak_wv_itdfs_pt_make(
     r->wv, ak_wv_ett_root(r->wv));

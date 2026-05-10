@@ -1,5 +1,5 @@
-#ifndef ak_core_math_vec3_h
-#define ak_core_math_vec3_h
+#ifndef ak_core_math_vec4_h
+#define ak_core_math_vec4_h
 
 #include "ak/core/math/fixed.h"
 

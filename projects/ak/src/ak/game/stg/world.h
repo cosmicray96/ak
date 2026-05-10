@@ -66,4 +66,13 @@ ak_world_comp_remove(ak_world* w,
                      ak_ett e,
                      ak_comp_enum ce);
 
+uint32_t
+ak_world_comp_count(ak_world* w,
+                    ak_comp_enum ce);
+void*
+ak_world_comp_at_idx(ak_world* w,
+                     ak_comp_enum ce,
+                     uint32_t idx,
+                     ak_ett* o_e);
+
 #endif

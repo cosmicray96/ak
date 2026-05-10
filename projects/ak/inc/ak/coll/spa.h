@@ -43,6 +43,8 @@ ak_ex void
 ak_spa_remove(ak_spa* s, uint32_t s_idx);
 
 ak_ex void*
-ak_spa_at_didx(ak_spa* s, uint32_t d_idx);
+ak_spa_at_didx(ak_spa* s,
+               uint32_t idx,
+               uint32_t* o_s_idx);
 
 #endif

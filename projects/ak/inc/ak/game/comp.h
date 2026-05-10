@@ -16,6 +16,13 @@ typedef enum
   ak_comp_count_e
 } ak_comp_enum;
 
+static const uint32_t
+  ak_comp_sizes[ak_comp_count_e] = {
+#define X(name) sizeof(ak_as_comp_t(name)),
+#include "ak/game/comp.inc"
+#undef X
+  };
+
 const char*
 ak_comp_to_str(ak_comp_enum ce);
 

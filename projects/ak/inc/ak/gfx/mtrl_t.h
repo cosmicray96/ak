@@ -2,6 +2,7 @@
 #define ak_gfx_mtrl_t_h
 
 #include "ak/core/math/vec4.h"
+
 typedef struct
 {
   ak_vec4 col;

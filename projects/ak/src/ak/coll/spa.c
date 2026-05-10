@@ -148,9 +148,15 @@ ak_spa_remove(ak_spa* s, uint32_t s_idx)
                         d_idx);
 }
 
-void*
-ak_spa_at_didx(ak_spa* s, uint32_t d_idx)
+ak_ex void*
+ak_spa_at_didx(ak_spa* s,
+               uint32_t idx,
+               uint32_t* o_s_idx)
 {
-  ak_assert(false);
-  return 0;
+  ak_assert(idx < ak_spa_count(s));
+  uint32_t d_idx = idx + 1;
+  *o_s_idx = *get_s_from_d_idx_p(s, d_idx);
+  ak_assert(ak_spa_exist(s, *o_s_idx));
+
+  return ak_da_at_impl(&s->denses, d_idx);
 }

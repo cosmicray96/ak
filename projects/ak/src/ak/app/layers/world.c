@@ -64,9 +64,19 @@ set_root(ak_lworld* l)
   ak_ett root = ak_wv_ett_root(&l->wv);
   ak_tf2d_t tf = ak_tf2d_identity();
   ak_wcb_comp_tf2d_add(&l->wcb, root, tf);
-
   ak_mat3x3 mat = ak_mat3x3_identity();
   ak_wcb_comp_gmat3_add(&l->wcb, root, mat);
+
+  ak_screen_t screen = { .w = 800,
+                         .h = 600 };
+  ak_wcb_comp_screen_add(
+    &l->wcb, root, screen);
+
+  ak_ett e_cam =
+    ak_wcb_ett_new(&l->wcb, root);
+  ak_camera_t cam = { 0 };
+  ak_wcb_comp_camera_add(
+    &l->wcb, e_cam, cam);
 }
 
 static void
@@ -78,7 +88,7 @@ push_child(ak_lworld* l,
   ak_ett root = ak_wv_ett_root(&l->wv);
   ak_ett e = ak_wcb_ett_new(&l->wcb, root);
 
-  float scale = 0.5f;
+  float scale = 30.0f;
   ak_tf2d_t tf = { 0 };
   tf = ak_tf2d_make(
     ak_vec2_make(ak_fx32_f(x), ak_fx32_f(y)),
@@ -91,23 +101,10 @@ push_child(ak_lworld* l,
   ak_wcb_comp_rect_add(&l->wcb, e, rect);
 
   ak_mtrl_col_t col = { 0 };
-
-  col.col[0] = ak_vec4_make(ak_fx32_f(1.0f),
-                            ak_fx32_f(0.0f),
-                            ak_fx32_f(0.0f),
-                            ak_fx32_f(1.0f));
-  col.col[1] = ak_vec4_make(ak_fx32_f(0.0f),
-                            ak_fx32_f(1.0f),
-                            ak_fx32_f(0.0f),
-                            ak_fx32_f(1.0f));
-  col.col[2] = ak_vec4_make(ak_fx32_f(0.0f),
-                            ak_fx32_f(0.0f),
-                            ak_fx32_f(1.0f),
-                            ak_fx32_f(1.0f));
-  col.col[3] = ak_vec4_make(ak_fx32_f(1.0f),
-                            ak_fx32_f(0.0f),
-                            ak_fx32_f(1.0f),
-                            ak_fx32_f(1.0f));
+  col.col = ak_vec4_make(ak_fx32_f(c),
+                         ak_fx32_f(0.0f),
+                         ak_fx32_f(0.0f),
+                         ak_fx32_f(1.0f));
   ak_wcb_comp_mtrl_col_add(&l->wcb, e, col);
 }
 
