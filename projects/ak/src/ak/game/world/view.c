@@ -2,6 +2,7 @@
 #include "ak/coll/dq.h"
 #include "ak/core/mem/ptr.h"
 #include "ak/debug.h"
+#include "ak/game/comp.h"
 #include "ak/game/stg/core.h"
 #include "ak/game/stg/world.h"
 #include "ak/game/world/view_itn.h"
@@ -46,6 +47,18 @@ ak_wv_comp_exist(ak_wv* wv,
                  ak_comp_enum ce)
 {
   return ak_world_comp_exist(wv->w, e, ce);
+}
+
+ak_comp_tu
+ak_wv_comp_tu(ak_wv* wv,
+              ak_ett e,
+              ak_comp_enum ce)
+{
+  void* comp =
+    ak_world_comp_at(wv->w, e, ce);
+  ak_comp_tu tu = { 0 };
+  ak_comp_tu_make_ip(&tu, ce, comp);
+  return tu;
 }
 
 #define X(name)                             \

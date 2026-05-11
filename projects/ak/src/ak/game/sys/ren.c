@@ -4,14 +4,12 @@
 #include "ak/core/math/fixed.h"
 #include "ak/core/math/mat3x3.h"
 #include "ak/core/mem/allocator.h"
-#include "ak/debug.h"
 #include "ak/game/comp.h"
 #include "ak/game/comp_t.h"
 #include "ak/game/stg/core.h"
 #include "ak/game/world/view.h"
 #include "ak/gfx/gfx.h"
 #include "ak/gfx/mtrl.h"
-#include "ak/gfx/mtrl_t.h"
 #include "ak/gfx/stg/mtrl.h"
 #include <stdint.h>
 
@@ -96,6 +94,75 @@ ak_sys_ren_render(ak_sys_ren* r)
     vp = ak_mat3x3_mul(proj, cimat3x3);
   }
 
+  {
+    ak_hmn_iter it =
+      ak_hmn_iter_make(&r->mtrls);
+    ak_da* da = 0;
+    uint64_t me = 0;
+    while (ak_hmn_iter_next_u64(
+      &it, &me, (void**)&da)) {
+      ak_da_clear(da);
+    }
+  }
+  {
+    ak_wv_itdfs_pt it = ak_wv_itdfs_pt_make(
+      r->wv, ak_wv_ett_root(r->wv));
+    ak_ett e = 0;
+    while (ak_wv_itdfs_pt_next(&it, &e)) {
+      if (!ak_wv_comp_rect_exist(r->wv, e)) {
+        continue;
+      }
+      if (!ak_wv_comp_mtrl_exist(r->wv, e)) {
+        continue;
+      }
+      ak_mtrl_t mtrl =
+        ak_wv_comp_mtrl(r->wv, e);
+      ak_da* da =
+        ak_hmn_at_u64(&r->mtrls, mtrl.me);
+      ak_da_pushback(da, &e);
+    }
+  }
+
+  ak_gfx_frame_begin(r->gf);
+  {
+    ak_hmn_iter it =
+      ak_hmn_iter_make(&r->mtrls);
+    ak_da* da = 0;
+    uint64_t me = 0;
+    while (ak_hmn_iter_next_u64(
+      &it, &me, (void**)&da)) {
+
+      ak_mtrl m = ak_mtrlstg_at(
+        r->ms, (ak_mtrl_enum)me);
+      m.call_begin(m.ctx, &vp);
+
+      uint32_t count = ak_da_count(da);
+      for (uint32_t i = 0; i < count; i++) {
+        ak_ett e =
+          *(ak_ett*)ak_da_at_impl(da, i);
+
+        ak_mat3x3 gmat3x3 =
+          ak_wv_comp_gmat3(r->wv, e);
+        ak_mtrl_t mat =
+          ak_wv_comp_mtrl(r->wv, e);
+        ak_comp_tu mat_comp = ak_wv_comp_tu(
+          r->wv,
+          e,
+          ak_mtrl_to_comp_e(mat.me));
+
+        m.push_quad(
+          m.ctx,
+          &gmat3x3,
+          ak_comp_tu_comp(&mat_comp));
+      }
+
+      m.call_end(m.ctx);
+    }
+  }
+  ak_gfx_frame_end(r->gf);
+}
+/*
+
   ak_gfx_frame_begin(r->gf);
   ak_mtrl m =
     ak_mtrlstg_at(r->ms, ak_mtrl_mtrl_col_e);
@@ -127,4 +194,4 @@ ak_sys_ren_render(ak_sys_ren* r)
   m.call_end(m.ctx);
 
   ak_gfx_frame_end(r->gf);
-}
+*/

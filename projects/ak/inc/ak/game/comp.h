@@ -1,7 +1,7 @@
 #ifndef ak_game_comp_h
 #define ak_game_comp_h
 
-#include "ak/gfx/mtrl.h"
+#include "ak/gfx/mtrl_t.h"
 
 #include "ak/game/comp_t.h"
 
@@ -31,6 +31,7 @@ typedef struct
   ak_comp_enum ce;
   union
   {
+    void* comp;
 #define X(name) ak_as_comp_t(name) name;
 #include "ak/game/comp.inc"
 #undef X
@@ -47,5 +48,12 @@ ak_comp_tu_make_ip(ak_comp_tu* ctu,
 ak_ex void*
 ak_comp_tu_comp(ak_comp_tu* tu);
 
-// mane enum, name array, etc
+#include "ak/gfx/mtrl.h"
+static ak_comp_enum
+ak_mtrl_to_comp_e(ak_mtrl_enum me)
+{
+  return me +
+         (ak_comp_count_e - ak_mtrl_count_e);
+}
+
 #endif

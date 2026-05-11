@@ -22,6 +22,11 @@ ak_ex bool
 ak_wv_comp_exist(ak_wv* w,
                  ak_ett ett,
                  ak_comp_enum ce);
+ak_ex ak_comp_tu
+ak_wv_comp_tu(ak_wv* w,
+              ak_ett ett,
+              ak_comp_enum ce);
+
 #define X(name)                             \
   ak_ex ak_as_comp_t(name)                  \
     ak_wv_comp_##name(ak_wv* w, ak_ett e);  \

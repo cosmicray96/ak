@@ -23,12 +23,7 @@ typedef struct
 } ak_rect_t;
 typedef struct
 {
-  char ph;
-} ak_mtrl_t;
-
-typedef struct
-{
   ak_mtrl_enum me;
-} ak_mtrltype_t;
+} ak_mtrl_t;
 
 #endif
