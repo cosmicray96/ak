@@ -1,5 +1,5 @@
-#ifndef ak_facility_idgen_h
-#define ak_facility_idgen_h
+#ifndef ak_system_idgen_h
+#define ak_system_idgen_h
 
 #include "ak/coll/dq.h"
 #include <stdint.h>

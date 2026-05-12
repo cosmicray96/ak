@@ -1,4 +1,4 @@
-#include "ak/facility/idgen.h"
+#include "ak/system/idgen.h"
 #include "ak/coll/dq.h"
 #include <stdint.h>
 

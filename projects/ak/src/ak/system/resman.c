@@ -1,4 +1,5 @@
-#include "ak/facility/resman.h"
+#include "ak/system/resman.h"
+#include "ak/system/resman_itn.h"
 
 ak_ex ak_resman
 ak_resman_make(ak_jobpool* jp, ak_alct alct);

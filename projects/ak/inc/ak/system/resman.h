@@ -1,11 +1,11 @@
-#ifndef ak_facility_resman_h
-#define ak_facility_resman_h
+#ifndef ak_system_resman_h
+#define ak_system_resman_h
 
-#include "ak/coll/hmn.h"
-#include "ak/core/async/jobpool.h"
-#include "ak/core/mem/allocator.h"
 #include "ak/export.h"
-#include "ak/facility/idgen.h"
+
+#include <stdint.h>
+
+typedef struct ak_resman ak_resman;
 
 typedef uint32_t ak_resid;
 typedef enum
@@ -14,19 +14,6 @@ typedef enum
   ak_res_loading,
   ak_res_loaded
 } ak_res_status;
-
-typedef struct
-{
-  ak_alct alct;
-  ak_idgen ig;
-  ak_hmn map;
-  ak_jobpool* jp;
-} ak_resman;
-
-ak_ex ak_resman
-ak_resman_make(ak_jobpool* jp, ak_alct alct);
-ak_ex void
-ak_resman_destroy(ak_resman* rm);
 
 ak_ex ak_resid
 ak_resman_register_file(ak_resman* rm,
