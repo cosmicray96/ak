@@ -15,37 +15,37 @@ typedef uint16_t ak_angle;
 #define ak_tau_d 6.28318530717958647692
 
 static ak_angle
-ak_angle_deg(ak_fx32 fx)
+ak_angle_deg(ak_fx fx)
 {
-  float deg = ak_fx32_to_f(fx);
+  float deg = ak_fx_to_f(fx);
   return (ak_angle)(deg *
                     (65536.0f / 360.0f));
 }
 
 static ak_angle
-ak_angle_rad(ak_fx32 fx)
+ak_angle_rad(ak_fx fx)
 {
-  float rad = ak_fx32_to_f(fx);
+  float rad = ak_fx_to_f(fx);
   return (ak_angle)(rad *
                     (65536.0f / (ak_tau_f)));
 }
 
-static ak_fx32
+static ak_fx
 ak_angle_to_rad(ak_angle a)
 {
   float rad =
     ((float)a) * (ak_tau_f / 65536.0f);
-  return ak_fx32_f(rad);
+  return ak_fx_f(rad);
 }
 
-ak_ex ak_fx32
+ak_ex ak_fx
 ak_sin(ak_angle a);
 
-ak_ex ak_fx32
+ak_ex ak_fx
 ak_cos(ak_angle a);
 
 ak_ex ak_angle
-ak_atan2(ak_fx32 y, ak_fx32 x);
+ak_atan2(ak_fx y, ak_fx x);
 
 static ak_angle
 ak_atan2_vec2(ak_vec2 v)

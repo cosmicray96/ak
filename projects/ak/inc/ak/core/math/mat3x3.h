@@ -11,8 +11,8 @@ typedef struct
 {
   union
   {
-    ak_fx32 m[3][3];
-    ak_fx32 v[9];
+    ak_fx m[3][3];
+    ak_fx v[9];
   };
 } ak_mat3x3;
 
@@ -20,9 +20,9 @@ static ak_mat3x3
 ak_mat3x3_identity()
 {
   ak_mat3x3 m = { 0 };
-  m.m[0][0] = ak_fx32_i(1);
-  m.m[1][1] = ak_fx32_i(1);
-  m.m[2][2] = ak_fx32_i(1);
+  m.m[0][0] = ak_fx_i(1);
+  m.m[1][1] = ak_fx_i(1);
+  m.m[2][2] = ak_fx_i(1);
   return m;
 }
 
@@ -33,10 +33,10 @@ ak_mat3x3_mul(ak_mat3x3 a, ak_mat3x3 b)
   for (int col = 0; col < 3; col++)
     for (int row = 0; row < 3; row++)
       for (int k = 0; k < 3; k++)
-        m.m[col][row] = ak_fx32_add(
-          m.m[col][row],
-          ak_fx32_mul(a.m[k][row],
-                      b.m[col][k]));
+        m.m[col][row] =
+          ak_fxadd(m.m[col][row],
+                   ak_fxmul(a.m[k][row],
+                            b.m[col][k]));
   return m;
 }
 
@@ -55,15 +55,13 @@ static ak_vec2
 ak_mat3x3_mul_pos(ak_mat3x3 m, ak_vec2 p)
 {
   return ak_vec2_make(
-    ak_fx32_add(
-      ak_fx32_add(
-        ak_fx32_mul(m.m[0][0], p.x),
-        ak_fx32_mul(m.m[1][0], p.y)),
+    ak_fxadd(
+      ak_fxadd(ak_fxmul(m.m[0][0], p.x),
+               ak_fxmul(m.m[1][0], p.y)),
       m.m[2][0]),
-    ak_fx32_add(
-      ak_fx32_add(
-        ak_fx32_mul(m.m[0][1], p.x),
-        ak_fx32_mul(m.m[1][1], p.y)),
+    ak_fxadd(
+      ak_fxadd(ak_fxmul(m.m[0][1], p.x),
+               ak_fxmul(m.m[1][1], p.y)),
       m.m[2][1]));
 }
 
@@ -73,11 +71,10 @@ static ak_vec2
 ak_mat3x3_mul_dir(ak_mat3x3 m, ak_vec2 d)
 {
   return ak_vec2_make(
-    ak_fx32_add(ak_fx32_mul(m.m[0][0], d.x),
-                ak_fx32_mul(m.m[1][0], d.y)),
-    ak_fx32_add(
-      ak_fx32_mul(m.m[0][1], d.x),
-      ak_fx32_mul(m.m[1][1], d.y)));
+    ak_fxadd(ak_fxmul(m.m[0][0], d.x),
+             ak_fxmul(m.m[1][0], d.y)),
+    ak_fxadd(ak_fxmul(m.m[0][1], d.x),
+             ak_fxmul(m.m[1][1], d.y)));
 }
 
 static void
@@ -85,7 +82,7 @@ ak_mat3x3_to_f(const ak_mat3x3* m,
                float out[9])
 {
   for (int i = 0; i < 9; i++)
-    out[i] = ak_fx32_to_f(m->v[i]);
+    out[i] = ak_fx_to_f(m->v[i]);
 }
 static ak_vec2
 ak_mat3x3_get_pos(ak_mat3x3 m)
@@ -98,13 +95,13 @@ ak_mat3x3_get_scale(ak_mat3x3 m)
 {
   // column lengths
 
-  ak_fx32 sx = ak_fx32_sqrt(ak_fx32_add(
-    ak_fx32_mul(m.m[0][0], m.m[0][0]),
-    ak_fx32_mul(m.m[0][1], m.m[0][1])));
+  ak_fx sx = ak_fx_sqrt(ak_fxadd(
+    ak_fxmul(m.m[0][0], m.m[0][0]),
+    ak_fxmul(m.m[0][1], m.m[0][1])));
 
-  ak_fx32 sy = ak_fx32_sqrt(ak_fx32_add(
-    ak_fx32_mul(m.m[1][0], m.m[1][0]),
-    ak_fx32_mul(m.m[1][1], m.m[1][1])));
+  ak_fx sy = ak_fx_sqrt(ak_fxadd(
+    ak_fxmul(m.m[1][0], m.m[1][0]),
+    ak_fxmul(m.m[1][1], m.m[1][1])));
 
   return ak_vec2_make(sx, sy);
 }
@@ -119,7 +116,7 @@ ak_mat3x3_inv_fast(const ak_mat3x3* m)
   r.m[0][1] = m->m[1][0];
   r.m[1][0] = m->m[0][1];
   r.m[1][1] = m->m[1][1];
-  r.m[2][2] = ak_fx32_i(1);
+  r.m[2][2] = ak_fx_i(1);
 
   // negate the translation transformed by
   // transposed rotation

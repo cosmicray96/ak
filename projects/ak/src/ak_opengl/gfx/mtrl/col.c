@@ -196,15 +196,15 @@ ak_mtrl_col_pushquad(void* mtrl,
   vp.m[2][2] = 4096;
   ak_mat3x3 mm = ak_mat3x3_mul(vp, *gmat3);
   ak_vec2 corner = {
-    .x = ak_fx32_f(-0.5f),
-    .y = ak_fx32_f(-0.5f),
+    .x = ak_fx_f(-0.5f),
+    .y = ak_fx_f(-0.5f),
   };
   ak_vec2 vv = ak_mat3x3_mul_dir(mm, corner);
 
-  quad q = { .r = ak_fx32_to_f(c->col.r),
-             .g = ak_fx32_to_f(c->col.g),
-             .b = ak_fx32_to_f(c->col.b),
-             .a = ak_fx32_to_f(c->col.a) };
+  quad q = { .r = ak_fx_to_f(c->col.r),
+             .g = ak_fx_to_f(c->col.g),
+             .b = ak_fx_to_f(c->col.b),
+             .a = ak_fx_to_f(c->col.a) };
 
   ak_mat3x3_to_f(gmat3, q.m3x3);
 

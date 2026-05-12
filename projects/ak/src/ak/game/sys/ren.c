@@ -56,7 +56,7 @@ ak_sys_ren_destroy(ak_sys_ren* r)
 void
 ak_sys_ren_render(ak_sys_ren* r)
 {
-  ak_fx32 pixelsize = ak_fx32_f(1.0f);
+  ak_fx pixelsize = ak_fx_f(1.0f);
   ak_ett root = ak_wv_ett_root(r->wv);
   ak_screen_t screen =
     ak_wv_comp_screen(r->wv, root);
@@ -80,14 +80,12 @@ ak_sys_ren_render(ak_sys_ren* r)
       ak_mat3x3_inv_fast(&cmat3x3);
     ak_mat3x3 proj = ak_mat3x3_identity();
     {
-      ak_fx32 sx = ak_fx32_div(
-        ak_fx32_mul(pixelsize,
-                    ak_fx32_f(2.0f)),
-        ak_fx32_f(screen.w));
-      ak_fx32 sy = ak_fx32_div(
-        ak_fx32_mul(pixelsize,
-                    ak_fx32_f(-2.0f)),
-        ak_fx32_f(screen.h));
+      ak_fx sx = ak_fxdiv(
+        ak_fxmul(pixelsize, ak_fx_f(2.0f)),
+        ak_fx_f(screen.w));
+      ak_fx sy = ak_fxdiv(
+        ak_fxmul(pixelsize, ak_fx_f(-2.0f)),
+        ak_fx_f(screen.h));
       proj.m[0][0] = sx;
       proj.m[1][1] = sy;
     }

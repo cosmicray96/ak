@@ -91,20 +91,20 @@ push_child(ak_lworld* l,
   float scale = 30.0f;
   ak_tf2d_t tf = { 0 };
   tf = ak_tf2d_make(
-    ak_vec2_make(ak_fx32_f(x), ak_fx32_f(y)),
-    ak_angle_deg(ak_fx32_f(0)),
-    ak_vec2_make(ak_fx32_f(scale),
-                 ak_fx32_f(scale)));
+    ak_vec2_make(ak_fx_f(x), ak_fx_f(y)),
+    ak_angle_deg(ak_fx_f(0)),
+    ak_vec2_make(ak_fx_f(scale),
+                 ak_fx_f(scale)));
   ak_wcb_comp_tf2d_add(&l->wcb, e, tf);
 
   ak_rect_t rect = { 0 };
   ak_wcb_comp_rect_add(&l->wcb, e, rect);
 
   ak_mtrl_col_t col = { 0 };
-  col.col = ak_vec4_make(ak_fx32_f(c),
-                         ak_fx32_f(0.0f),
-                         ak_fx32_f(0.0f),
-                         ak_fx32_f(1.0f));
+  col.col = ak_vec4_make(ak_fx_f(c),
+                         ak_fx_f(0.0f),
+                         ak_fx_f(0.0f),
+                         ak_fx_f(1.0f));
   ak_wcb_comp_mtrl_col_add(&l->wcb, e, col);
 }
 
@@ -186,7 +186,7 @@ on_event(void* ctx, ak_evt e)
   ak_ett root = ak_wv_ett_root(&l->wv);
   ak_tf2d tf = ak_wv_comp_tf2d(&l->wv, root);
   tf.pos.x =
-    ak_fx32_add(tf.pos.x, ak_fx32_f(0.2f));
+    ak_fxadd(tf.pos.x, ak_fx_f(0.2f));
   ak_wcb_comp_tf2d_add(&l->wcb, root, tf);
 
   return false;

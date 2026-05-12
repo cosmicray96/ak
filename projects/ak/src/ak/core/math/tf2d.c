@@ -4,10 +4,9 @@ ak_tf2d
 ak_tf2d_identity()
 {
   return ak_tf2d_make(
-    ak_vec2_make(ak_fx32_i(0), ak_fx32_i(0)),
+    ak_vec2_make(ak_fx_i(0), ak_fx_i(0)),
     0,
-    ak_vec2_make(ak_fx32_i(1),
-                 ak_fx32_i(1)));
+    ak_vec2_make(ak_fx_i(1), ak_fx_i(1)));
 }
 
 ak_mat3x3
@@ -17,17 +16,17 @@ ak_tf2d_to_mat3x3(const ak_tf2d* tf)
   ak_angle rot = tf->rot;
   ak_vec2 scale = tf->scale;
 
-  ak_fx32 c = ak_cos(rot);
-  ak_fx32 s = ak_sin(rot);
+  ak_fx c = ak_cos(rot);
+  ak_fx s = ak_sin(rot);
 
   ak_mat3x3 m = { 0 };
-  m.m[0][0] = ak_fx32_mul(scale.x, c);
-  m.m[0][1] = ak_fx32_mul(scale.x, s);
-  m.m[1][0] = ak_fx32_mul(scale.y, -s);
-  m.m[1][1] = ak_fx32_mul(scale.y, c);
+  m.m[0][0] = ak_fxmul(scale.x, c);
+  m.m[0][1] = ak_fxmul(scale.x, s);
+  m.m[1][0] = ak_fxmul(scale.y, -s);
+  m.m[1][1] = ak_fxmul(scale.y, c);
   m.m[2][0] = pos.x;
   m.m[2][1] = pos.y;
-  m.m[2][2] = ak_fx32_i(1);
+  m.m[2][2] = ak_fx_i(1);
   return m;
 }
 
@@ -61,28 +60,28 @@ ak_mat3x3_to_tf2d(ak_mat3x3 m)
 void
 ak_tf2d_to_4corner(ak_tf2d tf, ak_vec2 v[4])
 {
-  ak_fx32 half_w =
-    ak_fx32_div(tf.scale.x, ak_fx32_f(2));
-  ak_fx32 half_h =
-    ak_fx32_div(tf.scale.y, ak_fx32_f(2));
+  ak_fx half_w =
+    ak_fxdiv(tf.scale.x, ak_fx_f(2));
+  ak_fx half_h =
+    ak_fxdiv(tf.scale.y, ak_fx_f(2));
 
   // tl
-  v[0] = ak_vec2_make(
-    ak_fx32_sub(tf.pos.x, half_w),
-    ak_fx32_add(tf.pos.y, half_h));
+  v[0] =
+    ak_vec2_make(ak_fxsub(tf.pos.x, half_w),
+                 ak_fxadd(tf.pos.y, half_h));
 
   // tr
-  v[1] = ak_vec2_make(
-    ak_fx32_add(tf.pos.x, half_w),
-    ak_fx32_add(tf.pos.y, half_h));
+  v[1] =
+    ak_vec2_make(ak_fxadd(tf.pos.x, half_w),
+                 ak_fxadd(tf.pos.y, half_h));
 
   // br
-  v[2] = ak_vec2_make(
-    ak_fx32_add(tf.pos.x, half_w),
-    ak_fx32_sub(tf.pos.y, half_h));
+  v[2] =
+    ak_vec2_make(ak_fxadd(tf.pos.x, half_w),
+                 ak_fxsub(tf.pos.y, half_h));
 
   // bl
-  v[3] = ak_vec2_make(
-    ak_fx32_sub(tf.pos.x, half_w),
-    ak_fx32_sub(tf.pos.y, half_h));
+  v[3] =
+    ak_vec2_make(ak_fxsub(tf.pos.x, half_w),
+                 ak_fxsub(tf.pos.y, half_h));
 }

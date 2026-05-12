@@ -4,7 +4,7 @@
 #include "ak/debug.h"
 #include <math.h>
 
-ak_fx32 ak_s_sin_lut[4096 + 1];
+ak_fx ak_s_sin_lut[4096 + 1];
 
 // precomputed arctan(2^-i) as ak_angle
 // values arctan(2^-i) in radians * (65536 /
@@ -34,12 +34,12 @@ ak_sin_lut_init()
   for (int i = 0; i < 4096; i++) {
     float a =
       (float)i / 4096.0f * (ak_tau_f / 4.0f);
-    ak_s_sin_lut[i] = ak_fx32_f(sinf(a));
+    ak_s_sin_lut[i] = ak_fx_f(sinf(a));
   }
-  ak_s_sin_lut[4096] = ak_fx32_f(sinf(1));
+  ak_s_sin_lut[4096] = ak_fx_f(sinf(1));
 }
 
-ak_fx32
+ak_fx
 ak_sin(ak_angle a)
 {
   uint16_t quad = a >> 14;
@@ -105,7 +105,7 @@ ak_sin_old(ak_angle a)
 }
 */
 
-ak_fx32
+ak_fx
 ak_cos(ak_angle a)
 {
   return ak_sin(
@@ -113,7 +113,7 @@ ak_cos(ak_angle a)
 }
 
 ak_angle
-ak_atan2(ak_fx32 y, ak_fx32 x)
+ak_atan2(ak_fx y, ak_fx x)
 {
   if (x == 0 && y == 0)
     return 0;

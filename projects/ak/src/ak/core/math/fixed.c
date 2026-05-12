@@ -1,8 +1,8 @@
 #include "ak/core/math/fixed.h"
 #include "ak/core/io.h"
 
-ak_fx32
-ak_fx32_sqrt(ak_fx32 fx)
+ak_fx
+ak_fx_sqrt(ak_fx fx)
 {
   if (fx <= 0)
     return 0;
@@ -13,12 +13,12 @@ ak_fx32_sqrt(ak_fx32 fx)
     x = y;
     y = (x + n / x) >> 1;
   }
-  return (ak_fx32)x;
+  return (ak_fx)x;
 }
 
 void
-ak_iostream_print_fx32(ak_iostream io,
-                       ak_fx32 fx)
+ak_iostream_print_fx(ak_iostream io,
+                     ak_fx fx)
 {
   int32_t raw = fx;
   uint32_t abs = 0;

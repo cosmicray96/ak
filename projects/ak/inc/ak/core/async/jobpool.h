@@ -2,7 +2,6 @@
 #define ak_core_async_jobpool_h
 
 #include "ak/core/async/atomic.h"
-#include "ak/core/mem/allocator.h"
 #include "ak/export.h"
 
 //===== ak_job =====//

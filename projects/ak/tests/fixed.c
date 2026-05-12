@@ -94,17 +94,17 @@ ak_log("done.");
   {
     ak_log("atan2");
     ak_angle a1 =
-      ak_atan2(ak_fx32_i(0),
-               ak_fx32_i(1)); // → 0     (0°)
-    ak_angle a2 = ak_atan2(
-      ak_fx32_i(1),
-      ak_fx32_i(1)); // → ~8192  (45°)
-    ak_angle a3 = ak_atan2(
-      ak_fx32_i(1),
-      ak_fx32_i(0)); // → 16384  (90°)
+      ak_atan2(ak_fx_i(0),
+               ak_fx_i(1)); // → 0     (0°)
+    ak_angle a2 =
+      ak_atan2(ak_fx_i(1),
+               ak_fx_i(1)); // → ~8192  (45°)
+    ak_angle a3 =
+      ak_atan2(ak_fx_i(1),
+               ak_fx_i(0)); // → 16384  (90°)
     ak_angle a4 = ak_atan2(
-      ak_fx32_i(1),
-      ak_fx32_i(-1)); // → ~24576 (135°)
+      ak_fx_i(1),
+      ak_fx_i(-1)); // → ~24576 (135°)
 
     ak_iostream_print_angle(sio, a1);
     ak_iostream_write(sio, ", ", 2);
