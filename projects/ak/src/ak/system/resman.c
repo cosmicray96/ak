@@ -1,8 +1,10 @@
 #include "ak/system/resman.h"
 #include "ak/coll/hmn.h"
-#include "ak/coll/sla.h"
 #include "ak/core/async/atomic.h"
 #include "ak/core/async/jobpool.h"
+#include "ak/core/mem/heap.h"
+#include "ak/debug.h"
+#include "ak/os/file.h"
 #include "ak/system/idgen.h"
 #include "ak/system/resman_itn.h"
 
@@ -12,14 +14,27 @@
 //--- private ---//
 typedef struct
 {
+  ak_alct alct;
   ak_atomicint status;
   const char* path;
   void* res;
+  uint64_t size;
 } res_item;
 
 //===== ak_resman =====//
 //--- private ---//
 #define s_max_job_count 32
+
+void
+jobs_init(ak_job* jobs)
+{
+  for (uint32_t i = 0; i < s_max_job_count;
+       i++) {
+    ak_job* j = &jobs[i];
+    ak_atomicint_store(&j->status,
+                       ak_job_none);
+  }
+}
 
 ak_job*
 next_free_jobslot(ak_job* jobs)
@@ -45,6 +60,9 @@ job_fn(void* ctx)
   ak_atomicint_store(&ri->status,
                      ak_res_loading);
 
+  ri->size = ak_file_open_read_all(
+    ri->path, &ri->res, ri->alct);
+
   ak_atomicint_store(&ri->status,
                      ak_res_loaded);
 }
@@ -54,18 +72,28 @@ ak_resman
 ak_resman_make(ak_jobpool* jp, ak_alct alct)
 {
   ak_resman rm = { 0 };
-  rm.alct = alct;
+  rm.heap = ak_heap_make();
   rm.jp = jp;
   rm.ig = ak_idgen_make(alct);
   rm.map =
     ak_hmn_make(sizeof(res_item), alct);
-  rm.jobs = ak_alct_alloc(
-    alct, sizeof(ak_job) * s_max_job_count);
+  rm.jobs = ak_heap_alloc(&rm.heap,
+                          sizeof(ak_job) *
+                            s_max_job_count);
+  jobs_init(rm.jobs);
   return rm;
 }
 
-ak_ex void
-ak_resman_destroy(ak_resman* rm);
+void
+ak_resman_destroy(ak_resman* rm)
+{
+  ak_ec(
+    ak_err_not_impled); // impl drain jobs
+  ak_heap_free(&rm->heap, rm->jobs);
+  ak_hmn_destroy(&rm->map);
+  ak_idgen_destroy(&rm->ig);
+  ak_heap_destroy(&rm->heap);
+}
 
 //--- export ---//
 ak_resid
@@ -76,8 +104,10 @@ ak_resman_register_file(ak_resman* rm,
   res_item item = { 0 };
   ak_atomicint_store(&item.status,
                      ak_res_not_loaded);
-  item.res = 0;
+  item.alct = ak_heap_to_alct(&rm->heap);
   item.path = path;
+  item.res = 0;
+  item.size = 0;
   ak_hmn_insert_u64(&rm->map, id, &item);
   return id;
 }
@@ -94,13 +124,49 @@ ak_resman_load(ak_resman* rm, ak_resid id)
     return;
   }
 
-  // ak_jobpool_submit(ak_jobpool *jp, ak_job
-  // *j);
+  ak_job* j = next_free_jobslot(rm->jobs);
+  ak_assert(j);
+  j->job = &job_fn;
+  j->ctx = ri;
+  ak_jobpool_submit(rm->jp, j);
 }
 
-ak_ex void
-ak_resman_unload(ak_resman* rm, ak_resid id);
-ak_ex ak_res_status
-ak_resman_status(ak_resman* rm, ak_resid id);
-ak_ex void*
-ak_resman_at(ak_resman* rm, ak_resid id);
+void
+ak_resman_unload(ak_resman* rm, ak_resid id)
+{
+  res_item* ri = ak_hmn_at_u64(&rm->map, id);
+  ak_res_status s =
+    ak_atomicint_load(&ri->status);
+  if (s != ak_res_loaded) {
+    return;
+  }
+  ak_alct_free(ri->alct, ri->res);
+  ak_atomicint_store(&ri->status,
+                     ak_res_not_loaded);
+}
+
+ak_res_status
+ak_resman_status(ak_resman* rm, ak_resid id)
+{
+  res_item* ri = ak_hmn_at_u64(&rm->map, id);
+  ak_res_status s =
+    ak_atomicint_load(&ri->status);
+  return s;
+}
+
+void*
+ak_resman_at(ak_resman* rm,
+             ak_resid id,
+             uint64_t* o_size)
+{
+  res_item* ri = ak_hmn_at_u64(&rm->map, id);
+  ak_res_status s =
+    ak_atomicint_load(&ri->status);
+  if (s != ak_res_loaded) {
+    return 0;
+  }
+  if (o_size) {
+    *o_size = ri->size;
+  }
+  return ri->res;
+}

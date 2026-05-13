@@ -26,6 +26,8 @@ ak_resman_unload(ak_resman* rm, ak_resid id);
 ak_ex ak_res_status
 ak_resman_status(ak_resman* rm, ak_resid id);
 ak_ex void*
-ak_resman_at(ak_resman* rm, ak_resid id);
+ak_resman_at(ak_resman* rm,
+             ak_resid id,
+             uint64_t* o_size);
 
 #endif

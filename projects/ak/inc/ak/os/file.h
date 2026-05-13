@@ -3,6 +3,7 @@
 
 #include "ak/core/errcode.h"
 #include "ak/core/io.h"
+#include "ak/core/mem/allocator.h"
 #include "ak/export.h"
 #include <stdint.h>
 
@@ -10,7 +11,8 @@ typedef enum
 {
   ak_file_none = 0,
   ak_file_open_read,
-  ak_file_open_write
+  ak_file_open_write,
+  ak_file_open_append
 } ak_file_enum;
 typedef struct
 {
@@ -18,25 +20,32 @@ typedef struct
   ak_file_enum fe;
 } ak_file;
 
-ak_ex ak_errcode
+ak_ex ak_file
 ak_file_open(const char* path,
-             ak_file_enum fe,
-             ak_file* o_f);
-
+             ak_file_enum fe);
 ak_ex void
 ak_file_close(ak_file* f);
+ak_ex uint64_t
+ak_file_open_read_all(const char* path,
+                      void** o_buf,
+                      ak_alct alct);
 
-ak_ex uint32_t
+ak_ex uint64_t
 ak_file_size(ak_file* f);
+ak_ex void
+ak_file_seek(ak_file* f, int64_t idx);
 
-ak_ex uint32_t
+ak_ex uint64_t
 ak_file_read(ak_file* f,
-             void* o_buf,
-             uint32_t count);
+             void** o_buf,
+             uint64_t count);
 ak_ex void
 ak_file_write(ak_file* f,
               void* buf,
-              uint32_t count);
+              uint64_t count);
+
+ak_ex ak_iostream
+ak_file_to_iostream(ak_file* f);
 
 ak_ex ak_iostream
 ak_fstream_make(const char* path,

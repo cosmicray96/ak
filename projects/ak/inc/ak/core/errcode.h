@@ -5,6 +5,7 @@
   X(ak_ok)                                  \
   X(ak_err)                                 \
   X(ak_err_invalid_args)                    \
+  X(ak_err_invalid_state)                   \
   X(ak_err_unreachable)                     \
   X(ak_err_not_impled)                      \
   X(ak_err_index_out_of_bounds)             \

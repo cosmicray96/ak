@@ -5,13 +5,14 @@
 #include "ak/coll/sla.h"
 #include "ak/core/async/jobpool.h"
 #include "ak/core/mem/allocator.h"
+#include "ak/core/mem/heap.h"
 #include "ak/export.h"
 #include "ak/system/idgen.h"
 #include "ak/system/resman.h"
 
 struct ak_resman
 {
-  ak_alct alct;
+  ak_heap heap;
   ak_idgen ig;
   ak_hmn map;
   ak_jobpool* jp;
