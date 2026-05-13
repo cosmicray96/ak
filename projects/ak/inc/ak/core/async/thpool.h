@@ -26,13 +26,13 @@ ak_ex ak_job_status
 ak_job_get_status(ak_job* j);
 
 //===== ak_jobpool =====//
-typedef struct ak_jobpool ak_jobpool;
-ak_ex ak_jobpool*
-ak_jobpool_startup();
+typedef struct ak_thpool ak_thpool;
+ak_ex ak_thpool*
+ak_thpool_startup();
 ak_ex void
-ak_jobpool_shutdown(ak_jobpool* jp);
+ak_thpool_shutdown(ak_thpool* jp);
 
 ak_ex void
-ak_jobpool_submit(ak_jobpool* jp, ak_job* j);
+ak_thpool_submit(ak_thpool* jp, ak_job* j);
 
 #endif

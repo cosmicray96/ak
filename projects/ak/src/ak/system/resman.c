@@ -69,7 +69,7 @@ job_fn(void* ctx)
 
 //--- internal ---//
 ak_resman
-ak_resman_make(ak_jobpool* jp, ak_alct alct)
+ak_resman_make(ak_thpool* jp, ak_alct alct)
 {
   ak_resman rm = { 0 };
   rm.heap = ak_heap_make();
@@ -128,7 +128,7 @@ ak_resman_load(ak_resman* rm, ak_resid id)
   ak_assert(j);
   j->job = &job_fn;
   j->ctx = ri;
-  ak_jobpool_submit(rm->jp, j);
+  ak_thpool_submit(rm->jp, j);
 }
 
 void

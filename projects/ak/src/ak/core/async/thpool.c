@@ -1,4 +1,5 @@
-#include "ak/core/async/jobpool.h"
+#include "ak/core/async/thpool.h"
+
 #include "ak/coll/dq.h"
 #include "ak/core/async/atomic.h"
 #include "ak/core/async/mutex.h"
@@ -32,7 +33,7 @@ ak_job_get_status(ak_job* j)
 //--- private ---//
 #define s_thread_count 2
 
-struct ak_jobpool
+struct ak_thpool
 {
   ak_heap heap;
   ak_dq jq;
@@ -42,7 +43,7 @@ struct ak_jobpool
 };
 
 bool
-jobpool_shouldclose(ak_jobpool* jp)
+thpool_shouldclose(ak_thpool* jp)
 {
   ak_mutex_lock(&jp->m);
   bool shouldclose = jp->shouldclose;
@@ -51,7 +52,7 @@ jobpool_shouldclose(ak_jobpool* jp)
 }
 
 bool
-jobpool_next(ak_jobpool* jp, ak_job** o_j)
+thpool_next(ak_thpool* jp, ak_job** o_j)
 {
   ak_mutex_lock(&jp->m);
   bool success = ak_dq_pop(&jp->jq, o_j);
@@ -62,14 +63,14 @@ jobpool_next(ak_jobpool* jp, ak_job** o_j)
 void
 thread_fn(void* ctx)
 {
-  ak_jobpool* jp = ctx;
+  ak_thpool* jp = ctx;
   ak_dur t = ak_dur_from_millis(30);
 
   while (true) {
     ak_dur start = ak_dur_now();
 
     ak_job* j = 0;
-    bool isjob = jobpool_next(jp, &j);
+    bool isjob = thpool_next(jp, &j);
     if (isjob) {
       ak_atomicint_store(&j->status,
                          ak_job_working);
@@ -79,7 +80,7 @@ thread_fn(void* ctx)
     }
 
     if (!isjob) {
-      if (jobpool_shouldclose(jp)) {
+      if (thpool_shouldclose(jp)) {
         return;
       }
     }
@@ -94,11 +95,10 @@ thread_fn(void* ctx)
 }
 
 //--- export ---//
-ak_jobpool*
-ak_jobpool_startup()
+ak_thpool*
+ak_thpool_startup()
 {
-  ak_jobpool* jp =
-    malloc(sizeof(ak_jobpool));
+  ak_thpool* jp = malloc(sizeof(ak_thpool));
   jp->heap = ak_heap_make();
 
   jp->jq =
@@ -116,7 +116,7 @@ ak_jobpool_startup()
 }
 
 void
-ak_jobpool_shutdown(ak_jobpool* jp)
+ak_thpool_shutdown(ak_thpool* jp)
 {
   ak_mutex_lock(&jp->m);
   jp->shouldclose = true;
@@ -134,7 +134,7 @@ ak_jobpool_shutdown(ak_jobpool* jp)
 }
 
 void
-ak_jobpool_submit(ak_jobpool* jp, ak_job* j)
+ak_thpool_submit(ak_thpool* jp, ak_job* j)
 {
   ak_mutex_lock(&jp->m);
   ak_dq_push(&jp->jq, &j);
