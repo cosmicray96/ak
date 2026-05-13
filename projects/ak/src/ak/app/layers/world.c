@@ -3,12 +3,15 @@
 #include "ak/app/eq.h"
 #include "ak/app/event.h"
 #include "ak/app/layers/core.h"
+#include "ak/core/async/thpool.h"
+#include "ak/core/async/thpool_itn.h"
 #include "ak/core/math/fixed.h"
 #include "ak/core/math/tf2d.h"
 #include "ak/core/math/trig.h"
 #include "ak/core/math/vec2.h"
 #include "ak/core/math/vec4.h"
 #include "ak/debug.h"
+#include "ak/game/comp.h"
 #include "ak/game/comp_t.h"
 #include "ak/game/stg/core.h"
 #include "ak/game/stg/ettgen.h"
@@ -20,6 +23,7 @@
 #include "ak/game/world/cbflush.h"
 #include "ak/game/world/view.h"
 #include "ak/game/world/view_itn.h"
+#include "ak/system/resman_itn.h"
 
 //===== ak_lworld =====//
 //--- private ---//
@@ -37,6 +41,9 @@ struct ak_lworld
 
   ak_sys_ren sys_ren;
   ak_sys_tf sys_tf;
+
+  ak_thpool* tp;
+  ak_resman rm;
 };
 
 //--- public ---//
@@ -100,6 +107,10 @@ push_child(ak_lworld* l,
   ak_rect_t rect = { 0 };
   ak_wcb_comp_rect_add(&l->wcb, e, rect);
 
+  ak_mtrl_t mat = { 0 };
+  mat.me = ak_mtrl_mtrl_col_e;
+  ak_wcb_comp_mtrl_add(&l->wcb, e, mat);
+
   ak_mtrl_col_t col = { 0 };
   col.col = ak_vec4_make(ak_fx_f(c),
                          ak_fx_f(0.0f),
@@ -125,6 +136,9 @@ on_startup(void* ctx, ak_app* app)
   l->sys_tf =
     ak_sys_tf_make(&l->wv, &l->wcb, l->alct);
 
+  l->tp = ak_thpool_startup();
+  l->rm = ak_resman_make(l->tp, l->alct);
+
   set_root(l);
 
   push_child(l, 0, 0, 1.0f);
@@ -148,6 +162,9 @@ static void
 on_shutdown(void* ctx)
 {
   ak_lworld* l = ctx;
+
+  ak_resman_destroy(&l->rm);
+  ak_thpool_shutdown(l->tp);
 
   ak_sys_tf_destroy(&l->sys_tf);
   ak_sys_ren_destroy(&l->sys_ren);

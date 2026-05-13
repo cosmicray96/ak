@@ -148,6 +148,7 @@ on_event(void* ctx, ak_evt e)
       ak_keyaction_pressed) {
     return false;
   }
+  ak_app_close(l->app);
   {
     ak_evt e = { 0 };
     e.type = ak_evt_type_win;
