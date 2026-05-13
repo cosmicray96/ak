@@ -5,6 +5,7 @@
 #include "ak/app/layers/core.h"
 #include "ak/core/async/thpool.h"
 #include "ak/core/async/thpool_itn.h"
+#include "ak/core/io.h"
 #include "ak/core/math/fixed.h"
 #include "ak/core/math/tf2d.h"
 #include "ak/core/math/trig.h"
@@ -23,10 +24,19 @@
 #include "ak/game/world/cbflush.h"
 #include "ak/game/world/view.h"
 #include "ak/game/world/view_itn.h"
+#include "ak/system/resman.h"
 #include "ak/system/resman_itn.h"
 
 //===== ak_lworld =====//
 //--- private ---//
+#define N 5
+
+static const char* paths[] = {
+  "./test1.txt", "./test2.txt",
+  "./test3.txt", "./test4.txt",
+  "./test5.txt",
+};
+
 struct ak_lworld
 {
   ak_alct alct;
@@ -44,6 +54,7 @@ struct ak_lworld
 
   ak_thpool* tp;
   ak_resman rm;
+  ak_resid ids[N];
 };
 
 //--- public ---//
@@ -140,22 +151,16 @@ on_startup(void* ctx, ak_app* app)
   l->rm = ak_resman_make(l->tp, l->alct);
 
   set_root(l);
-
   push_child(l, 0, 0, 1.0f);
-  /*
-push_child(l, 0.5f, 0, 0.1f);
-push_child(l, 0.5f, 0.5f, 0.2f);
-
-push_child(l, 0, 0.5f, 0.3f);
-push_child(l, -0.5f, 0, 0.4f);
-push_child(l, -0.5f, -0.5f, 0.4f);
-
-push_child(l, 0, -0.5f, 0.5f);
-push_child(l, 0.5f, -0.5f, 0.6f);
-push_child(l, -0.5f, 0.5f, 0.7f);
-  */
-
   ak_world_cb_flush(&l->w, &l->wcb, &l->eg);
+
+  for (uint32_t i = 0; i < N; i++) {
+    l->ids[i] = ak_resman_register_file(
+      &l->rm, paths[i]);
+  }
+  for (uint32_t i = 0; i < N; i++) {
+    ak_resman_load(&l->rm, l->ids[i]);
+  }
 }
 
 static void
@@ -213,6 +218,33 @@ static void
 on_update(void* ctx, ak_dur delta)
 {
   ak_lworld* l = ctx;
+
+  for (uint32_t i = 0; i < N; i++) {
+    bool printed = false;
+    ak_res_status s =
+      ak_resman_status(&l->rm, l->ids[i]);
+
+    if (s == ak_res_loading) {
+      ak_log("id: %d(i=%d), loading",
+             l->ids[i],
+             i);
+    }
+    if (s == ak_res_loaded) {
+      printed = true;
+      uint64_t size = 0;
+      void* res = ak_resman_at(
+        &l->rm, l->ids[i], &size);
+      if (i != 4 && false) {
+        ak_iostream_write(
+          ak_iostream_sio(), res, size);
+      }
+      ak_resman_unload(&l->rm, l->ids[i]);
+    }
+    if (printed) {
+      ak_log("---");
+    }
+  }
+
   ak_sys_tf_update(&l->sys_tf);
   ak_sys_ren_render(&l->sys_ren);
 }

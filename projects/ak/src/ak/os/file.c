@@ -45,9 +45,9 @@ ak_file_open_read_all(const char* path,
   ak_file f =
     ak_file_open(path, ak_file_open_read);
   uint64_t size = ak_file_size(&f);
-  void* buf = ak_alct_alloc(alct, size);
+  *o_buf = ak_alct_alloc(alct, size);
   uint64_t read_size =
-    ak_file_read(&f, buf, size);
+    ak_file_read(&f, o_buf, size);
   ak_assert(size == read_size);
   ak_file_close(&f);
   return size;

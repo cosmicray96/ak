@@ -1,8 +1,8 @@
 #ifndef ak_core_async_mutex_h
 #define ak_core_async_mutex_h
 
-#include "ak/core/mem/allocator.h"
 #include "ak/export.h"
+
 typedef struct
 {
   void* m;

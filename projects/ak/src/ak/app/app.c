@@ -159,7 +159,7 @@ ak_app_make(ak_applayer_regs* regs,
   app->startuped_count = 0;
 
   app->eq = ak_app_eq_make(alct);
-  app->frametime = ak_dur_from_millis(50);
+  app->frametime = ak_dur_from_millis(1);
   app->last_frametime =
     ak_dur_from_millis(0);
   app->should_close = false;
