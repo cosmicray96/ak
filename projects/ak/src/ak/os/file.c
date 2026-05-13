@@ -1,6 +1,28 @@
 #include "ak/os/file.h"
 #include <stdio.h>
 
+//===== ak_file =====//
+//--- export ---//
+ak_ex ak_errcode
+ak_file_open(const char* path,
+             ak_file_enum fe,
+             ak_file* o_f);
+
+ak_ex void
+ak_file_close(ak_file* f);
+
+ak_ex uint32_t
+ak_file_size(ak_file* f);
+
+ak_ex uint32_t
+ak_file_read(ak_file* f,
+             void* o_buf,
+             uint32_t count);
+ak_ex void
+ak_file_write(ak_file* f,
+              void* buf,
+              uint32_t count);
+
 //===== fstream =====//
 //--- private ---//
 static int32_t

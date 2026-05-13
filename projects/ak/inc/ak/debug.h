@@ -62,6 +62,16 @@ ak_log_crash_itn();
     }                                       \
   } while (0)
 
+#define ak_assert_ec(expr, ec)              \
+  do {                                      \
+    if (!(expr)) {                          \
+      ak_assert_itn(                        \
+        __FILE__, __LINE__, #expr);         \
+      ak_ec_itn(__FILE__, __LINE__, ec);    \
+      ak_program_crash();                   \
+    }                                       \
+  } while (0)
+
 #define ak_log_assert(expr, fmt, ...)       \
   do {                                      \
     if (!(expr)) {                          \

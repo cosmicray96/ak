@@ -8,6 +8,7 @@
 typedef void (*ak_job_fn)(void* ctx);
 typedef enum
 {
+  ak_job_none,
   ak_job_not_started,
   ak_job_working,
   ak_job_done

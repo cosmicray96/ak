@@ -167,7 +167,7 @@ void*
 ak_hmn_at_u64(ak_hmn* h, uint64_t key)
 {
   void* ptr = ak_hmn_at_itn_u64(h, key);
-  ak_assert(ptr);
+  ak_assert_ec(ptr, ak_err_not_found);
   return ptr;
 }
 
@@ -246,7 +246,7 @@ ak_hmn_remove_u64(ak_hmn* h, uint64_t key)
       continue;
     }
     // empty
-    ak_ec(ak_err_removed_remove);
+    ak_ec(ak_err_double_remove);
   }
 }
 
