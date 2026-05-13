@@ -1,7 +1,8 @@
 #include "ak/system/resman.h"
+#include "ak/coll/da.h"
 #include "ak/coll/hmn.h"
 #include "ak/core/async/atomic.h"
-#include "ak/core/async/jobpool.h"
+#include "ak/core/async/thpool.h"
 #include "ak/core/mem/heap.h"
 #include "ak/debug.h"
 #include "ak/os/file.h"
@@ -23,35 +24,7 @@ typedef struct
 
 //===== ak_resman =====//
 //--- private ---//
-#define s_max_job_count 32
-
-void
-jobs_init(ak_job* jobs)
-{
-  for (uint32_t i = 0; i < s_max_job_count;
-       i++) {
-    ak_job* j = &jobs[i];
-    ak_atomicint_store(&j->status,
-                       ak_job_none);
-  }
-}
-
-ak_job*
-next_free_jobslot(ak_job* jobs)
-{
-  for (uint32_t i = 0; i < s_max_job_count;
-       i++) {
-    ak_job_status s =
-      ak_job_get_status(&jobs[i]);
-    if (s == ak_job_none ||
-        s == ak_job_done) {
-      return &jobs[i];
-    }
-  }
-  return 0;
-}
-
-void
+static void
 job_fn(void* ctx)
 {
   res_item* ri = ctx;
@@ -77,19 +50,25 @@ ak_resman_make(ak_thpool* jp, ak_alct alct)
   rm.ig = ak_idgen_make(alct);
   rm.map =
     ak_hmn_make(sizeof(res_item), alct);
-  rm.jobs = ak_heap_alloc(&rm.heap,
-                          sizeof(ak_job) *
-                            s_max_job_count);
-  jobs_init(rm.jobs);
+  rm.jids =
+    ak_da_make(sizeof(ak_jobid), alct);
   return rm;
 }
 
 void
 ak_resman_destroy(ak_resman* rm)
 {
-  ak_ec(
-    ak_err_not_impled); // impl drain jobs
-  ak_heap_free(&rm->heap, rm->jobs);
+  uint32_t count = ak_da_count(&rm->jids);
+  for (uint32_t i = 0; i < count; i++) {
+    ak_jobid jid = *(ak_jobid*)ak_da_at_impl(
+      &rm->jids, i);
+    while (ak_thpool_job_status(
+             rm->jp, jid) != ak_job_done)
+      ;
+    ak_thpool_job_remove(rm->jp, jid);
+  }
+
+  ak_da_destroy(&rm->jids);
   ak_hmn_destroy(&rm->map);
   ak_idgen_destroy(&rm->ig);
   ak_heap_destroy(&rm->heap);
@@ -124,11 +103,9 @@ ak_resman_load(ak_resman* rm, ak_resid id)
     return;
   }
 
-  ak_job* j = next_free_jobslot(rm->jobs);
-  ak_assert(j);
-  j->job = &job_fn;
-  j->ctx = ri;
-  ak_thpool_submit(rm->jp, j);
+  ak_jobid jid =
+    ak_thpool_submit(rm->jp, &job_fn, ri);
+  ak_da_pushback(&rm->jids, &jid);
 }
 
 void
@@ -169,4 +146,24 @@ ak_resman_at(ak_resman* rm,
     *o_size = ri->size;
   }
   return ri->res;
+}
+
+void
+ak_resman_freejobs(ak_resman* rm)
+{
+  uint32_t count = ak_da_count(&rm->jids);
+  uint32_t i = 0;
+  while (i < count) {
+    ak_jobid jid = *(ak_jobid*)ak_da_at_impl(
+      &rm->jids, i);
+    ak_job_status s =
+      ak_thpool_job_status(rm->jp, jid);
+    if (s == ak_job_done) {
+      ak_thpool_job_remove(rm->jp, jid);
+      ak_da_remove_swaplast(&rm->jids, i);
+      count--;
+    } else {
+      i++;
+    }
+  }
 }

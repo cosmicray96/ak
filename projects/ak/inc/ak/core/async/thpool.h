@@ -1,10 +1,12 @@
 #ifndef ak_core_async_jobpool_h
 #define ak_core_async_jobpool_h
 
-#include "ak/core/async/atomic.h"
 #include "ak/export.h"
 
+#include <stdint.h>
+
 //===== ak_job =====//
+typedef uint32_t ak_jobid;
 typedef void (*ak_job_fn)(void* ctx);
 typedef enum
 {
@@ -13,26 +15,21 @@ typedef enum
   ak_job_working,
   ak_job_done
 } ak_job_status;
-typedef struct
-{
-  ak_job_fn job;
-  void* ctx;
-  ak_atomicint status;
-} ak_job;
-
-ak_ex ak_job
-ak_job_make(ak_job_fn job, void* ctx);
-ak_ex ak_job_status
-ak_job_get_status(ak_job* j);
 
 //===== ak_jobpool =====//
 typedef struct ak_thpool ak_thpool;
-ak_ex ak_thpool*
-ak_thpool_startup();
-ak_ex void
-ak_thpool_shutdown(ak_thpool* jp);
 
-ak_ex void
-ak_thpool_submit(ak_thpool* jp, ak_job* j);
+ak_jobid
+ak_thpool_submit(ak_thpool* jp,
+                 ak_job_fn jfunc,
+                 void* jctx);
+
+ak_job_status
+ak_thpool_job_status(ak_thpool* jp,
+                     ak_jobid jid);
+
+void
+ak_thpool_job_remove(ak_thpool* jp,
+                     ak_jobid jid);
 
 #endif
