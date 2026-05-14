@@ -3,6 +3,26 @@
 #include "ak/gfx/mtrl.h"
 #include "ak/gfx/mtrl_itn.h"
 
+#define ak_d_mtrl_x(name)                   \
+  typedef struct ak_mtrl_##name             \
+    ak_mtrl_##name;                         \
+  ak_mtrl_##name* ak_mtrl_##name##_make(    \
+    ak_gfx* gf, ak_alct alct);              \
+  void ak_mtrl_##name##_destroy(            \
+    ak_mtrl_##name* m);                     \
+  void ak_mtrl_##name##_call_begin(         \
+    void* m,                                \
+    const ak_mtrl_basedata* bd,             \
+    const ak_mat3x3* vp);                   \
+  void ak_mtrl_##name##_call_end(void* m);  \
+  void ak_mtrl_##name##_pushquad(           \
+    void* m,                                \
+    const ak_mtrl_quaddata* dq,             \
+    const ak_mat3x3* gmat3);
+
+#include "ak/gfx/mtrl.inc"
+#undef ak_d_mtrl_x
+
 //===== ak_mtrlstg =====//
 //--- private ---//
 struct ak_mtrlstg
@@ -21,7 +41,7 @@ ak_mtrlstg_make(ak_gfx* g, ak_alct alct)
 
 #define ak_d_mtrl_x(name)                   \
   ms->mtrls[ak_as_mtrl_e(name)] =           \
-    ak_##name##_make(g, alct);
+    ak_mtrl_##name##_make(g, alct);
 #include "ak/gfx/mtrl.inc"
 #undef ak_d_mtrl_x
 
@@ -32,7 +52,7 @@ ak_mtrlstg_destroy(ak_mtrlstg* ms)
 {
 
 #define ak_d_mtrl_x(name)                   \
-  ak_##name##_destroy(                      \
+  ak_mtrl_##name##_destroy(                 \
     ms->mtrls[ak_as_mtrl_e(name)]);
 #include "ak/gfx/mtrl.inc"
 #undef ak_d_mtrl_x
@@ -50,9 +70,11 @@ ak_mtrlstg_at(ak_mtrlstg* ms,
 #define ak_d_mtrl_x(name)                   \
   case ak_as_mtrl_e(name): {                \
     mtrl.call_begin =                       \
-      &ak_##name##_call_begin;              \
-    mtrl.call_end = &ak_##name##_call_end;  \
-    mtrl.push_quad = &ak_##name##_pushquad; \
+      &ak_mtrl_##name##_call_begin;         \
+    mtrl.call_end =                         \
+      &ak_mtrl_##name##_call_end;           \
+    mtrl.push_quad =                        \
+      &ak_mtrl_##name##_pushquad;           \
     break;                                  \
   }
 #include "ak/gfx/mtrl.inc"

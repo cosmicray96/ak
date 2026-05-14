@@ -1,8 +1,6 @@
 #ifndef ak_game_comp_h
 #define ak_game_comp_h
 
-#include "ak/gfx/mtrl.h"
-
 #include "ak/game/comp_t.h"
 
 #define ak_as_comp_t(name) ak_##name##_t

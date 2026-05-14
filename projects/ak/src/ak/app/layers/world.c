@@ -25,6 +25,7 @@
 #include "ak/game/world/view.h"
 #include "ak/game/world/view_itn.h"
 #include "ak/gfx/gresman.h"
+#include "ak/gfx/mtrl.h"
 #include "ak/system/resman.h"
 #include "ak/system/resman_itn.h"
 
@@ -124,16 +125,13 @@ push_child(ak_lworld* l,
   ak_wcb_comp_rect_add(&l->wcb, e, rect);
 
   ak_mtrl_t mat = { 0 };
-  mat.me = ak_mtrl_mtrl_tex_e;
+  mat.base_id = 0;
+  mat.data.me = ak_mtrl_tex_e;
+  mat.data.uv_min =
+    ak_vec2_make(ak_fx_f(0), ak_fx_f(0));
+  mat.data.uv_max =
+    ak_vec2_make(ak_fx_f(1), ak_fx_f(1));
   ak_wcb_comp_mtrl_add(&l->wcb, e, mat);
-
-  ak_mtrl_tex_t tex = {
-    tex.uv_min =
-      ak_vec2_make(ak_fx_f(0), ak_fx_f(0)),
-    tex.uv_max =
-      ak_vec2_make(ak_fx_f(1), ak_fx_f(1)),
-  };
-  ak_wcb_comp_mtrl_tex_add(&l->wcb, e, tex);
 
   /*
 ak_mtrl_col_t col = { 0 };

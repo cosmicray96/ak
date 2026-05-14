@@ -4,7 +4,6 @@
 #include "ak/debug.h"
 #include "ak/gfx/core.h"
 #include "ak/gfx/mtrl_itn.h"
-#include "ak/gfx/mtrl_t.h"
 #include "ak_opengl/gfx/gfx_itn.h"
 
 #include <stddef.h>
@@ -51,6 +50,7 @@ typedef struct
   float u0, v0, u1, v1;
 } quad;
 
+typedef struct ak_mtrl_tex ak_mtrl_tex;
 struct ak_mtrl_tex
 {
   ak_alct alct;
@@ -154,8 +154,10 @@ ak_mtrl_tex_destroy(void* mtrl)
 
 //--- export ---//
 void
-ak_mtrl_tex_call_begin(void* mtrl,
-                       const ak_mat3x3* vp)
+ak_mtrl_tex_call_begin(
+  void* mtrl,
+  const ak_mtrl_basedata* bd,
+  const ak_mat3x3* vp)
 {
   ak_mtrl_tex* m = mtrl;
   ak_assert(!m->call_begin);
@@ -185,18 +187,19 @@ ak_mtrl_tex_call_end(void* mtrl)
 }
 
 void
-ak_mtrl_tex_pushquad(void* mtrl,
-                     const ak_mat3x3* gmat3,
-                     const void* comp)
+ak_mtrl_tex_pushquad(
+  void* mtrl,
+  const ak_mtrl_quaddata* qd,
+  const ak_mat3x3* gmat3)
 {
   ak_mtrl_tex* m = mtrl;
-  const ak_mtrl_tex_t* c = comp;
   ak_assert(m->call_begin);
 
-  quad q = { .u0 = ak_fx_to_f(c->uv_min.x),
-             .v0 = ak_fx_to_f(c->uv_min.y),
-             .u1 = ak_fx_to_f(c->uv_max.x),
-             .v1 = ak_fx_to_f(c->uv_max.y) };
+  quad q = { .u0 = ak_fx_to_f(qd->uv_min.x),
+             .v0 = ak_fx_to_f(qd->uv_min.y),
+             .u1 = ak_fx_to_f(qd->uv_max.x),
+             .v1 =
+               ak_fx_to_f(qd->uv_max.y) };
 
   ak_mat3x3_to_f(gmat3, q.m3x3);
 

@@ -3,6 +3,10 @@
 
 #include "ak/core/math/mat3x3.h"
 #include "ak/core/math/tf2d.h"
+#include "ak/game/stg/core.h"
+#include "ak/gfx/mtrl.h"
+#include <stdint.h>
+
 #include "ak/gfx/mtrl.h"
 
 typedef ak_tf2d ak_tf2d_t;
@@ -21,9 +25,12 @@ typedef struct
 {
   char ph;
 } ak_rect_t;
+
 typedef struct
 {
-  ak_mtrl_enum me;
+  ak_ett base_id;
+  ak_mtrl_quaddata data;
 } ak_mtrl_t;
+typedef ak_mtrl_basedata ak_mtrl_base_t;
 
 #endif

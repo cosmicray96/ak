@@ -115,8 +115,8 @@ ak_sys_ren_render(ak_sys_ren* r)
       }
       ak_mtrl_t mtrl =
         ak_wv_comp_mtrl(r->wv, e);
-      ak_da* da =
-        ak_hmn_at_u64(&r->mtrls, mtrl.me);
+      ak_da* da = ak_hmn_at_u64(
+        &r->mtrls, mtrl.data.me);
       ak_da_pushback(da, &e);
     }
   }
@@ -132,7 +132,7 @@ ak_sys_ren_render(ak_sys_ren* r)
 
       ak_mtrl m = ak_mtrlstg_at(
         r->ms, (ak_mtrl_enum)me);
-      m.call_begin(m.ctx, &vp);
+      m.call_begin(m.ctx, 0, &vp);
 
       uint32_t count = ak_da_count(da);
       for (uint32_t i = 0; i < count; i++) {
@@ -143,15 +143,9 @@ ak_sys_ren_render(ak_sys_ren* r)
           ak_wv_comp_gmat3(r->wv, e);
         ak_mtrl_t mat =
           ak_wv_comp_mtrl(r->wv, e);
-        ak_comp_tu mat_comp = ak_wv_comp_tu(
-          r->wv,
-          e,
-          ak_mtrl_to_comp_e(mat.me));
 
         m.push_quad(
-          m.ctx,
-          &gmat3x3,
-          ak_comp_tu_comp(&mat_comp));
+          m.ctx, &mat.data, &gmat3x3);
       }
 
       m.call_end(m.ctx);

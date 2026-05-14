@@ -5,8 +5,8 @@
 #include "ak/core/mem/allocator.h"
 #include "ak/debug.h"
 #include "ak/gfx/core.h"
+#include "ak/gfx/mtrl.h"
 #include "ak/gfx/mtrl_itn.h"
-#include "ak/gfx/mtrl_t.h"
 #include "ak_opengl/gfx/gfx_itn.h"
 
 #include <stddef.h>
@@ -48,6 +48,7 @@ typedef struct
   float r, g, b, a;
 } quad;
 
+typedef struct ak_mtrl_col ak_mtrl_col;
 struct ak_mtrl_col
 {
   ak_alct alct;
@@ -151,8 +152,10 @@ ak_mtrl_col_destroy(void* mtrl)
 
 //--- export ---//
 void
-ak_mtrl_col_call_begin(void* mtrl,
-                       const ak_mat3x3* vp)
+ak_mtrl_col_call_begin(
+  void* mtrl,
+  const ak_mtrl_basedata* bd,
+  const ak_mat3x3* vp)
 {
   ak_mtrl_col* m = mtrl;
   ak_assert(!m->call_begin);
@@ -182,29 +185,18 @@ ak_mtrl_col_call_end(void* mtrl)
 }
 
 void
-ak_mtrl_col_pushquad(void* mtrl,
-                     const ak_mat3x3* gmat3,
-                     const void* comp)
+ak_mtrl_col_pushquad(
+  void* mtrl,
+  const ak_mtrl_quaddata* qd,
+  const ak_mat3x3* gmat3)
 {
   ak_mtrl_col* m = mtrl;
-  const ak_mtrl_col_t* c = comp;
   ak_assert(m->call_begin);
 
-  ak_mat3x3 vp = { 0 };
-  vp.m[0][0] = 1;
-  vp.m[1][1] = -1;
-  vp.m[2][2] = 4096;
-  ak_mat3x3 mm = ak_mat3x3_mul(vp, *gmat3);
-  ak_vec2 corner = {
-    .x = ak_fx_f(-0.5f),
-    .y = ak_fx_f(-0.5f),
-  };
-  ak_vec2 vv = ak_mat3x3_mul_dir(mm, corner);
-
-  quad q = { .r = ak_fx_to_f(c->col.r),
-             .g = ak_fx_to_f(c->col.g),
-             .b = ak_fx_to_f(c->col.b),
-             .a = ak_fx_to_f(c->col.a) };
+  quad q = { .r = ak_fx_to_f(qd->col.r),
+             .g = ak_fx_to_f(qd->col.g),
+             .b = ak_fx_to_f(qd->col.b),
+             .a = ak_fx_to_f(qd->col.a) };
 
   ak_mat3x3_to_f(gmat3, q.m3x3);
 
