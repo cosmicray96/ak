@@ -53,8 +53,8 @@ target_sources(${obj_name}
 	PRIVATE
 	${files_x11}
 )
-target_include_directories(${obj_name} INTERFACE ${X11_INCLUDE_DIR})
-target_link_libraries(${obj_name} INTERFACE ${X11_LIBRARIES})
+target_include_directories(${obj_name} PRIVATE ${X11_INCLUDE_DIR})
+target_link_libraries(${obj_name} PRIVATE ${X11_LIBRARIES})
 
 
 #--- opengl ---#
@@ -71,6 +71,15 @@ target_sources(${obj_name}
 	PRIVATE
 	${files_opengl_x11}
 )
+
+#--- stb ---#
+cm_target_get_files_impl_priv(${target_name} ${targ_path} "stb" files_stb)
+list(APPEND files_stb "${cm_proj_root_dir}/thirdparty/stb/stb_image.h")
+target_sources(${obj_name}
+	PRIVATE
+	${files_stb}
+)
+target_include_directories(${obj_name} PRIVATE "${cm_proj_root_dir}/thirdparty/")
 
 #--- target ---#
 add_library(ak SHARED
