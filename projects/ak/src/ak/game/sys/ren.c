@@ -4,17 +4,20 @@
 #include "ak/core/math/fixed.h"
 #include "ak/core/math/mat3x3.h"
 #include "ak/core/mem/allocator.h"
+#include "ak/debug.h"
 #include "ak/game/comp.h"
 #include "ak/game/comp_t.h"
 #include "ak/game/stg/core.h"
 #include "ak/game/world/view.h"
 #include "ak/gfx/gfx.h"
+#include "ak/gfx/gresman.h"
 #include "ak/gfx/mtrl.h"
 #include "ak/gfx/stg/mtrl.h"
 #include <stdint.h>
 
 ak_sys_ren
 ak_sys_ren_make(ak_gfx* gf,
+                ak_gresman* grm,
                 ak_wv* wv,
                 ak_alct alct)
 {
@@ -22,7 +25,7 @@ ak_sys_ren_make(ak_gfx* gf,
   r.alct = alct;
   r.wv = wv;
   r.gf = gf;
-  r.ms = ak_mtrlstg_make(gf, alct);
+  r.ms = ak_mtrlstg_make(gf, grm, alct);
   r.mtrls = ak_hmn_make(sizeof(ak_da), alct);
   for (uint32_t i = 0; i < ak_mtrl_count_e;
        i++) {
@@ -102,6 +105,7 @@ ak_sys_ren_render(ak_sys_ren* r)
       ak_da_clear(da);
     }
   }
+  ak_ett base = 0;
   {
     ak_wv_itdfs_pt it = ak_wv_itdfs_pt_make(
       r->wv, ak_wv_ett_root(r->wv));
@@ -115,6 +119,7 @@ ak_sys_ren_render(ak_sys_ren* r)
       }
       ak_mtrl_t mtrl =
         ak_wv_comp_mtrl(r->wv, e);
+      base = mtrl.base_id;
       ak_da* da = ak_hmn_at_u64(
         &r->mtrls, mtrl.data.me);
       ak_da_pushback(da, &e);
@@ -130,9 +135,15 @@ ak_sys_ren_render(ak_sys_ren* r)
     while (ak_hmn_iter_next_u64(
       &it, &me, (void**)&da)) {
 
+      ak_assert(base);
+      ak_assert(ak_wv_comp_mtrl_base_exist(
+        r->wv, base));
+      ak_mtrl_base_t base_t =
+        ak_wv_comp_mtrl_base(r->wv, base);
+
       ak_mtrl m = ak_mtrlstg_at(
         r->ms, (ak_mtrl_enum)me);
-      m.call_begin(m.ctx, 0, &vp);
+      m.call_begin(m.ctx, &base_t, &vp);
 
       uint32_t count = ak_da_count(da);
       for (uint32_t i = 0; i < count; i++) {

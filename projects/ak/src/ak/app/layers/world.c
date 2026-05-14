@@ -107,7 +107,8 @@ static void
 push_child(ak_lworld* l,
            float x,
            float y,
-           float c)
+           float c,
+           ak_gresid gid)
 {
   ak_ett root = ak_wv_ett_root(&l->wv);
   ak_ett e = ak_wcb_ett_new(&l->wcb, root);
@@ -124,8 +125,15 @@ push_child(ak_lworld* l,
   ak_rect_t rect = { 0 };
   ak_wcb_comp_rect_add(&l->wcb, e, rect);
 
+  ak_ett mbase =
+    ak_wcb_ett_new(&l->wcb, root);
+  ak_mtrl_base_t base = { 0 };
+  base.gid = gid;
+  ak_wcb_comp_mtrl_base_add(
+    &l->wcb, mbase, base);
+
   ak_mtrl_t mat = { 0 };
-  mat.base_id = 0;
+  mat.base_id = mbase;
   mat.data.me = ak_mtrl_tex_e;
   mat.data.uv_min =
     ak_vec2_make(ak_fx_f(0), ak_fx_f(0));
@@ -154,20 +162,19 @@ on_startup(void* ctx, ak_app* app)
   l->wv = ak_wv_make(&l->w);
   l->wcb = ak_wcb_make(&l->eg, l->alct);
 
-  l->sys_ren = ak_sys_ren_make(
-    ak_lcore_gfx(l->lcore), &l->wv, l->alct);
-
-  l->sys_tf =
-    ak_sys_tf_make(&l->wv, &l->wcb, l->alct);
-
   l->tp = ak_thpool_startup();
   l->rm = ak_resman_make(l->tp, l->alct);
   l->grm =
     ak_gresman_startup(&l->rm, l->alct);
 
-  set_root(l);
-  push_child(l, 0, 0, 1.0f);
-  ak_world_cb_flush(&l->w, &l->wcb, &l->eg);
+  l->sys_ren =
+    ak_sys_ren_make(ak_lcore_gfx(l->lcore),
+                    l->grm,
+                    &l->wv,
+                    l->alct);
+
+  l->sys_tf =
+    ak_sys_tf_make(&l->wv, &l->wcb, l->alct);
 
   for (uint32_t i = 0; i < N; i++) {
     l->ids[i] = ak_resman_register_file(
@@ -177,10 +184,14 @@ on_startup(void* ctx, ak_app* app)
     ak_resman_load(&l->rm, l->ids[i]);
   }
   l->dog_rid = ak_resman_register_img(
-    &l->rm, "dog.png");
+    &l->rm, "./dog.png");
   l->dog_gid = ak_gresman_register_img(
     l->grm, l->dog_rid);
   ak_gresman_load(l->grm, l->dog_gid);
+
+  set_root(l);
+  push_child(l, 0, 0, 1.0f, l->dog_gid);
+  ak_world_cb_flush(&l->w, &l->wcb, &l->eg);
 }
 
 static void

@@ -24,7 +24,7 @@ typedef struct
 
 typedef struct
 {
-  ak_gresid rid;
+  ak_gresid gid;
 } ak_mtrl_basedata;
 
 #endif

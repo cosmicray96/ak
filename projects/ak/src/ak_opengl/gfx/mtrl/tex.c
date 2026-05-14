@@ -5,44 +5,64 @@
 #include "ak/gfx/core.h"
 #include "ak/gfx/mtrl_itn.h"
 #include "ak_opengl/gfx/gfx_itn.h"
+#include "ak_opengl/gfx/gresman_impl.h"
 
 #include <stddef.h>
 
 #include <glad/glad.h>
 
+#define check_err                           \
+  do {                                      \
+    GLenum err = glGetError();              \
+    if (err != GL_NO_ERROR) {               \
+      ak_log("opengl error:");              \
+      ak_logv(err, x);                      \
+      ak_assert(false);                     \
+    }                                       \
+  } while (0);
+
 //===== ak_mtrl_col =====//
 //--- private ---//
 
-static const char* vs_src =
-  "#version 330 core\n"
-  "layout (location = 0) in vec2 vi_cor;\n"
-  "layout (location = 1) in vec3 vi_m1;\n"
-  "layout (location = 2) in vec3 vi_m2;\n"
-  "layout (location = 3) in vec3 vi_m3;\n"
-  "layout (location = 4) in vec4 vi_uv;\n"
-  "uniform mat3 u_vp;\n"
-  "out vec4 vo_col;\n"
-  "out vec2 vo_uv;\n"
-  "void main() {\n"
-  "mat3 m = mat3(vi_m1, vi_m2, vi_m3);\n"
-  "vec3 pos = u_vp * m * vec3(vi_cor,1.0);\n"
-  "gl_Position = vec4(pos.xy, 0.0, 1.0);\n"
-  "vo_uv = vec2(\n"
-  "mix(vi_uv.x, vi_uv.z, vi_cor.x + 0.5),\n"
-  "mix(vi_uv.y, vi_uv.w, vi_cor.y + 0.5)\n"
-  ");\n"
-  "}\n";
+#define s_str_(s) #s
+#define s_str(s) s_str_(s)
 
-//"  gl_Position = vec4(pos.xy, 0.0, 1.0);\n"
+#define s_vert                              \
+  layout(location = 0) in vec2 vi_cor;      \
+  layout(location = 1) in vec3 vi_m1;       \
+  layout(location = 2) in vec3 vi_m2;       \
+  layout(location = 3) in vec3 vi_m3;       \
+  layout(location = 4) in vec4 vi_uv;       \
+  uniform mat3 u_vp;                        \
+  out vec2 vo_uv;                           \
+  void main()                               \
+  {                                         \
+    mat3 m = mat3(vi_m1, vi_m2, vi_m3);     \
+    vec3 pos =                              \
+      u_vp * m * vec3(vi_cor, 1.0);         \
+    gl_Position = vec4(pos.xy, 0.0, 1.0);   \
+    vo_uv = vec2(                           \
+      mix(                                  \
+        vi_uv.x, vi_uv.z, vi_cor.x + 0.5),  \
+      mix(                                  \
+        vi_uv.y, vi_uv.w, vi_cor.y + 0.5)); \
+  }
+static const char* vs_src =
+  "#version 330 core\n" s_str(s_vert);
+
+#define s_frag                              \
+  uniform sampler2D u_tex;                  \
+  in vec2 vo_uv;                            \
+  out vec4 fo_col;                          \
+  void main()                               \
+  {                                         \
+    vec4 color = texture(u_tex, vo_uv);     \
+    fo_col = vec4(vo_uv, 0.0, 1.0);         \
+    fo_col = color;                         \
+  }
 
 static const char* fs_src =
-  "#version 330 core\n"
-  "in vec4 vo_col;"
-  "in vec2 vo_uv;"
-  "out vec4 fo_col;\n"
-  "void main() {\n"
-  "  fo_col = vec4(vo_uv, 0.0, 1.0);\n"
-  "}\n";
+  "#version 330 core\n" s_str(s_frag);
 
 typedef struct
 {
@@ -55,25 +75,33 @@ struct ak_mtrl_tex
 {
   ak_alct alct;
   ak_gfx* g;
+  ak_gresman* grm;
   GLuint vao;
   GLuint program;
   GLuint vp_loc;
+  GLuint tex_loc;
   bool call_begin;
 };
 
 //--- internal ---//
 ak_mtrl_tex*
-ak_mtrl_tex_make(ak_gfx* g, ak_alct alct)
+ak_mtrl_tex_make(ak_gfx* g,
+                 ak_gresman* grm,
+                 ak_alct alct)
 {
   ak_mtrl_tex* m =
     ak_alct_alloc(alct, sizeof(ak_mtrl_tex));
   m->alct = alct;
   m->g = g;
+  m->grm = grm;
 
   m->program = program_make(fs_src, vs_src);
   glUseProgram(m->program);
   m->vp_loc =
     glGetUniformLocation(m->program, "u_vp");
+  m->tex_loc = glGetUniformLocation(
+    m->program, "u_tex");
+
   // ak_assert(m->vp_loc != -1);
   glUseProgram(0);
 
@@ -167,6 +195,16 @@ ak_mtrl_tex_call_begin(
   ak_mat3x3_to_f(vp, vp_f);
   glUniformMatrix3fv(
     m->vp_loc, 1, GL_FALSE, vp_f);
+
+  ak_gres_status s =
+    ak_gresman_status(m->grm, bd->gid);
+  if (s == ak_gres_loaded) {
+    GLuint gltex =
+      ak_gresman_at(m->grm, bd->gid);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, gltex);
+    glUniform1i(m->tex_loc, 0);
+  }
 
   glBindVertexArray(m->vao);
 

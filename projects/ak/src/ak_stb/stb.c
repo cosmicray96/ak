@@ -7,17 +7,16 @@ ak_img
 ak_img_load(const char* path)
 {
   ak_img img = { 0 };
-  img.type = ak_img_rgba8;
 
   int width;
   int height;
   int channels;
 
-  img.pixels = stbi_load("image.png",
-                         &width,
-                         &height,
-                         &channels,
-                         4);
+  img.type = ak_img_rgba8;
+  img.pixels = stbi_load(
+    path, &width, &height, &channels, 4);
+  img.w = width;
+  img.h = height;
 
   return img;
 }

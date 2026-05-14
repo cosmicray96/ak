@@ -5,6 +5,7 @@
 #include "ak/core/mem/allocator.h"
 #include "ak/debug.h"
 #include "ak/gfx/core.h"
+#include "ak/gfx/gresman.h"
 #include "ak/gfx/mtrl.h"
 #include "ak/gfx/mtrl_itn.h"
 #include "ak_opengl/gfx/gfx_itn.h"
@@ -61,7 +62,9 @@ struct ak_mtrl_col
 
 //--- internal ---//
 ak_mtrl_col*
-ak_mtrl_col_make(ak_gfx* g, ak_alct alct)
+ak_mtrl_col_make(ak_gfx* g,
+                 ak_gresman* grm,
+                 ak_alct alct)
 {
   ak_mtrl_col* m =
     ak_alct_alloc(alct, sizeof(ak_mtrl_col));
