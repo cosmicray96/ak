@@ -14,7 +14,7 @@ ak_wcb_ett_new(ak_wcb* wcb, ak_ett pt);
 ak_ex void
 ak_wcb_ett_remove(ak_wcb* wcb, ak_ett e);
 
-#define X(name)                             \
+#define ak_d_comp_x(name)                   \
   ak_ex void ak_wcb_comp_##name##_add(      \
     ak_wcb* wcb,                            \
     ak_ett e,                               \
@@ -23,6 +23,6 @@ ak_wcb_ett_remove(ak_wcb* wcb, ak_ett e);
     ak_wcb* wcb, ak_ett e);
 
 #include "./ak/game/comp.inc"
-#undef X
+#undef ak_d_comp_x
 
 #endif

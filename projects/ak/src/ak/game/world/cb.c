@@ -101,7 +101,7 @@ ak_wcb_ett_remove(ak_wcb* wcb, ak_ett e)
   ak_dq_push(&wcb->cmds, &item);
 }
 
-#define X(name)                             \
+#define ak_d_comp_x(name)                   \
   void ak_wcb_comp_##name##_add(            \
     ak_wcb* wcb,                            \
     ak_ett e,                               \
@@ -117,4 +117,4 @@ ak_wcb_ett_remove(ak_wcb* wcb, ak_ett e)
       wcb, e, ak_as_comp_e(name));          \
   }
 #include "ak/game/comp.inc"
-#undef X
+#undef ak_d_comp_x

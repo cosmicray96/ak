@@ -24,6 +24,7 @@
 #include "ak/game/world/cbflush.h"
 #include "ak/game/world/view.h"
 #include "ak/game/world/view_itn.h"
+#include "ak/gfx/gresman.h"
 #include "ak/system/resman.h"
 #include "ak/system/resman_itn.h"
 
@@ -55,6 +56,10 @@ struct ak_lworld
   ak_thpool* tp;
   ak_resman rm;
   ak_resid ids[N];
+  ak_resid dog_rid;
+
+  ak_gresman* grm;
+  ak_gresid dog_gid;
 };
 
 //--- public ---//
@@ -106,7 +111,7 @@ push_child(ak_lworld* l,
   ak_ett root = ak_wv_ett_root(&l->wv);
   ak_ett e = ak_wcb_ett_new(&l->wcb, root);
 
-  float scale = 30.0f;
+  float scale = 300.0f;
   ak_tf2d_t tf = { 0 };
   tf = ak_tf2d_make(
     ak_vec2_make(ak_fx_f(x), ak_fx_f(y)),
@@ -119,15 +124,25 @@ push_child(ak_lworld* l,
   ak_wcb_comp_rect_add(&l->wcb, e, rect);
 
   ak_mtrl_t mat = { 0 };
-  mat.me = ak_mtrl_mtrl_col_e;
+  mat.me = ak_mtrl_mtrl_tex_e;
   ak_wcb_comp_mtrl_add(&l->wcb, e, mat);
 
-  ak_mtrl_col_t col = { 0 };
-  col.col = ak_vec4_make(ak_fx_f(c),
-                         ak_fx_f(0.0f),
-                         ak_fx_f(0.0f),
-                         ak_fx_f(1.0f));
-  ak_wcb_comp_mtrl_col_add(&l->wcb, e, col);
+  ak_mtrl_tex_t tex = {
+    tex.uv_min =
+      ak_vec2_make(ak_fx_f(0), ak_fx_f(0)),
+    tex.uv_max =
+      ak_vec2_make(ak_fx_f(1), ak_fx_f(1)),
+  };
+  ak_wcb_comp_mtrl_tex_add(&l->wcb, e, tex);
+
+  /*
+ak_mtrl_col_t col = { 0 };
+col.col = ak_vec4_make(ak_fx_f(c),
+                   ak_fx_f(0.0f),
+                   ak_fx_f(0.0f),
+                   ak_fx_f(1.0f));
+ak_wcb_comp_mtrl_col_add(&l->wcb, e, col);
+  */
 }
 
 static void
@@ -149,6 +164,8 @@ on_startup(void* ctx, ak_app* app)
 
   l->tp = ak_thpool_startup();
   l->rm = ak_resman_make(l->tp, l->alct);
+  l->grm =
+    ak_gresman_startup(&l->rm, l->alct);
 
   set_root(l);
   push_child(l, 0, 0, 1.0f);
@@ -161,12 +178,19 @@ on_startup(void* ctx, ak_app* app)
   for (uint32_t i = 0; i < N; i++) {
     ak_resman_load(&l->rm, l->ids[i]);
   }
+  l->dog_rid = ak_resman_register_img(
+    &l->rm, "dog.png");
+  l->dog_gid = ak_gresman_register_img(
+    l->grm, l->dog_rid);
+  ak_gresman_load(l->grm, l->dog_gid);
 }
 
 static void
 on_shutdown(void* ctx)
 {
   ak_lworld* l = ctx;
+
+  ak_gresman_shutdown(l->grm);
 
   ak_resman_destroy(&l->rm);
   ak_thpool_shutdown(l->tp);
@@ -218,6 +242,7 @@ static void
 on_update(void* ctx, ak_dur delta)
 {
   ak_lworld* l = ctx;
+  ak_gresman_update(l->grm);
 
   for (uint32_t i = 0; i < N; i++) {
     bool printed = false;
@@ -232,11 +257,12 @@ on_update(void* ctx, ak_dur delta)
     if (s == ak_res_loaded) {
       printed = true;
       uint64_t size = 0;
-      void* res = ak_resman_at(
-        &l->rm, l->ids[i], &size);
-      if (i != 4 && false) {
-        ak_iostream_write(
-          ak_iostream_sio(), res, size);
+      ak_res_file* f =
+        ak_resman_at_file(&l->rm, l->ids[i]);
+      if (f->size < 1000) {
+        ak_iostream_write(ak_iostream_sio(),
+                          f->data,
+                          f->size);
       }
       ak_resman_unload(&l->rm, l->ids[i]);
     }

@@ -27,7 +27,7 @@ ak_wv_comp_tu(ak_wv* w,
               ak_ett ett,
               ak_comp_enum ce);
 
-#define X(name)                             \
+#define ak_d_comp_x(name)                   \
   ak_ex ak_as_comp_t(name)                  \
     ak_wv_comp_##name(ak_wv* w, ak_ett e);  \
   static bool ak_wv_comp_##name##_exist(    \
@@ -37,7 +37,7 @@ ak_wv_comp_tu(ak_wv* w,
       w, e, ak_as_comp_e(name));            \
   }
 #include "ak/game/comp.inc"
-#undef X
+#undef ak_d_comp_x
 
 //===== ak_wv_itcomp =====//
 typedef struct

@@ -19,7 +19,7 @@ typedef struct
 
 #define ak_as_mtrl_p(name) ak_##name
 
-#define X(name)                             \
+#define ak_d_mtrl_x(name)                   \
   typedef struct ak_as_mtrl_p(name)         \
     ak_as_mtrl_p(name);                     \
   ak_as_mtrl_p(name) *                      \
@@ -35,6 +35,6 @@ typedef struct
     const void* comp);
 
 #include "ak/gfx/mtrl.inc"
-#undef X
+#undef ak_d_mtrl_x
 
 #endif

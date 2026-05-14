@@ -20,12 +20,12 @@ ak_compstg_make(ak_alct alct)
     ak_alct_alloc(alct, sizeof(ak_compstg));
   cs->alct = alct;
 
-#define X(name)                             \
+#define ak_d_comp_x(name)                   \
   cs->spas[ak_##name##_e] = ak_spa_make(    \
     sizeof(ak_##name##_t), alct);
 
 #include "ak/game/comp.inc"
-#undef X
+#undef ak_d_comp_x
 
   return cs;
 }

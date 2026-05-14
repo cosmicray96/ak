@@ -1,20 +1,10 @@
 #ifndef ak_gfx_img_h
 #define ak_gfx_img_h
 
+#include "ak/export.h"
+#include "ak/system/resman.h"
+
 #include <stdint.h>
-
-typedef enum
-{
-  ak_img_rgba8
-} ak_imgtype;
-
-typedef struct
-{
-  ak_imgtype type;
-  void* pixels;
-  uint32_t w;
-  uint32_t h;
-} ak_img;
 
 typedef struct
 {
@@ -24,5 +14,11 @@ typedef struct
   uint32_t w;
   uint32_t h;
 } ak_img_v;
+
+ak_ex ak_img
+ak_img_load(const char* path);
+
+void
+ak_img_unload(ak_img* img);
 
 #endif

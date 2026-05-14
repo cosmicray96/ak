@@ -61,7 +61,7 @@ ak_wv_comp_tu(ak_wv* wv,
   return tu;
 }
 
-#define X(name)                             \
+#define ak_d_comp_x(name)                   \
   ak_as_comp_t(name)                        \
     ak_wv_comp_##name(ak_wv* wv, ak_ett e)  \
   {                                         \
@@ -72,7 +72,7 @@ ak_wv_comp_tu(ak_wv* wv,
         wv->w, e, ak_as_comp_e(name));      \
   }
 #include "ak/game/comp.inc"
-#undef X
+#undef ak_d_comp_x
 
 //===== ak_wv_itcomp =====//
 //--- export ---//

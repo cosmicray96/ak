@@ -1,19 +1,18 @@
 #ifndef ak_gfx_mtrl_mtrl_h
 #define ak_gfx_mtrl_mtrl_h
 
-#include "ak/core/math/mat3x3.h"
-#include "ak/core/math/tf2d.h"
 #include "ak/gfx/mtrl_t.h"
 
 #define ak_as_mtrl_e(name) ak_mtrl_##name##_e
 #define ak_as_mtrl_t(name)                  \
-  ak_##name##_t // same as ak_as_comp_t(name)
+  ak_##name##_t // same as
+                // ak_as_comp_t(name)
 
 typedef enum
 {
-#define X(name) ak_as_mtrl_e(name),
+#define ak_d_mtrl_x(name) ak_as_mtrl_e(name),
 #include "ak/gfx/mtrl.inc"
-#undef X
+#undef ak_d_mtrl_x
   ak_mtrl_count_e
 } ak_mtrl_enum;
 

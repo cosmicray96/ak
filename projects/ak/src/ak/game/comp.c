@@ -2,9 +2,9 @@
 #include "ak/debug.h"
 
 const char* strs[] = {
-#define X(name) "ak_" #name,
+#define ak_d_comp_x(name) "ak_" #name,
 #include "ak/game/comp.inc"
-#undef X
+#undef ak_d_comp_x
 };
 
 const char*
@@ -29,13 +29,13 @@ ak_comp_tu_make_ip(ak_comp_tu* ctu,
 {
   ctu->ce = ce;
   switch (ce) {
-#define X(name)                             \
+#define ak_d_comp_x(name)                   \
   case ak_##name##_e: {                     \
     ctu->name = *(ak_##name##_t*)(comp);    \
     break;                                  \
   }
 #include "ak/game/comp.inc"
-#undef X
+#undef ak_d_comp_x
     default: {
       ak_assert(false);
     }
@@ -46,12 +46,12 @@ void*
 ak_comp_tu_comp(ak_comp_tu* ctu)
 {
   switch (ctu->ce) {
-#define X(name)                             \
+#define ak_d_comp_x(name)                   \
   case ak_##name##_e: {                     \
     return &ctu->name;                      \
   }
 #include "ak/game/comp.inc"
-#undef X
+#undef ak_d_comp_x
     default: {
       ak_assert(false);
     }
