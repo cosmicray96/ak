@@ -4,6 +4,7 @@
 #include "ak/core/mem/allocator.h"
 #include "ak/gfx/core.h"
 #include "ak/gfx/mtrl.h"
+#include "ak/gfx/mtrl_itn.h"
 typedef struct ak_mtrlstg ak_mtrlstg;
 
 ak_mtrlstg*

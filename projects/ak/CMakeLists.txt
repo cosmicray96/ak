@@ -46,12 +46,15 @@ target_sources(${obj_name}
 )
 
 #--- x11 ---#
+find_package(X11 REQUIRED)
+
 cm_target_get_files_impl_priv(${target_name} ${targ_path} "x11" files_x11)
 target_sources(${obj_name}
 	PRIVATE
 	${files_x11}
 )
-target_link_libraries(${obj_name} PRIVATE "x11_wrapper")
+target_include_directories(${obj_name} INTERFACE ${X11_INCLUDE_DIR})
+target_link_libraries(${obj_name} INTERFACE ${X11_LIBRARIES})
 
 
 #--- opengl ---#
@@ -60,7 +63,7 @@ target_sources(${obj_name}
 	PRIVATE
 	${files_opengl}
 )
-target_link_libraries(${obj_name} PRIVATE "opengl_wrapper")
+target_link_libraries(${obj_name} PRIVATE "glad")
 
 #--- opengl x11 ---#
 cm_target_get_files_impl_priv(${target_name} ${targ_path} "opengl_x11" files_opengl_x11)

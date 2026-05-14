@@ -5,6 +5,18 @@
 #include "ak/core/mem/allocator.h"
 #include "ak/gfx/core.h"
 
+typedef struct
+{
+  void (*call_begin)(void* ctx,
+                     const ak_mat3x3* vp);
+  void (*call_end)(void* ctx);
+
+  void (*push_quad)(void* ctx,
+                    const ak_mat3x3* gmat3,
+                    const void* comp);
+  void* ctx;
+} ak_mtrl;
+
 #define ak_as_mtrl_p(name) ak_##name
 
 #define X(name)                             \
