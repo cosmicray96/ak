@@ -1,5 +1,7 @@
 #include "ak/os/time.h"
+#include "ak/core/math/fixed.h"
 #include <stdbool.h>
+#include <stdint.h>
 
 //===== ak_dur =====//
 //--- export ---//
@@ -80,4 +82,10 @@ ak_dur_as_secs_f(ak_dur d)
 {
   double dou = (double)d.nanos / 1000000000;
   return (float)dou;
+}
+
+ak_fx
+ak_dur_as_secs_fx(ak_dur d)
+{
+  return ak_fx_f(ak_dur_as_secs_f(d));
 }

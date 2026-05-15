@@ -1,6 +1,7 @@
 #ifndef ak_os_time_h
 #define ak_os_time_h
 
+#include "ak/core/math/fixed.h"
 #include "ak/export.h"
 #include <stdbool.h>
 #include <stdint.h>
@@ -33,5 +34,8 @@ ak_dur_zero(ak_dur a);
 
 ak_ex float
 ak_dur_as_secs_f(ak_dur d);
+
+ak_ex ak_fx
+ak_dur_as_secs_fx(ak_dur d);
 
 #endif

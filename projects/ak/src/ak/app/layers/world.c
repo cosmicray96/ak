@@ -231,7 +231,7 @@ on_update(void* ctx, ak_dur delta)
   ak_gresman_update(l->grm);
 
   ak_sys_tf_update(&l->sys_tf);
-  ak_sys_ren_render(&l->sys_ren);
+  ak_sys_ren_render(&l->sys_ren, delta);
 }
 
 static void

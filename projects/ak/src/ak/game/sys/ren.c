@@ -13,6 +13,7 @@
 #include "ak/gfx/gresman.h"
 #include "ak/gfx/mtrl.h"
 #include "ak/gfx/stg/mtrl.h"
+#include "ak/os/time.h"
 #include <stdint.h>
 
 //===== ak_sys_ren =====//
@@ -60,6 +61,7 @@ ak_sys_ren_make(ak_gfx* gf,
     ak_hmn_make(sizeof(map_item), alct);
   r.free_mtrls =
     ak_da_make(sizeof(ak_ett), alct);
+  r.time = ak_fx_f(0);
   return r;
 }
 
@@ -84,8 +86,11 @@ ak_sys_ren_destroy(ak_sys_ren* r)
 }
 
 void
-ak_sys_ren_render(ak_sys_ren* r)
+ak_sys_ren_render(ak_sys_ren* r,
+                  ak_dur delta)
 {
+  r->time = ak_fxadd(
+    r->time, ak_dur_as_secs_fx(delta));
   ak_ett root = ak_wv_ett_root(r->wv);
 
   ak_mat3 vp = { 0 };
@@ -162,7 +167,8 @@ ak_sys_ren_render(ak_sys_ren* r)
 
       ak_mtrl m =
         ak_mtrlstg_at(r->ms, base_t.me);
-      m.call_begin(m.ctx, &base_t.data, &vp);
+      m.call_begin(
+        m.ctx, &base_t.data, &vp, r->time);
 
       uint32_t count = ak_da_count(&mi->da);
       for (uint32_t i = 0; i < count; i++) {

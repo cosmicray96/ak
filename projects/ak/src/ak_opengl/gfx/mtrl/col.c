@@ -158,7 +158,8 @@ void
 ak_mtrl_col_call_begin(
   void* mtrl,
   const ak_mtrl_basedata* bd,
-  const ak_mat3* vp)
+  const ak_mat3* vp,
+  ak_fx time)
 {
   ak_mtrl_col* m = mtrl;
   ak_assert(!m->call_begin);
