@@ -146,6 +146,26 @@ ak_resman_destroy(ak_resman* rm)
   ak_heap_destroy(&rm->heap);
 }
 
+void
+ak_resman_update(ak_resman* rm)
+{
+  uint32_t count = ak_da_count(&rm->jids);
+  uint32_t i = 0;
+  while (i < count) {
+    ak_jobid jid = *(ak_jobid*)ak_da_at_impl(
+      &rm->jids, i);
+    ak_job_status s =
+      ak_thpool_job_status(rm->jp, jid);
+    if (s == ak_job_done) {
+      ak_thpool_job_remove(rm->jp, jid);
+      ak_da_remove_swaplast(&rm->jids, i);
+      count--;
+    } else {
+      i++;
+    }
+  }
+}
+
 //--- export ---//
 
 ak_resid
@@ -237,24 +257,4 @@ ak_resman_at_img(ak_resman* rm, ak_resid id)
     return 0;
   }
   return &ri->img;
-}
-
-void
-ak_resman_freejobs(ak_resman* rm)
-{
-  uint32_t count = ak_da_count(&rm->jids);
-  uint32_t i = 0;
-  while (i < count) {
-    ak_jobid jid = *(ak_jobid*)ak_da_at_impl(
-      &rm->jids, i);
-    ak_job_status s =
-      ak_thpool_job_status(rm->jp, jid);
-    if (s == ak_job_done) {
-      ak_thpool_job_remove(rm->jp, jid);
-      ak_da_remove_swaplast(&rm->jids, i);
-      count--;
-    } else {
-      i++;
-    }
-  }
 }

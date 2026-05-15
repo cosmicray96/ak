@@ -24,4 +24,7 @@ ak_resman_make(ak_thpool* jp, ak_alct alct);
 void
 ak_resman_destroy(ak_resman* rm);
 
+void
+ak_resman_update(ak_resman* rm);
+
 #endif

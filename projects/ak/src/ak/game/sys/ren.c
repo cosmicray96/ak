@@ -47,7 +47,7 @@ get_vp(const ak_mat3* cam,
 //--- internal ---//
 ak_sys_ren
 ak_sys_ren_make(ak_gfx* gf,
-                ak_gresman* grm,
+                ak_mtrlstg* ms,
                 ak_wv* wv,
                 ak_alct alct)
 {
@@ -55,7 +55,7 @@ ak_sys_ren_make(ak_gfx* gf,
   r.alct = alct;
   r.wv = wv;
   r.gf = gf;
-  r.ms = ak_mtrlstg_make(gf, grm, alct);
+  r.ms = ms;
   r.mtrls =
     ak_hmn_make(sizeof(map_item), alct);
   r.free_mtrls =

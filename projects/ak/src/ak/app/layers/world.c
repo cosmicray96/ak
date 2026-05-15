@@ -22,6 +22,7 @@
 #include "ak/game/world/view_itn.h"
 #include "ak/gfx/gresman.h"
 #include "ak/gfx/mtrl.h"
+#include "ak/gfx/stg/mtrl.h"
 #include "ak/system/resman.h"
 #include "ak/system/resman_itn.h"
 
@@ -40,12 +41,14 @@ struct ak_lworld
   ak_wv wv;
   ak_wcb wcb;
 
-  ak_sys_ren sys_ren;
-  ak_sys_tf sys_tf;
+  ak_mtrlstg* ms;
 
   ak_thpool* tp;
   ak_resman rm;
   ak_gresman* grm;
+
+  ak_sys_ren sys_ren;
+  ak_sys_tf sys_tf;
 
   ak_resid dog_rid;
   ak_gresid dog_gid;
@@ -144,12 +147,14 @@ on_startup(void* ctx, ak_app* app)
   l->grm =
     ak_gresman_startup(&l->rm, l->alct);
 
+  l->ms = ak_mtrlstg_make(
+    ak_lcore_gfx(l->lcore), l->grm, l->alct);
+
   l->sys_ren =
     ak_sys_ren_make(ak_lcore_gfx(l->lcore),
-                    l->grm,
+                    l->ms,
                     &l->wv,
                     l->alct);
-
   l->sys_tf =
     ak_sys_tf_make(&l->wv, &l->wcb, l->alct);
 
@@ -169,13 +174,14 @@ on_shutdown(void* ctx)
 {
   ak_lworld* l = ctx;
 
-  ak_gresman_shutdown(l->grm);
-
-  ak_resman_destroy(&l->rm);
-  ak_thpool_shutdown(l->tp);
-
   ak_sys_tf_destroy(&l->sys_tf);
   ak_sys_ren_destroy(&l->sys_ren);
+
+  ak_mtrlstg_destroy(l->ms);
+
+  ak_gresman_shutdown(l->grm);
+  ak_resman_destroy(&l->rm);
+  ak_thpool_shutdown(l->tp);
 
   ak_wcb_destroy(&l->wcb);
   ak_wv_destroy(&l->wv);
@@ -221,6 +227,7 @@ static void
 on_update(void* ctx, ak_dur delta)
 {
   ak_lworld* l = ctx;
+  ak_resman_update(&l->rm);
   ak_gresman_update(l->grm);
 
   ak_sys_tf_update(&l->sys_tf);

@@ -19,7 +19,7 @@ typedef struct
 
 ak_sys_ren
 ak_sys_ren_make(ak_gfx* gf,
-                ak_gresman* grm,
+                ak_mtrlstg* ms,
                 ak_wv* wv,
                 ak_alct alct);
 void
