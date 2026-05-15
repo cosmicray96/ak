@@ -9,8 +9,8 @@
 
 #include "ak/gfx/mtrl.h"
 
-typedef ak_tf2d ak_tf2d_t;
-typedef ak_mat3x3 ak_gmat3_t;
+typedef ak_tf2 ak_tf2d_t;
+typedef ak_mat3 ak_gmat3_t;
 
 typedef struct
 {
@@ -31,6 +31,11 @@ typedef struct
   ak_ett base_id;
   ak_mtrl_quaddata data;
 } ak_mtrl_t;
-typedef ak_mtrl_basedata ak_mtrl_base_t;
+
+typedef struct
+{
+  ak_mtrl_enum me;
+  ak_mtrl_basedata data;
+} ak_mtrl_base_t;
 
 #endif

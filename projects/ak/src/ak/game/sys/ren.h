@@ -1,6 +1,7 @@
 #ifndef ak_game_sys_ren_h
 #define ak_game_sys_ren_h
 
+#include "ak/coll/da.h"
 #include "ak/coll/hmn.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/game/world/view.h"
@@ -13,6 +14,7 @@ typedef struct
   ak_wv* wv;
   ak_mtrlstg* ms;
   ak_hmn mtrls;
+  ak_da free_mtrls;
 } ak_sys_ren;
 
 ak_sys_ren

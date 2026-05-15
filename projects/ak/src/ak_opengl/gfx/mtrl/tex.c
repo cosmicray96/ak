@@ -185,14 +185,14 @@ void
 ak_mtrl_tex_call_begin(
   void* mtrl,
   const ak_mtrl_basedata* bd,
-  const ak_mat3x3* vp)
+  const ak_mat3* vp)
 {
   ak_mtrl_tex* m = mtrl;
   ak_assert(!m->call_begin);
 
   glUseProgram(m->program);
   float vp_f[9] = { 0 };
-  ak_mat3x3_to_f(vp, vp_f);
+  ak_mat3_to_f(vp, vp_f);
   glUniformMatrix3fv(
     m->vp_loc, 1, GL_FALSE, vp_f);
 
@@ -228,7 +228,7 @@ void
 ak_mtrl_tex_pushquad(
   void* mtrl,
   const ak_mtrl_quaddata* qd,
-  const ak_mat3x3* gmat3)
+  const ak_mat3* gmat3)
 {
   ak_mtrl_tex* m = mtrl;
   ak_assert(m->call_begin);
@@ -239,7 +239,7 @@ ak_mtrl_tex_pushquad(
              .v1 =
                ak_fx_to_f(qd->uv_max.y) };
 
-  ak_mat3x3_to_f(gmat3, q.m3x3);
+  ak_mat3_to_f(gmat3, q.m3x3);
 
   ak_gfx_pushquad(m->g, &q);
 }

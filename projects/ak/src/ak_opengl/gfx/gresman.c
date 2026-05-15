@@ -30,8 +30,7 @@ struct ak_gresman
 static void
 gres_load(ak_gresman* grm, ak_gresid gid)
 {
-  gres_item* gi =
-    ak_hmn_at_u64(&grm->map, gid);
+  gres_item* gi = ak_hmn_at(&grm->map, gid);
   ak_res_img* img =
     ak_resman_at_img(grm->rm, gi->rid);
 
@@ -71,8 +70,7 @@ gres_load(ak_gresman* grm, ak_gresid gid)
 static void
 gres_unload(ak_gresman* grm, ak_gresid gid)
 {
-  gres_item* gi =
-    ak_hmn_at_u64(&grm->map, gid);
+  gres_item* gi = ak_hmn_at(&grm->map, gid);
   glDeleteTextures(1, &gi->glint);
   gi->s = ak_gres_not_loaded;
 }
@@ -101,7 +99,7 @@ ak_gresman_shutdown(ak_gresman* grm)
     ak_hmn_iter_make(&grm->map);
   uint64_t gid = 0;
   gres_item* gi = 0;
-  while (ak_hmn_iter_next_u64(
+  while (ak_hmn_iter_next(
     &it, (&gid), (void**)(&gi))) {
     if (gi->s == ak_gres_loaded) {
       gres_unload(grm, gid);
@@ -122,7 +120,7 @@ ak_gresman_register_img(ak_gresman* grm,
   gres_item item = { 0 };
   item.s = ak_gres_not_loaded;
   item.rid = rid;
-  ak_hmn_insert_u64(&grm->map, gid, &item);
+  ak_hmn_insert(&grm->map, gid, &item);
   return gid;
 }
 
@@ -130,8 +128,7 @@ ak_gres_status
 ak_gresman_status(ak_gresman* grm,
                   ak_gresid gid)
 {
-  gres_item* gi =
-    ak_hmn_at_u64(&grm->map, gid);
+  gres_item* gi = ak_hmn_at(&grm->map, gid);
   return gi->s;
 }
 
@@ -139,8 +136,7 @@ void
 ak_gresman_load(ak_gresman* grm,
                 ak_gresid gid)
 {
-  gres_item* gi =
-    ak_hmn_at_u64(&grm->map, gid);
+  gres_item* gi = ak_hmn_at(&grm->map, gid);
   ak_gres_status gs = gi->s;
 
   if (gs == ak_gres_loaded ||
@@ -156,8 +152,7 @@ void
 ak_gresman_unload(ak_gresman* grm,
                   ak_gresid gid)
 {
-  gres_item* gi =
-    ak_hmn_at_u64(&grm->map, gid);
+  gres_item* gi = ak_hmn_at(&grm->map, gid);
   if (gi->s == ak_gres_loaded) {
     gres_unload(grm, gid);
   }
@@ -175,7 +170,7 @@ ak_gresman_update(ak_gresman* grm)
       *(ak_gresid*)ak_da_at_impl(
         &grm->pending, i);
     gres_item* gi =
-      ak_hmn_at_u64(&grm->map, gid);
+      ak_hmn_at(&grm->map, gid);
     ak_res_status rs =
       ak_resman_status(grm->rm, gi->rid);
 
@@ -194,8 +189,7 @@ ak_gresman_update(ak_gresman* grm)
 GLuint
 ak_gresman_at(ak_gresman* grm, ak_gresid gid)
 {
-  gres_item* gi =
-    ak_hmn_at_u64(&grm->map, gid);
+  gres_item* gi = ak_hmn_at(&grm->map, gid);
   ak_assert(gi->s == ak_gres_loaded);
   return gi->glint;
 }

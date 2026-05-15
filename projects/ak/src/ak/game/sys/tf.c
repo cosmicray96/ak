@@ -48,7 +48,7 @@ ak_sys_tf_update(ak_sys_tf* stf)
 
     ak_tf2d_t tf =
       ak_wv_comp_tf2d(stf->wv, e);
-    ak_mat3x3 mat = ak_tf2d_to_mat3x3(&tf);
+    ak_mat3 mat = ak_tf2d_to_mat3x3(&tf);
     ak_spa_insert(&stf->gmat3s, e, &mat);
     ak_wcb_comp_gmat3_add(stf->wcb, e, mat);
   }
@@ -63,14 +63,14 @@ ak_sys_tf_update(ak_sys_tf* stf)
     ak_ett pt = ak_wv_ett_parent(stf->wv, e);
     ak_assert(pt);
 
-    ak_mat3x3 mat_pt = *(
-      ak_mat3x3*)ak_spa_at(&stf->gmat3s, pt);
+    ak_mat3 mat_pt =
+      *(ak_mat3*)ak_spa_at(&stf->gmat3s, pt);
 
     ak_tf2d_t tf2d =
       (ak_wv_comp_tf2d(stf->wv, e));
-    ak_mat3x3 mat = ak_tf2d_to_mat3x3(&tf2d);
+    ak_mat3 mat = ak_tf2d_to_mat3x3(&tf2d);
 
-    mat = ak_mat3x3_mul(mat_pt, mat);
+    mat = ak_mat3_mul(&mat_pt, &mat);
 
     ak_spa_insert(&stf->gmat3s, e, &mat);
     ak_wcb_comp_gmat3_add(stf->wcb, e, mat);

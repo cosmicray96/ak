@@ -16,16 +16,21 @@
 #include <stdint.h>
 
 //===== ak_sys_ren =====//
+typedef struct
+{
+  ak_da da;
+  bool used;
+} map_item;
+
 //--- private ---//
-static ak_mat3x3
-get_vp(const ak_mat3x3* cam,
+static ak_mat3
+get_vp(const ak_mat3* cam,
        uint32_t w,
        uint32_t h)
 {
   ak_fx pixelsize = ak_fx_f(1.0f);
-  ak_mat3x3 cimat3x3 =
-    ak_mat3x3_inv_fast(cam);
-  ak_mat3x3 proj = ak_mat3x3_identity();
+  ak_mat3 cimat3x3 = ak_mat3_inv_fast(cam);
+  ak_mat3 proj = ak_mat3_identity();
   {
     ak_fx sx = ak_fxdiv(
       ak_fxmul(pixelsize, ak_fx_f(2.0f)),
@@ -36,7 +41,7 @@ get_vp(const ak_mat3x3* cam,
     proj.m[0][0] = sx;
     proj.m[1][1] = sy;
   }
-  return ak_mat3x3_mul(proj, cimat3x3);
+  return ak_mat3_mul(&proj, &cimat3x3);
 }
 
 //--- internal ---//
@@ -51,28 +56,25 @@ ak_sys_ren_make(ak_gfx* gf,
   r.wv = wv;
   r.gf = gf;
   r.ms = ak_mtrlstg_make(gf, grm, alct);
-  r.mtrls = ak_hmn_make(sizeof(ak_da), alct);
-  for (uint32_t i = 0; i < ak_mtrl_count_e;
-       i++) {
-    ak_da da =
-      ak_da_make(sizeof(ak_ett), alct);
-    ak_hmn_insert_u64(
-      &r.mtrls, (ak_mtrl_enum)i, &da);
-  }
+  r.mtrls =
+    ak_hmn_make(sizeof(map_item), alct);
+  r.free_mtrls =
+    ak_da_make(sizeof(ak_ett), alct);
   return r;
 }
 
 void
 ak_sys_ren_destroy(ak_sys_ren* r)
 {
+  ak_da_destroy(&r->free_mtrls);
 
   ak_hmn_iter it =
     ak_hmn_iter_make(&r->mtrls);
-  ak_da* da = 0;
-  uint64_t me = 0;
-  while (ak_hmn_iter_next_u64(
-    &it, &me, (void**)&da)) {
-    ak_da_destroy(da);
+  map_item* mi = 0;
+  uint64_t key = 0;
+  while (ak_hmn_iter_next(
+    &it, &key, (void**)&mi)) {
+    ak_da_destroy(&mi->da);
   }
   ak_hmn_destroy(&r->mtrls);
 
@@ -86,7 +88,7 @@ ak_sys_ren_render(ak_sys_ren* r)
 {
   ak_ett root = ak_wv_ett_root(r->wv);
 
-  ak_mat3x3 vp = { 0 };
+  ak_mat3 vp = { 0 };
   {
     ak_screen_t screen =
       ak_wv_comp_screen(r->wv, root);
@@ -100,7 +102,7 @@ ak_sys_ren_render(ak_sys_ren* r)
         return;
       }
     }
-    ak_mat3x3 cmat =
+    ak_mat3 cmat =
       ak_wv_comp_gmat3(r->wv, e_cam);
     vp = get_vp(&cmat, screen.w, screen.h);
   }
@@ -108,15 +110,15 @@ ak_sys_ren_render(ak_sys_ren* r)
   {
     ak_hmn_iter it =
       ak_hmn_iter_make(&r->mtrls);
-    ak_da* da = 0;
-    uint64_t me = 0;
-    while (ak_hmn_iter_next_u64(
-      &it, &me, (void**)&da)) {
-      ak_da_clear(da);
+    map_item* mi = 0;
+    uint64_t key = 0;
+    while (ak_hmn_iter_next(
+      &it, &key, (void**)&mi)) {
+      mi->used = false;
+      ak_da_clear(&mi->da);
     }
   }
 
-  ak_ett base = 0;
   {
     ak_wv_itcomp it =
       ak_wv_itcomp_make(r->wv, ak_mtrl_e);
@@ -124,10 +126,21 @@ ak_sys_ren_render(ak_sys_ren* r)
     ak_ett e = 0;
     while (
       ak_wv_itcomp_next(&it, &e, &mat)) {
-      base = mat.base_id;
-      ak_da* da = ak_hmn_at_u64(&r->mtrls,
-                                mat.data.me);
-      ak_da_pushback(da, &e);
+
+      if (!ak_hmn_exist(&r->mtrls,
+                        mat.base_id)) {
+        map_item mi = { 0 };
+        mi.da = ak_da_make(sizeof(ak_ett),
+                           r->alct);
+        mi.used = false;
+        ak_hmn_insert(
+          &r->mtrls, mat.base_id, &mi);
+      }
+
+      map_item* mi =
+        ak_hmn_at(&r->mtrls, mat.base_id);
+      mi->used = true;
+      ak_da_pushback(&mi->da, &e);
     }
   }
 
@@ -135,27 +148,28 @@ ak_sys_ren_render(ak_sys_ren* r)
   {
     ak_hmn_iter it =
       ak_hmn_iter_make(&r->mtrls);
-    ak_da* da = 0;
-    uint64_t me = 0;
-    while (ak_hmn_iter_next_u64(
-      &it, &me, (void**)&da)) {
+    map_item* mi = 0;
+    uint64_t key = 0;
+    ak_ett base_id = 0;
+    while (ak_hmn_iter_next(
+      &it, &key, (void**)&mi)) {
+      base_id = key;
 
-      ak_assert(base);
       ak_assert(ak_wv_comp_mtrl_base_exist(
-        r->wv, base));
+        r->wv, base_id));
       ak_mtrl_base_t base_t =
-        ak_wv_comp_mtrl_base(r->wv, base);
+        ak_wv_comp_mtrl_base(r->wv, base_id);
 
-      ak_mtrl m = ak_mtrlstg_at(
-        r->ms, (ak_mtrl_enum)me);
-      m.call_begin(m.ctx, &base_t, &vp);
+      ak_mtrl m =
+        ak_mtrlstg_at(r->ms, base_t.me);
+      m.call_begin(m.ctx, &base_t.data, &vp);
 
-      uint32_t count = ak_da_count(da);
+      uint32_t count = ak_da_count(&mi->da);
       for (uint32_t i = 0; i < count; i++) {
-        ak_ett e =
-          *(ak_ett*)ak_da_at_impl(da, i);
+        ak_ett e = *(ak_ett*)ak_da_at_impl(
+          &mi->da, i);
 
-        ak_mat3x3 gmat3x3 =
+        ak_mat3 gmat3x3 =
           ak_wv_comp_gmat3(r->wv, e);
         ak_mtrl_t mat =
           ak_wv_comp_mtrl(r->wv, e);
@@ -168,4 +182,35 @@ ak_sys_ren_render(ak_sys_ren* r)
     }
   }
   ak_gfx_frame_end(r->gf);
+
+  {
+    ak_da_clear(&r->free_mtrls);
+    ak_hmn_iter it =
+      ak_hmn_iter_make(&r->mtrls);
+    map_item* mi = 0;
+    uint64_t key = 0;
+    ak_ett base_id = 0;
+    while (ak_hmn_iter_next(
+      &it, &key, (void**)&mi)) {
+      base_id = key;
+      if (mi->used) {
+        continue;
+      }
+      ak_da_pushback(&r->free_mtrls,
+                     &base_id);
+    }
+  }
+  {
+    uint32_t count =
+      ak_da_count(&r->free_mtrls);
+    for (uint32_t i = 0; i < count; i++) {
+      ak_ett base_id =
+        *(ak_ett*)ak_da_at_impl(
+          &r->free_mtrls, i);
+      map_item* mi =
+        ak_hmn_at(&r->mtrls, base_id);
+      ak_da_destroy(&mi->da);
+      ak_hmn_remove(&r->mtrls, base_id);
+    }
+  }
 }

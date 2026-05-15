@@ -113,8 +113,7 @@ resize_ifneed(ak_hmn* h)
 
     const void* value =
       ak_dbuff_at_const(&h->values, i);
-    ak_hmn_insert_u64(
-      &new_h, itm->key, value);
+    ak_hmn_insert(&new_h, itm->key, value);
   }
 
   ak_hmn_destroy(h);
@@ -164,7 +163,7 @@ ak_hmn_at_itn_u64(ak_hmn* h, uint64_t key)
 }
 
 void*
-ak_hmn_at_u64(ak_hmn* h, uint64_t key)
+ak_hmn_at(ak_hmn* h, uint64_t key)
 {
   void* ptr = ak_hmn_at_itn_u64(h, key);
   ak_assert_ec(ptr, ak_err_not_found);
@@ -172,16 +171,16 @@ ak_hmn_at_u64(ak_hmn* h, uint64_t key)
 }
 
 ak_ex bool
-ak_hmn_exist_u64(ak_hmn* h, uint64_t key)
+ak_hmn_exist(ak_hmn* h, uint64_t key)
 {
   void* ptr = ak_hmn_at_itn_u64(h, key);
   return ptr != 0;
 }
 
 void
-ak_hmn_insert_u64(ak_hmn* h,
-                  uint64_t key,
-                  const void* value)
+ak_hmn_insert(ak_hmn* h,
+              uint64_t key,
+              const void* value)
 {
   resize_ifneed(h);
   uint64_t hash = get_hash(key);
@@ -224,7 +223,7 @@ ak_hmn_insert_u64(ak_hmn* h,
 }
 
 void
-ak_hmn_remove_u64(ak_hmn* h, uint64_t key)
+ak_hmn_remove(ak_hmn* h, uint64_t key)
 {
   uint64_t hash = get_hash(key);
   uint32_t idx = get_idx(h, hash);
@@ -262,9 +261,9 @@ ak_hmn_iter_make(ak_hmn* h)
 }
 
 bool
-ak_hmn_iter_next_u64(ak_hmn_iter* it,
-                     uint64_t* o_key,
-                     void** o_value)
+ak_hmn_iter_next(ak_hmn_iter* it,
+                 uint64_t* o_key,
+                 void** o_value)
 {
   uint32_t cap =
     ak_dbuff_cap(&it->h->values);

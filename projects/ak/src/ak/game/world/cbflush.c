@@ -22,7 +22,7 @@ ak_world_cb_flush(ak_world* w,
 {
   ak_world_cmditem item = { 0 };
   ak_tf2d_t tf2d = ak_tf2d_identity();
-  ak_gmat3_t mat3 = ak_mat3x3_identity();
+  ak_gmat3_t mat3 = ak_mat3_identity();
   while (ak_wcb_pop(wcb, &item)) {
 
     switch (item.cmd) {

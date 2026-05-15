@@ -76,7 +76,7 @@ set_root(ak_lworld* l)
   ak_ett root = ak_wv_ett_root(&l->wv);
   ak_tf2d_t tf = ak_tf2d_identity();
   ak_wcb_comp_tf2d_add(&l->wcb, root, tf);
-  ak_mat3x3 mat = ak_mat3x3_identity();
+  ak_mat3 mat = ak_mat3_identity();
   ak_wcb_comp_gmat3_add(&l->wcb, root, mat);
 
   ak_screen_t screen = { .w = 800,
@@ -113,7 +113,8 @@ push_child(ak_lworld* l,
   ak_ett mbase =
     ak_wcb_ett_new(&l->wcb, root);
   ak_mtrl_base_t base = { 0 };
-  base.gid = gid;
+  base.me = ak_mtrl_tex_e;
+  base.data.gid = gid;
   ak_wcb_comp_mtrl_base_add(
     &l->wcb, mbase, base);
 
@@ -208,7 +209,7 @@ on_event(void* ctx, ak_evt e)
   }
 
   ak_ett root = ak_wv_ett_root(&l->wv);
-  ak_tf2d tf = ak_wv_comp_tf2d(&l->wv, root);
+  ak_tf2 tf = ak_wv_comp_tf2d(&l->wv, root);
   tf.pos.x =
     ak_fxadd(tf.pos.x, ak_fx_f(0.2f));
   ak_wcb_comp_tf2d_add(&l->wcb, root, tf);

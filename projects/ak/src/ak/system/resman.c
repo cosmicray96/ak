@@ -108,7 +108,7 @@ res_register(ak_resman* rm,
   item.type = type;
   item.alct = ak_heap_to_alct(&rm->heap);
   item.path = path;
-  ak_hmn_insert_u64(&rm->map, id, &item);
+  ak_hmn_insert(&rm->map, id, &item);
   return id;
 }
 
@@ -169,7 +169,7 @@ ak_resman_register_img(ak_resman* rm,
 void
 ak_resman_load(ak_resman* rm, ak_resid id)
 {
-  res_item* ri = ak_hmn_at_u64(&rm->map, id);
+  res_item* ri = ak_hmn_at(&rm->map, id);
   ak_res_status s =
     ak_atomicint_load(&ri->status);
 
@@ -186,7 +186,7 @@ ak_resman_load(ak_resman* rm, ak_resid id)
 void
 ak_resman_unload(ak_resman* rm, ak_resid id)
 {
-  res_item* ri = ak_hmn_at_u64(&rm->map, id);
+  res_item* ri = ak_hmn_at(&rm->map, id);
   ak_res_status s =
     ak_atomicint_load(&ri->status);
   if (s != ak_res_loaded) {
@@ -198,7 +198,7 @@ ak_resman_unload(ak_resman* rm, ak_resid id)
 ak_res_status
 ak_resman_status(ak_resman* rm, ak_resid id)
 {
-  res_item* ri = ak_hmn_at_u64(&rm->map, id);
+  res_item* ri = ak_hmn_at(&rm->map, id);
   ak_res_status s =
     ak_atomicint_load(&ri->status);
   return s;
@@ -216,7 +216,7 @@ ak_resman_at_file(ak_resman* rm, ak_resid id)
 {
   ak_assert(ak_resman_res_type(rm, id) ==
             ak_restype_file);
-  res_item* ri = ak_hmn_at_u64(&rm->map, id);
+  res_item* ri = ak_hmn_at(&rm->map, id);
   ak_res_status s =
     ak_atomicint_load(&ri->status);
   if (s != ak_res_loaded) {
@@ -230,7 +230,7 @@ ak_resman_at_img(ak_resman* rm, ak_resid id)
 {
   ak_assert(ak_resman_res_type(rm, id) ==
             ak_restype_img);
-  res_item* ri = ak_hmn_at_u64(&rm->map, id);
+  res_item* ri = ak_hmn_at(&rm->map, id);
   ak_res_status s =
     ak_atomicint_load(&ri->status);
   if (s != ak_res_loaded) {

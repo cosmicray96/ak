@@ -9,13 +9,13 @@ typedef struct
   void (*call_begin)(
     void* ctx,
     const ak_mtrl_basedata* bd,
-    const ak_mat3x3* vp);
+    const ak_mat3* vp);
   void (*call_end)(void* ctx);
 
   void (*push_quad)(
     void* ctx,
     const ak_mtrl_quaddata* qd,
-    const ak_mat3x3* gmat3);
+    const ak_mat3* gmat3);
   void* ctx;
 } ak_mtrl;
 
