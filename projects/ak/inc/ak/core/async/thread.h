@@ -10,4 +10,9 @@ ak_thread_make(ak_thread_fn fn, void* ctx);
 ak_ex void
 ak_thread_join(ak_thread* t);
 
+ak_ex void
+ak_thread_sleep(ak_thread* t);
+ak_ex void
+ak_thread_wake(ak_thread* t);
+
 #endif
