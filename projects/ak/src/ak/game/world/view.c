@@ -237,8 +237,7 @@ ak_wv_itbfs_make(ak_wv* wv,
 {
   ak_wv_itbfs it = { 0 };
   it.wv = wv;
-  it.q =
-    ak_dq_make(sizeof(ak_ett), 10, alct);
+  it.q = ak_dq_make(sizeof(ak_ett), alct);
   ak_dq_push(&it.q, &root);
   return it;
 }

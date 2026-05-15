@@ -9,7 +9,7 @@ ak_idgen_make(ak_alct alct)
 {
   ak_idgen ig = { 0 };
   ig.freelist =
-    ak_dq_make(sizeof(uint32_t), 10, alct);
+    ak_dq_make(sizeof(uint32_t), alct);
   ig.counter = 1;
 
   return ig;

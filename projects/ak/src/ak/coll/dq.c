@@ -4,6 +4,21 @@
 //===== ak_dq =====//
 #define s_gr 1.5f
 //--- private ---//
+
+static ak_dq
+ak_dq_make_sc(uint32_t itemsize,
+              uint32_t starting_cap,
+              ak_alct alct)
+{
+  ak_dq q = { 0 };
+  q.dbuff = ak_dbuff_make(
+    itemsize, s_gr, starting_cap, alct);
+  q.ridx = 0;
+  q.widx = 0;
+  q.count = 0;
+  return q;
+}
+
 static void
 resize_ifneed(ak_dq* q)
 {
@@ -16,7 +31,7 @@ resize_ifneed(ak_dq* q)
   ak_alct alct = ak_dbuff_alct(&q->dbuff);
 
   ak_dq newq =
-    ak_dq_make(is, cap * s_gr, alct);
+    ak_dq_make_sc(is, cap * s_gr, alct);
 
   void* item = ak_alct_alloc(alct, is);
   while (ak_dq_pop(q, item)) {
@@ -30,17 +45,9 @@ resize_ifneed(ak_dq* q)
 
 //--- export ---//
 ak_dq
-ak_dq_make(uint32_t itemsize,
-           uint32_t starting_cap,
-           ak_alct alct)
+ak_dq_make(uint32_t itemsize, ak_alct alct)
 {
-  ak_dq q = { 0 };
-  q.dbuff = ak_dbuff_make(
-    itemsize, s_gr, starting_cap, alct);
-  q.ridx = 0;
-  q.widx = 0;
-  q.count = 0;
-  return q;
+  return ak_dq_make_sc(itemsize, 10, alct);
 }
 
 void

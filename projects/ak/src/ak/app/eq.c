@@ -6,7 +6,7 @@ ak_app_eq_make(ak_alct alct)
 {
   ak_app_eq eq;
   eq.events =
-    ak_dq_make(sizeof(ak_evt), 10, alct);
+    ak_dq_make(sizeof(ak_evt), alct);
   return eq;
 }
 void

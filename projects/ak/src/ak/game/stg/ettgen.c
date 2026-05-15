@@ -8,7 +8,7 @@ ak_ettgen_make(ak_alct alct)
 {
   ak_ettgen eg = { 0 };
   eg.freelist =
-    ak_dq_make(sizeof(ak_ett), 10, alct);
+    ak_dq_make(sizeof(ak_ett), alct);
   eg.counter = 1;
 
   return eg;

@@ -116,7 +116,6 @@ ak_thpool_startup()
 
   jp->jidq =
     ak_dq_make(sizeof(ak_jobid),
-               10,
                ak_heap_to_alct(&jp->heap));
   jp->jobs =
     ak_sla_make(sizeof(ak_job),

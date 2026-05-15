@@ -11,8 +11,8 @@ ak_applayer_regs
 ak_applayer_regs_make(ak_alct alct)
 {
   ak_applayer_regs alr;
-  alr.layers = ak_dq_make(
-    sizeof(ak_applayer), 10, alct);
+  alr.layers =
+    ak_dq_make(sizeof(ak_applayer), alct);
   alr.popping = false;
   return alr;
 }

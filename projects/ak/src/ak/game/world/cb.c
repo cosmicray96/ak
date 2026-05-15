@@ -43,7 +43,7 @@ ak_wcb_make(ak_ettgen* eg, ak_alct alct)
   wcb.alct = alct;
   wcb.eg = eg;
   wcb.cmds = ak_dq_make(
-    sizeof(ak_world_cmditem), 10, alct);
+    sizeof(ak_world_cmditem), alct);
   return wcb;
 }
 
