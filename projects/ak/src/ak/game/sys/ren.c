@@ -15,6 +15,31 @@
 #include "ak/gfx/stg/mtrl.h"
 #include <stdint.h>
 
+//===== ak_sys_ren =====//
+//--- private ---//
+static ak_mat3x3
+get_vp(const ak_mat3x3* cam,
+       uint32_t w,
+       uint32_t h)
+{
+  ak_fx pixelsize = ak_fx_f(1.0f);
+  ak_mat3x3 cimat3x3 =
+    ak_mat3x3_inv_fast(cam);
+  ak_mat3x3 proj = ak_mat3x3_identity();
+  {
+    ak_fx sx = ak_fxdiv(
+      ak_fxmul(pixelsize, ak_fx_f(2.0f)),
+      ak_fx_f(w));
+    ak_fx sy = ak_fxdiv(
+      ak_fxmul(pixelsize, ak_fx_f(-2.0f)),
+      ak_fx_f(h));
+    proj.m[0][0] = sx;
+    proj.m[1][1] = sy;
+  }
+  return ak_mat3x3_mul(proj, cimat3x3);
+}
+
+//--- internal ---//
 ak_sys_ren
 ak_sys_ren_make(ak_gfx* gf,
                 ak_gresman* grm,
@@ -59,40 +84,25 @@ ak_sys_ren_destroy(ak_sys_ren* r)
 void
 ak_sys_ren_render(ak_sys_ren* r)
 {
-  ak_fx pixelsize = ak_fx_f(1.0f);
   ak_ett root = ak_wv_ett_root(r->wv);
-  ak_screen_t screen =
-    ak_wv_comp_screen(r->wv, root);
-
-  ak_ett e_cam = 0;
-  {
-    ak_camera_t cam = { 0 };
-    ak_wv_itcomp it =
-      ak_wv_itcomp_make(r->wv, ak_camera_e);
-    if (!ak_wv_itcomp_next(
-          &it, &e_cam, &cam)) {
-      return;
-    }
-  }
 
   ak_mat3x3 vp = { 0 };
   {
-    ak_mat3x3 cmat3x3 =
-      ak_wv_comp_gmat3(r->wv, e_cam);
-    ak_mat3x3 cimat3x3 =
-      ak_mat3x3_inv_fast(&cmat3x3);
-    ak_mat3x3 proj = ak_mat3x3_identity();
+    ak_screen_t screen =
+      ak_wv_comp_screen(r->wv, root);
+    ak_ett e_cam = 0;
     {
-      ak_fx sx = ak_fxdiv(
-        ak_fxmul(pixelsize, ak_fx_f(2.0f)),
-        ak_fx_f(screen.w));
-      ak_fx sy = ak_fxdiv(
-        ak_fxmul(pixelsize, ak_fx_f(-2.0f)),
-        ak_fx_f(screen.h));
-      proj.m[0][0] = sx;
-      proj.m[1][1] = sy;
+      ak_camera_t cam = { 0 };
+      ak_wv_itcomp it = ak_wv_itcomp_make(
+        r->wv, ak_camera_e);
+      if (!ak_wv_itcomp_next(
+            &it, &e_cam, &cam)) {
+        return;
+      }
     }
-    vp = ak_mat3x3_mul(proj, cimat3x3);
+    ak_mat3x3 cmat =
+      ak_wv_comp_gmat3(r->wv, e_cam);
+    vp = get_vp(&cmat, screen.w, screen.h);
   }
 
   {
@@ -105,23 +115,18 @@ ak_sys_ren_render(ak_sys_ren* r)
       ak_da_clear(da);
     }
   }
+
   ak_ett base = 0;
   {
-    ak_wv_itdfs_pt it = ak_wv_itdfs_pt_make(
-      r->wv, ak_wv_ett_root(r->wv));
+    ak_wv_itcomp it =
+      ak_wv_itcomp_make(r->wv, ak_mtrl_e);
+    ak_mtrl_t mat = { 0 };
     ak_ett e = 0;
-    while (ak_wv_itdfs_pt_next(&it, &e)) {
-      if (!ak_wv_comp_rect_exist(r->wv, e)) {
-        continue;
-      }
-      if (!ak_wv_comp_mtrl_exist(r->wv, e)) {
-        continue;
-      }
-      ak_mtrl_t mtrl =
-        ak_wv_comp_mtrl(r->wv, e);
-      base = mtrl.base_id;
-      ak_da* da = ak_hmn_at_u64(
-        &r->mtrls, mtrl.data.me);
+    while (
+      ak_wv_itcomp_next(&it, &e, &mat)) {
+      base = mat.base_id;
+      ak_da* da = ak_hmn_at_u64(&r->mtrls,
+                                mat.data.me);
       ak_da_pushback(da, &e);
     }
   }
@@ -164,37 +169,3 @@ ak_sys_ren_render(ak_sys_ren* r)
   }
   ak_gfx_frame_end(r->gf);
 }
-/*
-
-  ak_gfx_frame_begin(r->gf);
-  ak_mtrl m =
-    ak_mtrlstg_at(r->ms, ak_mtrl_mtrl_col_e);
-  m.call_begin(m.ctx, &vp);
-
-  ak_wv_itdfs_pt it = ak_wv_itdfs_pt_make(
-    r->wv, ak_wv_ett_root(r->wv));
-  ak_ett e = 0;
-  while (ak_wv_itdfs_pt_next(&it, &e)) {
-    ak_assert(
-      ak_wv_comp_gmat3_exist(r->wv, e));
-
-    if (!ak_wv_comp_rect_exist(r->wv, e)) {
-      continue;
-    }
-    if (!ak_wv_comp_mtrl_col_exist(r->wv,
-                                   e)) {
-      continue;
-    }
-
-    ak_mat3x3 gmat3x3 =
-      ak_wv_comp_gmat3(r->wv, e);
-    ak_mtrl_col_t m_t =
-      ak_wv_comp_mtrl_col(r->wv, e);
-
-    m.push_quad(m.ctx, &gmat3x3, &m_t);
-  }
-
-  m.call_end(m.ctx);
-
-  ak_gfx_frame_end(r->gf);
-*/

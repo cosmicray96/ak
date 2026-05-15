@@ -5,14 +5,10 @@
 #include "ak/app/layers/core.h"
 #include "ak/core/async/thpool.h"
 #include "ak/core/async/thpool_itn.h"
-#include "ak/core/io.h"
 #include "ak/core/math/fixed.h"
 #include "ak/core/math/tf2d.h"
 #include "ak/core/math/trig.h"
 #include "ak/core/math/vec2.h"
-#include "ak/core/math/vec4.h"
-#include "ak/debug.h"
-#include "ak/game/comp.h"
 #include "ak/game/comp_t.h"
 #include "ak/game/stg/core.h"
 #include "ak/game/stg/ettgen.h"
@@ -31,13 +27,6 @@
 
 //===== ak_lworld =====//
 //--- private ---//
-#define N 5
-
-static const char* paths[] = {
-  "./test1.txt", "./test2.txt",
-  "./test3.txt", "./test4.txt",
-  "./test5.txt",
-};
 
 struct ak_lworld
 {
@@ -56,10 +45,9 @@ struct ak_lworld
 
   ak_thpool* tp;
   ak_resman rm;
-  ak_resid ids[N];
-  ak_resid dog_rid;
-
   ak_gresman* grm;
+
+  ak_resid dog_rid;
   ak_gresid dog_gid;
 };
 
@@ -122,9 +110,6 @@ push_child(ak_lworld* l,
                  ak_fx_f(scale)));
   ak_wcb_comp_tf2d_add(&l->wcb, e, tf);
 
-  ak_rect_t rect = { 0 };
-  ak_wcb_comp_rect_add(&l->wcb, e, rect);
-
   ak_ett mbase =
     ak_wcb_ett_new(&l->wcb, root);
   ak_mtrl_base_t base = { 0 };
@@ -140,15 +125,6 @@ push_child(ak_lworld* l,
   mat.data.uv_max =
     ak_vec2_make(ak_fx_f(1), ak_fx_f(1));
   ak_wcb_comp_mtrl_add(&l->wcb, e, mat);
-
-  /*
-ak_mtrl_col_t col = { 0 };
-col.col = ak_vec4_make(ak_fx_f(c),
-                   ak_fx_f(0.0f),
-                   ak_fx_f(0.0f),
-                   ak_fx_f(1.0f));
-ak_wcb_comp_mtrl_col_add(&l->wcb, e, col);
-  */
 }
 
 static void
@@ -176,13 +152,6 @@ on_startup(void* ctx, ak_app* app)
   l->sys_tf =
     ak_sys_tf_make(&l->wv, &l->wcb, l->alct);
 
-  for (uint32_t i = 0; i < N; i++) {
-    l->ids[i] = ak_resman_register_file(
-      &l->rm, paths[i]);
-  }
-  for (uint32_t i = 0; i < N; i++) {
-    ak_resman_load(&l->rm, l->ids[i]);
-  }
   l->dog_rid = ak_resman_register_img(
     &l->rm, "./dog.png");
   l->dog_gid = ak_gresman_register_img(
@@ -252,33 +221,6 @@ on_update(void* ctx, ak_dur delta)
 {
   ak_lworld* l = ctx;
   ak_gresman_update(l->grm);
-
-  for (uint32_t i = 0; i < N; i++) {
-    bool printed = false;
-    ak_res_status s =
-      ak_resman_status(&l->rm, l->ids[i]);
-
-    if (s == ak_res_loading) {
-      ak_log("id: %d(i=%d), loading",
-             l->ids[i],
-             i);
-    }
-    if (s == ak_res_loaded) {
-      printed = true;
-      uint64_t size = 0;
-      ak_res_file* f =
-        ak_resman_at_file(&l->rm, l->ids[i]);
-      if (f->size < 1000) {
-        ak_iostream_write(ak_iostream_sio(),
-                          f->data,
-                          f->size);
-      }
-      ak_resman_unload(&l->rm, l->ids[i]);
-    }
-    if (printed) {
-      ak_log("---");
-    }
-  }
 
   ak_sys_tf_update(&l->sys_tf);
   ak_sys_ren_render(&l->sys_ren);
