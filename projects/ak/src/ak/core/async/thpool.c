@@ -62,14 +62,6 @@ thpool_next_job(ak_thpool* jp,
   return success;
 }
 
-static bool
-thpool_shouldclose(ak_thpool* jp)
-{
-  int32_t sc =
-    ak_atomicint_load(&jp->shouldclose);
-  return sc != 0;
-}
-
 static void
 thread_fn(void* ctx)
 {
@@ -93,7 +85,8 @@ thread_fn(void* ctx)
     }
 
     if (!isjob) {
-      if (thpool_shouldclose(jp)) {
+      if (ak_atomicint_load(
+            &jp->shouldclose)) {
         return;
       }
     }
@@ -103,7 +96,7 @@ thread_fn(void* ctx)
       ak_dur_subtract(end, start);
     ak_dur sleep_time =
       ak_dur_subtract(t, diff);
-    ak_thread_sleep(sleep_time);
+    ak_mainthread_sleep(sleep_time);
   }
 }
 
@@ -121,6 +114,8 @@ ak_thpool_startup()
     ak_sla_make(sizeof(ak_job),
                 ak_heap_to_alct(&jp->heap));
   jp->m = ak_mutex_make();
+
+  ak_atomicint_store(&jp->shouldclose, 0);
 
   for (uint32_t i = 0; i < s_thread_count;
        i++) {

@@ -22,6 +22,7 @@ struct ak_plat_ren
   Window wn;
   Atom wm_delete;
   GLXContext glx_ctx;
+  GLXFBConfig fb;
 };
 
 //--- public ---//
@@ -110,6 +111,7 @@ ak_plat_base_startup(ak_alct alct)
 
     // Pick first config
     fb = fbc[0];
+    pr->fb = fb;
 
     vi = glXGetVisualFromFBConfig(pr->d, fb);
     ak_log_assert(vi,
@@ -170,54 +172,6 @@ ak_plat_base_startup(ak_alct alct)
   XMapWindow(pr->d, pr->wn);
   XFlush(pr->d);
 
-  {
-    typedef GLXContext (
-      *glXCreateContextAttribsARBProc)(
-      Display*,
-      GLXFBConfig,
-      GLXContext,
-      Bool,
-      const int*);
-    glXCreateContextAttribsARBProc
-      glXCreateContextAttribsARB =
-        (glXCreateContextAttribsARBProc)
-          glXGetProcAddressARB(
-            (const GLubyte*)"glXCreateContex"
-                            "tAttribsARB");
-    ak_log_assert(
-      glXCreateContextAttribsARB,
-      "Cannot get "
-      "glXCreateContextAttribsARBProc.");
-
-    int ctx_attribs[] = {
-      GLX_CONTEXT_MAJOR_VERSION_ARB,
-      3,
-      GLX_CONTEXT_MINOR_VERSION_ARB,
-      3,
-      GLX_CONTEXT_PROFILE_MASK_ARB,
-      GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
-      None
-    };
-
-    pr->glx_ctx = glXCreateContextAttribsARB(
-      pr->d, fb, 0, True, ctx_attribs);
-    ak_log_assert(
-      pr->glx_ctx,
-      "Cannot create glXContext.");
-
-    glXMakeCurrent(
-      pr->d, pr->wn, pr->glx_ctx);
-
-    if (!gladLoadGLLoader(
-          (GLADloadproc)
-            glXGetProcAddressARB)) {
-      ak_log_assert(
-        false, "gladLoadGLLoader failed.");
-    }
-
-    glViewport(0, 0, width, height);
-  }
-
   return pr;
 }
 
@@ -237,6 +191,54 @@ void
 ak_plat_base_swapbuffer(ak_plat_base* pr)
 {
   glXSwapBuffers(pr->d, pr->wn);
+}
+
+void
+ak_plat_base_glmakecurrent(ak_plat_base* pb)
+{
+  typedef GLXContext (
+    *glXCreateContextAttribsARBProc)(
+    Display*,
+    GLXFBConfig,
+    GLXContext,
+    Bool,
+    const int*);
+  glXCreateContextAttribsARBProc
+    glXCreateContextAttribsARB =
+      (glXCreateContextAttribsARBProc)
+        glXGetProcAddressARB(
+          (const GLubyte*)"glXCreateContex"
+                          "tAttribsARB");
+  ak_log_assert(
+    glXCreateContextAttribsARB,
+    "Cannot get "
+    "glXCreateContextAttribsARBProc.");
+
+  int ctx_attribs[] = {
+    GLX_CONTEXT_MAJOR_VERSION_ARB,
+    3,
+    GLX_CONTEXT_MINOR_VERSION_ARB,
+    3,
+    GLX_CONTEXT_PROFILE_MASK_ARB,
+    GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
+    None
+  };
+
+  pb->glx_ctx = glXCreateContextAttribsARB(
+    pb->d, pb->fb, 0, True, ctx_attribs);
+  ak_log_assert(pb->glx_ctx,
+                "Cannot create glXContext.");
+
+  glXMakeCurrent(pb->d, pb->wn, pb->glx_ctx);
+
+  if (!gladLoadGLLoader((
+        GLADloadproc)glXGetProcAddressARB)) {
+    ak_log_assert(
+      false, "gladLoadGLLoader failed.");
+  }
+
+  glViewport(
+    0, 0, s_init_width, s_init_height);
 }
 
 Display*

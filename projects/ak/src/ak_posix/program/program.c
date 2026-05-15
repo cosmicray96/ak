@@ -20,7 +20,7 @@ ak_program_crash_fatal()
 }
 
 void
-ak_thread_sleep(ak_dur t)
+ak_mainthread_sleep(ak_dur t)
 {
   if (ak_dur_zero(t)) {
     return;

@@ -212,7 +212,7 @@ ak_app_run(ak_app* a)
     a->last_frametime = diff;
     ak_dur sleep_time =
       ak_dur_subtract(a->frametime, diff);
-    ak_thread_sleep(sleep_time);
+    ak_mainthread_sleep(sleep_time);
     // sleep;
   }
 

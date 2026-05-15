@@ -1,8 +1,10 @@
 #include "ak/gfx/gresman.h"
 #include "ak/coll/da.h"
 #include "ak/coll/hmn.h"
+#include "ak/core/async/mutex.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/debug.h"
+#include "ak/gfx/core.h"
 #include "ak/system/idgen.h"
 #include "ak/system/resman.h"
 #include "ak_opengl/gfx/gresman_impl.h"
@@ -22,9 +24,14 @@ struct ak_gresman
 {
   ak_alct alct;
   ak_resman* rm;
+  ak_gfx* gf;
+
+  ak_mutex m;
+
   ak_idgen ig;
   ak_hmn map;
-  ak_da pending;
+  ak_da loads;
+  ak_da unloads;
 };
 
 static void
@@ -86,6 +93,7 @@ gres_unload(ak_gresman* grm, ak_gresid gid)
 //--- internal ---//
 ak_gresman*
 ak_gresman_startup(ak_resman* rm,
+                   ak_gfx* gf,
                    ak_alct alct)
 {
   ak_gresman* grm =
@@ -95,14 +103,21 @@ ak_gresman_startup(ak_resman* rm,
   grm->ig = ak_idgen_make(alct);
   grm->map =
     ak_hmn_make(sizeof(gres_item), alct);
-  grm->pending =
+  grm->loads =
     ak_da_make(sizeof(ak_gresid), alct);
+  grm->unloads =
+    ak_da_make(sizeof(ak_gresid), alct);
+
+  grm->m = ak_mutex_make();
   return grm;
 }
 
 void
 ak_gresman_shutdown(ak_gresman* grm)
 {
+
+  ak_mutex_destroy(&grm->m);
+
   ak_hmn_iter it =
     ak_hmn_iter_make(&grm->map);
   uint64_t gid = 0;
@@ -114,7 +129,7 @@ ak_gresman_shutdown(ak_gresman* grm)
     }
   }
 
-  ak_da_destroy(&grm->pending);
+  ak_da_destroy(&grm->loads);
   ak_hmn_destroy(&grm->map);
   ak_idgen_destroy(&grm->ig);
   ak_alct_free(grm->alct, grm);
@@ -144,6 +159,9 @@ void
 ak_gresman_load(ak_gresman* grm,
                 ak_gresid gid)
 {
+
+  ak_mutex_lock(&grm->m);
+
   gres_item* gi = ak_hmn_at(&grm->map, gid);
   ak_gres_status gs = gi->s;
 
@@ -152,45 +170,66 @@ ak_gresman_load(ak_gresman* grm,
     return;
   }
   ak_resman_load(grm->rm, gi->rid);
-  ak_da_pushback(&grm->pending, &gid);
+  ak_da_pushback(&grm->loads, &gid);
   gi->s = ak_gres_loading;
+
+  ak_mutex_unlock(&grm->m);
 }
 
 void
 ak_gresman_unload(ak_gresman* grm,
                   ak_gresid gid)
 {
+  ak_mutex_lock(&grm->m);
+
   gres_item* gi = ak_hmn_at(&grm->map, gid);
   if (gi->s == ak_gres_loaded) {
-    gres_unload(grm, gid);
+    ak_da_pushback(&grm->unloads, &gid);
   }
+  ak_mutex_unlock(&grm->m);
 }
 
 void
 ak_gresman_update(ak_gresman* grm)
 {
-  uint32_t count =
-    ak_da_count(&grm->pending);
-  uint32_t i = 0;
-  while (i < count) {
+  ak_mutex_lock(&grm->m);
+  {
+    uint32_t count =
+      ak_da_count(&grm->unloads);
+    for (uint32_t i = 0; i < count; i++) {
+      ak_gresid gid =
+        *(ak_gresid*)ak_da_at_impl(
+          &grm->unloads, i);
+      gres_unload(grm, gid);
+    }
+    ak_da_clear(&grm->unloads);
+  }
 
-    ak_gresid gid =
-      *(ak_gresid*)ak_da_at_impl(
-        &grm->pending, i);
-    gres_item* gi =
-      ak_hmn_at(&grm->map, gid);
-    ak_res_status rs =
-      ak_resman_status(grm->rm, gi->rid);
+  {
+    uint32_t count =
+      ak_da_count(&grm->loads);
+    uint32_t i = 0;
+    while (i < count) {
 
-    if (rs == ak_res_loaded) {
-      gres_load(grm, gid);
-      ak_da_remove_swaplast(&grm->pending,
-                            i);
-      count--;
-    } else {
-      i++;
+      ak_gresid gid =
+        *(ak_gresid*)ak_da_at_impl(
+          &grm->loads, i);
+      gres_item* gi =
+        ak_hmn_at(&grm->map, gid);
+      ak_res_status rs =
+        ak_resman_status(grm->rm, gi->rid);
+      if (rs == ak_res_loaded) {
+        gres_load(grm, gid);
+        ak_da_remove_swaplast(&grm->loads,
+                              i);
+        count--;
+      } else {
+        i++;
+      }
     }
   }
+
+  ak_mutex_unlock(&grm->m);
 }
 
 //--- impl ---//

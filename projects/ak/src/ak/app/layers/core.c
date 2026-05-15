@@ -2,15 +2,12 @@
 #include "ak/app/app.h"
 #include "ak/app/eq.h"
 #include "ak/app/event.h"
-#include "ak/core/math/vec2.h"
 #include "ak/os/time.h"
 #include "ak/platform/core.h"
 #include "ak/platform/plat_base.h"
 #include "ak/program/core.h"
 #include "ak/program/event.h"
 
-#include "ak/gfx/core.h"
-#include "ak/gfx/gfx.h"
 #include "ak/platform/plat.h"
 
 //===== ak_lcore =====//
@@ -22,24 +19,9 @@ struct ak_lcore
   ak_app_eq* eq;
   ak_plat_base* pr;
   ak_plat* p;
-  ak_gfx* gf;
 
   bool flip;
 };
-
-static bool
-on_resize(ak_lcore* l, ak_evt e)
-{
-  if (e.type != ak_evt_type_win) {
-    return false;
-  }
-  if (e.win.type != ak_winevt_resize) {
-    return false;
-  }
-  ak_gfx_resize(
-    l->gf, e.win.resize.w, e.win.resize.h);
-  return true;
-}
 
 static bool
 on_win_close(ak_lcore* l, ak_evt e)
@@ -69,10 +51,10 @@ ak_lcore_destroy(ak_lcore* l)
   ak_alct_free(l->alct, l);
 }
 
-ak_gfx*
-ak_lcore_gfx(ak_lcore* l)
+ak_plat_base*
+ak_lcore_plat_base(ak_lcore* l)
 {
-  return l->gf;
+  return l->pr;
 }
 
 //===== ak_applayer =====//
@@ -86,7 +68,6 @@ on_startup(void* ctx, ak_app* app)
   l->eq = 0;
   l->pr = ak_plat_base_startup(l->alct);
   l->p = ak_plat_startup(l->pr, l->alct);
-  l->gf = ak_gfx_startup(l->pr, l->alct);
 
   l->flip = false;
 }
@@ -96,7 +77,6 @@ on_shutdown(void* ctx)
 {
   ak_lcore* l = ctx;
 
-  ak_gfx_shutdown(l->gf);
   ak_plat_shutdown(l->p);
   ak_plat_base_shutdown(l->pr);
 }
@@ -128,10 +108,6 @@ on_event(void* ctx, ak_evt e)
   ak_lcore* l = ctx;
 
   if (on_win_close(l, e)) {
-    return true;
-  }
-
-  if (on_resize(l, e)) {
     return true;
   }
 
@@ -184,7 +160,6 @@ static void
 on_upost(void* ctx, ak_dur delta)
 {
   ak_lcore* l = ctx;
-  ak_plat_base_swapbuffer(l->pr);
 }
 
 //--- public ---//

@@ -23,6 +23,7 @@
 #include "ak/gfx/gresman.h"
 #include "ak/gfx/mtrl.h"
 #include "ak/gfx/stg/mtrl.h"
+#include "ak/system/render.h"
 #include "ak/system/resman.h"
 #include "ak/system/resman_itn.h"
 
@@ -41,13 +42,14 @@ struct ak_lworld
   ak_wv wv;
   ak_wcb wcb;
 
-  ak_mtrlstg* ms;
-
   ak_thpool* tp;
   ak_resman rm;
+
+  ak_renderer* renderer;
+
+  ak_gfx* gf;
   ak_gresman* grm;
 
-  ak_sys_ren sys_ren;
   ak_sys_tf sys_tf;
 
   ak_resid dog_rid;
@@ -144,25 +146,24 @@ on_startup(void* ctx, ak_app* app)
 
   l->tp = ak_thpool_startup();
   l->rm = ak_resman_make(l->tp, l->alct);
-  l->grm =
-    ak_gresman_startup(&l->rm, l->alct);
 
-  l->ms = ak_mtrlstg_make(
-    ak_lcore_gfx(l->lcore), l->grm, l->alct);
+  l->renderer = ak_renderer_startup(
+    ak_lcore_plat_base(l->lcore),
+    &l->wv,
+    &l->rm,
+    l->alct);
 
-  l->sys_ren =
-    ak_sys_ren_make(ak_lcore_gfx(l->lcore),
-                    l->ms,
-                    &l->wv,
-                    l->alct);
-  l->sys_tf =
-    ak_sys_tf_make(&l->wv, &l->wcb, l->alct);
+  l->gf = ak_renderer_gfx(l->renderer);
+  l->grm = ak_renderer_gresman(l->renderer);
 
   l->dog_rid = ak_resman_register_img(
     &l->rm, "./dog.png");
   l->dog_gid = ak_gresman_register_img(
     l->grm, l->dog_rid);
   ak_gresman_load(l->grm, l->dog_gid);
+
+  l->sys_tf =
+    ak_sys_tf_make(&l->wv, &l->wcb, l->alct);
 
   set_root(l);
   push_child(l, 0, 0, 1.0f, l->dog_gid);
@@ -174,10 +175,9 @@ on_shutdown(void* ctx)
 {
   ak_lworld* l = ctx;
 
-  ak_sys_tf_destroy(&l->sys_tf);
-  ak_sys_ren_destroy(&l->sys_ren);
+  ak_renderer_shutdown(l->renderer);
 
-  ak_mtrlstg_destroy(l->ms);
+  ak_sys_tf_destroy(&l->sys_tf);
 
   ak_gresman_shutdown(l->grm);
   ak_resman_destroy(&l->rm);
@@ -213,6 +213,7 @@ on_event(void* ctx, ak_evt e)
       ak_keyaction_pressed) {
     return false;
   }
+  ak_app_close(l->app);
 
   ak_ett root = ak_wv_ett_root(&l->wv);
   ak_tf2 tf = ak_wv_comp_tf2d(&l->wv, root);
@@ -228,17 +229,17 @@ on_update(void* ctx, ak_dur delta)
 {
   ak_lworld* l = ctx;
   ak_resman_update(&l->rm);
-  ak_gresman_update(l->grm);
 
   ak_sys_tf_update(&l->sys_tf);
-  ak_sys_ren_render(&l->sys_ren, delta);
 }
 
 static void
 on_upost(void* ctx, ak_dur delta)
 {
   ak_lworld* l = ctx;
+  ak_renderer_stallwait(l->renderer);
   ak_world_cb_flush(&l->w, &l->wcb, &l->eg);
+  ak_renderer_render(l->renderer);
 }
 
 //--- public ---//

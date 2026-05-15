@@ -21,6 +21,7 @@ typedef struct
 typedef struct ak_gresman ak_gresman;
 ak_gresman*
 ak_gresman_startup(ak_resman* rm,
+                   ak_gfx* gf,
                    ak_alct alct);
 void
 ak_gresman_shutdown(ak_gresman* grm);

@@ -11,9 +11,9 @@ struct ak_thread
 {
   pthread_t pt;
   ak_thread_fn fn;
+  void* ctx;
   pthread_mutex_t mtx;
   pthread_cond_t cond;
-  void* ctx;
   bool sleeping;
 };
 

@@ -4,11 +4,15 @@
 #include "ak/debug.h"
 #include "ak/gfx/core.h"
 
+#include "ak/platform/plat_base.h"
 #include "ak_opengl/gfx/gfx_itn.h"
 
 #include <glad/glad.h>
 
 #include <stdint.h>
+
+void
+ak_plat_base_glmakecurrent(ak_plat_base* pb);
 
 //===== ak_gfx =====//
 #define s_max_ivbo_size 1024 * 16
@@ -28,6 +32,7 @@
 struct ak_gfx
 {
   ak_alct alct;
+  ak_plat_base* pb;
 
   bool call_began;
 
@@ -151,6 +156,9 @@ ak_gfx_startup(ak_plat_base* pr,
   ak_gfx* r =
     ak_alct_alloc(alct, sizeof(ak_gfx));
   r->alct = alct;
+  r->pb = pr;
+
+  ak_plat_base_glmakecurrent(pr);
 
   r->call_began = false;
 
@@ -245,5 +253,5 @@ ak_gfx_frame_begin(ak_gfx* g)
 void
 ak_gfx_frame_end(ak_gfx* g)
 {
-  // empty
+  ak_plat_base_swapbuffer(g->pb);
 }
