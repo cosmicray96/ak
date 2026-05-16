@@ -8,10 +8,21 @@
 #include "ak/debug.h"
 #include "ak/gfx/img.h"
 #include "ak/os/file.h"
-#include "ak/system/idgen.h"
 #include "ak/system/resman_itn.h"
 
 #include <stdint.h>
+
+//--- private ---//
+uint32_t
+fnv1a_hash(const char* s)
+{
+  uint32_t hash = 2166136261u;
+  while (*s) {
+    hash ^= (uint8_t)*s++;
+    hash *= 16777619u;
+  }
+  return hash;
+}
 
 //===== res_item =====//
 //--- private ---//
@@ -27,14 +38,6 @@ typedef struct
     ak_res_img img;
   };
 } res_item;
-
-static ak_resid
-resid_make(uint32_t idx, ak_restype type)
-{
-  uint32_t id = (uint32_t)type << 24;
-  id |= idx & 0x00FFFFFF;
-  return id;
-}
 
 static void
 res_load(res_item* ri)
@@ -99,8 +102,9 @@ res_register(ak_resman* rm,
              ak_restype type,
              const char* path)
 {
-  ak_resid id =
-    resid_make(ak_idgen_new(&rm->ig), type);
+  ak_resid id = fnv1a_hash(path);
+
+  ak_assert(!ak_hmn_exist(&rm->map, id));
 
   res_item item = { 0 };
   ak_atomicint_store(&item.status,
@@ -119,7 +123,6 @@ ak_resman_make(ak_thpool* jp, ak_alct alct)
   ak_resman rm = { 0 };
   rm.heap = ak_heap_make();
   rm.jp = jp;
-  rm.ig = ak_idgen_make(alct);
   rm.map =
     ak_hmn_make(sizeof(res_item), alct);
   rm.jids =
@@ -142,7 +145,6 @@ ak_resman_destroy(ak_resman* rm)
 
   ak_da_destroy(&rm->jids);
   ak_hmn_destroy(&rm->map);
-  ak_idgen_destroy(&rm->ig);
   ak_heap_destroy(&rm->heap);
 }
 
@@ -228,7 +230,8 @@ ak_restype
 ak_resman_res_type(ak_resman* rm,
                    ak_resid rid)
 {
-  return rid >> 24;
+  res_item* ri = ak_hmn_at(&rm->map, rid);
+  return ri->type;
 }
 
 ak_res_file*

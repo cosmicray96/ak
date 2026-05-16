@@ -7,13 +7,11 @@
 #include "ak/core/mem/allocator.h"
 #include "ak/core/mem/heap.h"
 #include "ak/export.h"
-#include "ak/system/idgen.h"
 #include "ak/system/resman.h"
 
 struct ak_resman
 {
   ak_heap heap;
-  ak_idgen ig;
   ak_hmn map;
   ak_thpool* jp;
   ak_da jids;

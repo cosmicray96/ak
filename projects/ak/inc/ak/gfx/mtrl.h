@@ -16,6 +16,21 @@ typedef enum
 
 typedef struct
 {
+  ak_gresid gid;
+  enum
+  {
+    ak_uv_clamp,
+    ak_uv_repeat
+  } uv_type;
+  enum
+  {
+    ak_filter_nearest,
+    ak_filter_linear
+  } filter_type;
+} ak_tex;
+
+typedef struct
+{
   ak_mtrl_enum me;
   ak_vec4 col;
   ak_vec2 uv_min;
@@ -24,7 +39,7 @@ typedef struct
 
 typedef struct
 {
-  ak_gresid gid;
+  ak_tex tex;
 } ak_mtrl_basedata;
 
 #endif

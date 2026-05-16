@@ -119,7 +119,11 @@ push_child(ak_lworld* l,
     ak_wcb_ett_new(&l->wcb, root);
   ak_mtrl_base_t base = { 0 };
   base.me = ak_mtrl_tex_e;
-  base.data.gid = gid;
+  base.data.tex =
+    (ak_tex){ .gid = gid,
+              .uv_type = ak_uv_repeat,
+              .filter_type =
+                ak_filter_linear };
   ak_wcb_comp_mtrl_base_add(
     &l->wcb, mbase, base);
 
