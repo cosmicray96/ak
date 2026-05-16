@@ -7,6 +7,5 @@ cm_output_dir_suffix_set(opengl_posix_x11)
 cm_end()
 
 
-add_subdirectory("${cm_proj_root_dir}/projects/glad")
 add_subdirectory("${cm_proj_root_dir}/projects/ak")
 add_subdirectory("${cm_proj_root_dir}/projects/main")

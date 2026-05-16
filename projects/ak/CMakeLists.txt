@@ -58,12 +58,15 @@ target_link_libraries(${obj_name} PRIVATE ${X11_LIBRARIES})
 
 
 #--- opengl ---#
+find_package(OpenGL REQUIRED)
 cm_target_get_files_impl_priv(${target_name} ${targ_path} "opengl" files_opengl)
+LIST(APPEND files_opengl "${cm_proj_root_dir}/thirdparty/glad/src/glad.c")
 target_sources(${obj_name}
 	PRIVATE
 	${files_opengl}
 )
-target_link_libraries(${obj_name} PRIVATE "glad")
+target_include_directories(${obj_name} PRIVATE "${cm_proj_root_dir}/thirdparty/glad/include/")
+target_link_libraries(${obj_name} PRIVATE OpenGL::GL)
 
 #--- opengl x11 ---#
 cm_target_get_files_impl_priv(${target_name} ${targ_path} "opengl_x11" files_opengl_x11)
