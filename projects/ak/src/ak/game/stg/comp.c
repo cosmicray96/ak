@@ -80,6 +80,21 @@ ak_compstg_overwrite(ak_compstg* cs,
 }
 
 void
+ak_compstg_add_tu(ak_compstg* cs,
+                  ak_ett e,
+                  const ak_comp_tu* ctu)
+{
+  ak_spa* spa = &cs->spas[ctu->ce];
+  if (ak_spa_exist(spa, e)) {
+    ak_spa_overwrite(
+      spa, e, ak_comp_tu_comp_const(ctu));
+  } else {
+    ak_spa_insert(
+      spa, e, ak_comp_tu_comp_const(ctu));
+  }
+}
+
+void
 ak_compstg_add(ak_compstg* cs,
                ak_ett e,
                ak_comp_enum ce,

@@ -14,7 +14,7 @@ typedef ak_mat3 ak_gmat3_t;
 
 typedef struct
 {
-  char ph;
+  bool ph;
 } ak_camera_t;
 typedef struct
 {
@@ -23,7 +23,7 @@ typedef struct
 } ak_screen_t;
 typedef struct
 {
-  char ph;
+  bool ph;
 } ak_rect_t;
 
 typedef struct

@@ -2,6 +2,7 @@
 #define ak_game_stg_world_h
 
 #include "ak/core/mem/allocator.h"
+#include "ak/game/comp.h"
 #include "ak/game/stg/comp.h"
 #include "ak/game/stg/core.h"
 #include "ak/game/stg/ett.h"
@@ -36,6 +37,10 @@ ak_world_ett_new(ak_world* w,
                  ak_ett e,
                  ak_ett pt);
 void
+ak_world_ett_new_last(ak_world* w,
+                      ak_ett e,
+                      ak_ett pt);
+void
 ak_world_ett_remove_cb(
   ak_world* w,
   ak_ett e,
@@ -64,6 +69,11 @@ ak_world_comp_overwrite(ak_world* w,
                         ak_ett e,
                         ak_comp_enum ce,
                         const void* comp);
+
+void
+ak_world_comp_add_tu(ak_world* w,
+                     ak_ett e,
+                     const ak_comp_tu* ctu);
 
 void
 ak_world_comp_add(ak_world* w,

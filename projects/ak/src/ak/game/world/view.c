@@ -259,11 +259,9 @@ bool
 ak_wv_itbfs_next(ak_wv_itbfs* it,
                  ak_ett* o_e)
 {
-  ak_assert(false);
   if (!ak_dq_pop(&it->q, o_e)) {
     return false;
   }
-  // bad
   ak_wv_itchild cit =
     ak_wv_itchild_make(it->wv, *o_e);
   ak_ett c = 0;

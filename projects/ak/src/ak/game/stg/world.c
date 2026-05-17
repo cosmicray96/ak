@@ -61,6 +61,14 @@ ak_world_ett_new(ak_world* w,
 }
 
 void
+ak_world_ett_new_last(ak_world* w,
+                      ak_ett e,
+                      ak_ett pt)
+{
+  ak_ettstg_newett_last(&w->es, e, pt);
+}
+
+void
 ak_world_ett_remove_cb(
   ak_world* w,
   ak_ett e,
@@ -117,6 +125,14 @@ ak_world_comp_overwrite(ak_world* w,
                         const void* comp)
 {
   ak_compstg_overwrite(w->cs, e, ce, comp);
+}
+
+void
+ak_world_comp_add_tu(ak_world* w,
+                     ak_ett e,
+                     const ak_comp_tu* ctu)
+{
+  ak_compstg_add_tu(w->cs, e, ctu);
 }
 
 void

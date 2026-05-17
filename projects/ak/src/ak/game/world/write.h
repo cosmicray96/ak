@@ -3,6 +3,7 @@
 
 #include "ak/core/io.h"
 #include "ak/game/stg/world.h"
+#include "ak/system/idgen.h"
 
 void
 ak_write_world(ak_iostream io,
@@ -14,6 +15,7 @@ void
 ak_read_into_world(ak_iostream io,
                    ak_world* w,
                    ak_ett parent,
+                   ak_idgen* eg,
                    ak_alct alct);
 
 #endif

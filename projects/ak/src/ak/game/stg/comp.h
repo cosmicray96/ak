@@ -33,6 +33,10 @@ ak_compstg_overwrite(ak_compstg* cs,
                      const void* comp);
 
 void
+ak_compstg_add_tu(ak_compstg* cs,
+                  ak_ett e,
+                  const ak_comp_tu* ctu);
+void
 ak_compstg_add(ak_compstg* cs,
                ak_ett e,
                ak_comp_enum ce,

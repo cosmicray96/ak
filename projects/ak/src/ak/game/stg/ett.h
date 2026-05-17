@@ -33,6 +33,11 @@ ak_ettstg_newett(ak_ettstg* es,
                  ak_ett e,
                  ak_ett pt);
 
+void
+ak_ettstg_newett_last(ak_ettstg* es,
+                      ak_ett e,
+                      ak_ett pt);
+
 ak_ett
 ak_ettstg_leftmost(ak_ettstg* es, ak_ett e);
 

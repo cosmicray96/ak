@@ -100,6 +100,39 @@ ak_ettstg_newett(ak_ettstg* es,
   new_ettitn(es, e, &eitn);
 }
 
+void
+ak_ettstg_newett_last(ak_ettstg* es,
+                      ak_ett e,
+                      ak_ett pt)
+{
+
+  ak_assert(!ak_ettstg_exist(es, e));
+
+  ettitn eitn = { 0 };
+  eitn.pt = pt;
+  eitn.fc = 0;
+  eitn.ns = 0;
+
+  ettitn* ptitn = get_ettitn(es, pt);
+  if (!ptitn->fc) {
+    ptitn->fc = e;
+    new_ettitn(es, e, &eitn);
+    return;
+  }
+  ak_ett sib = ptitn->fc;
+  while (true) {
+    ak_ett next = ak_ettstg_nextsib(es, sib);
+    if (!next) {
+      break;
+    }
+    sib = next;
+  }
+
+  ettitn* sibitn = get_ettitn(es, sib);
+  sibitn->ns = e;
+  new_ettitn(es, e, &eitn);
+}
+
 ak_ett
 ak_ettstg_root(ak_ettstg* es)
 {

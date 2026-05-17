@@ -1,6 +1,7 @@
 #ifndef ak_game_comp_h
 #define ak_game_comp_h
 
+#include "ak/debug.h"
 #include "ak/def.h"
 #include "ak/game/comp_t.h"
 
@@ -50,6 +51,8 @@ ak_comp_tu_make_ip(ak_comp_tu* ctu,
                    const void* comp);
 ak_ex void*
 ak_comp_tu_comp(ak_comp_tu* tu);
+ak_ex const void*
+ak_comp_tu_comp_const(const ak_comp_tu* ctu);
 
 #define ak_d_comp_x(name)                   \
   void ak_write_##name(ak_iostream io,      \
@@ -66,5 +69,31 @@ ak_write_comp_tu(ak_iostream io,
                  ak_comp_tu ctu);
 ak_comp_tu
 ak_read_comp_tu(ak_iostream io);
+
+#define ak_d_comp_x(name)                   \
+  uint32_t ak_comp_ett_offsets_##name(      \
+    uint32_t o_offsets[16]);
+
+#include "ak/game/comp.inc"
+#undef ak_d_comp_x
+static uint32_t
+ak_comp_enum_offsets(ak_comp_enum ce,
+                     uint32_t o_offsets[16])
+{
+  switch (ce) {
+#define ak_d_comp_x(name)                   \
+  case ak_as_comp_e(name): {                \
+    return ak_comp_ett_offsets_##name(      \
+      o_offsets);                           \
+  }
+#include "ak/game/comp.inc"
+#undef ak_d_comp_x
+
+    default: {
+      ak_assert(false);
+    }
+  }
+  return 0;
+}
 
 #endif
