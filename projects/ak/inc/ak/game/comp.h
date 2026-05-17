@@ -67,8 +67,4 @@ ak_write_comp_tu(ak_iostream io,
 ak_comp_tu
 ak_read_comp_tu(ak_iostream io);
 
-#ifdef ak_user_comp_path
-#include ak_user_comp_path
-#endif
-
 #endif
