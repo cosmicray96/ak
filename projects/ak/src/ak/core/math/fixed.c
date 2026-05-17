@@ -48,3 +48,15 @@ ak_iostream_print_fx(ak_iostream io,
     ak_iostream_write(io, "0", 1);
   ak_iostream_print_u64(io, frac);
 }
+
+void
+ak_write_fx(ak_iostream io, ak_fx fx)
+{
+  ak_write_i32(io, fx);
+}
+
+ak_fx
+ak_read_fx(ak_iostream io)
+{
+  return ak_read_i32(io);
+}

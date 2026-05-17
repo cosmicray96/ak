@@ -1,7 +1,6 @@
 #include "ak/game/world/write.h"
 #include "ak/core/io.h"
 #include "ak/game/comp.h"
-#include "ak/game/comp_write.h"
 #include "ak/game/world/view.h"
 #include "ak/game/world/view_itn.h"
 

@@ -1,5 +1,5 @@
-#include "ak/game/comp_write.h"
 #include "ak/core/math/fixed.h"
+#include "ak/game/comp.h"
 #include <ak/core/math/vec3.h>
 
 //--- private ---//
@@ -66,6 +66,18 @@ ak_read_mat3(ak_iostream io)
 }
 
 //--- internal ---//
+
+void
+ak_write_comp_tu(ak_iostream io,
+                 ak_comp_tu ctu)
+{
+}
+ak_comp_tu
+ak_read_comp_tu(ak_iostream io)
+{
+  return (ak_comp_tu){ 0 };
+}
+
 void
 ak_write_tf2d(ak_iostream io, ak_tf2d_t tf2d)
 {
@@ -112,9 +124,3 @@ ak_write_mtrl_base(ak_iostream io,
                    ak_mtrl_base_t mtrl_base);
 ak_mtrl_base_t
 ak_read_mtrl_base(ak_iostream io);
-
-void
-ak_write_ctest(ak_iostream io,
-               ak_ctest_t ctest);
-ak_ctest_t
-ak_read_ctest(ak_iostream io);
