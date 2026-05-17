@@ -2,6 +2,7 @@
 #define ak_io_h
 
 #include "ak/export.h"
+#include <stdbool.h>
 #include <stdint.h>
 
 typedef struct
@@ -55,5 +56,50 @@ ak_iostream_print_d(ak_iostream io,
 
 ak_ex ak_iostream
 ak_iostream_sio();
+
+ak_ex void
+ak_write_bool(ak_iostream s, bool n);
+ak_ex bool
+ak_read_bool(ak_iostream s);
+
+ak_ex void
+ak_write_i16(ak_iostream s, int16_t n);
+ak_ex int16_t
+ak_read_i16(ak_iostream s);
+
+ak_ex void
+ak_write_u16(ak_iostream s, uint16_t n);
+ak_ex uint16_t
+ak_read_u16(ak_iostream s);
+
+ak_ex void
+ak_write_i32(ak_iostream s, int32_t n);
+ak_ex int32_t
+ak_read_i32(ak_iostream s);
+
+ak_ex void
+ak_write_u32(ak_iostream s, uint32_t n);
+ak_ex uint32_t
+ak_read_u32(ak_iostream s);
+
+ak_ex void
+ak_write_i64(ak_iostream s, int64_t n);
+ak_ex int64_t
+ak_read_i64(ak_iostream s);
+
+ak_ex void
+ak_write_u64(ak_iostream s, uint64_t n);
+ak_ex uint64_t
+ak_read_u64(ak_iostream s);
+
+ak_ex void
+ak_write_f(ak_iostream s, float n);
+ak_ex float
+ak_read_f(ak_iostream s);
+
+ak_ex void
+ak_write_d(ak_iostream s, double n);
+ak_ex double
+ak_read_d(ak_iostream s);
 
 #endif

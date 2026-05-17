@@ -40,6 +40,20 @@ ak_compstg_destroy(ak_compstg* cs)
   ak_alct_free(cs->alct, cs);
 }
 
+uint32_t
+ak_compstg_compcount(ak_compstg* cs,
+                     ak_ett e)
+{
+  uint32_t count = 0;
+  for (uint32_t i = 0; i < ak_comp_count_e;
+       i++) {
+    if (ak_spa_exist(&cs->spas[i], e)) {
+      count++;
+    }
+  }
+  return count;
+}
+
 bool
 ak_compstg_exist(ak_compstg* cs,
                  ak_ett e,

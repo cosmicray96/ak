@@ -4,4 +4,5 @@ ak_d_comp_x(camera)
 ak_d_comp_x(screen)
 ak_d_comp_x(mtrl)
 ak_d_comp_x(mtrl_base)
+ak_d_comp_x(ctest)
 

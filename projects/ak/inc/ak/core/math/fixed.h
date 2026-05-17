@@ -98,5 +98,9 @@ ak_fx_sqrt(ak_fx fx);
 ak_ex void
 ak_iostream_print_fx(ak_iostream io,
                      ak_fx fx);
+ak_ex void
+ak_write_fx(ak_iostream io, ak_fx fx);
+ak_ex ak_fx
+ak_read_fx(ak_iostream io);
 
 #endif

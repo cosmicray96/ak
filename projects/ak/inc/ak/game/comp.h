@@ -1,6 +1,7 @@
 #ifndef ak_game_comp_h
 #define ak_game_comp_h
 
+#include "ak/def.h"
 #include "ak/game/comp_t.h"
 
 #include <stddef.h>
@@ -68,91 +69,44 @@ static ak_comp_ett_ref
   ak_comp_ett_refs[ak_comp_count_e];
 
 // --- offsetof expander per arg count ---
-#define _ak_off1(t, a)                      \
-  offsetof(ak_comp_##t, a)
-#define _ak_off2(t, a, ...)                 \
-  offsetof(ak_comp_##t, a),                 \
-    _ak_off1(t, __VA_ARGS__)
-#define _ak_off3(t, a, ...)                 \
-  offsetof(ak_comp_##t, a),                 \
-    _ak_off2(t, __VA_ARGS__)
-#define _ak_off4(t, a, ...)                 \
-  offsetof(ak_comp_##t, a),                 \
-    _ak_off3(t, __VA_ARGS__)
-#define _ak_off5(t, a, ...)                 \
-  offsetof(ak_comp_##t, a),                 \
-    _ak_off4(t, __VA_ARGS__)
-// ... up to ak_d_max_ett_ref (16)
+#define ak_off1(t, a)                       \
+  offsetof(ak_as_comp_t(t), a)
+#define ak_off2(t, a, ...)                  \
+  offsetof(ak_as_comp_t(t), a),             \
+    ak_off1(t, __VA_ARGS__)
+#define ak_off3(t, a, ...)                  \
+  offsetof(ak_as_comp_t(t), a),             \
+    ak_off2(t, __VA_ARGS__)
+#define ak_off4(t, a, ...)                  \
+  offsetof(ak_as_comp_t(t), a),             \
+    ak_off3(t, __VA_ARGS__)
+#define ak_off5(t, a, ...)                  \
+  offsetof(ak_as_comp_t(t), a),             \
+    ak_off4(t, __VA_ARGS__)
+#define ak_off6(t, a, ...)                  \
+  offsetof(ak_as_comp_t(t), a),             \
+    ak_off5(t, __VA_ARGS__)
 
-// --- count args ---
-#define _ak_nargs(...)                      \
-  _ak_nargs_(__VA_ARGS__,                   \
-             16,                            \
-             15,                            \
-             14,                            \
-             13,                            \
-             12,                            \
-             11,                            \
-             10,                            \
-             9,                             \
-             8,                             \
-             7,                             \
-             6,                             \
-             5,                             \
-             4,                             \
-             3,                             \
-             2,                             \
-             1)
-#define _ak_nargs_(_1,                      \
-                   _2,                      \
-                   _3,                      \
-                   _4,                      \
-                   _5,                      \
-                   _6,                      \
-                   _7,                      \
-                   _8,                      \
-                   _9,                      \
-                   _10,                     \
-                   _11,                     \
-                   _12,                     \
-                   _13,                     \
-                   _14,                     \
-                   _15,                     \
-                   _16,                     \
-                   N,                       \
-                   ...)                     \
-  N
+#define ak_comp_offn_(n, t, ...)            \
+  ak_off##n(t, __VA_ARGS__)
+#define ak_comp_offn(n, t, ...)             \
+  ak_comp_offn_(n, t, __VA_ARGS__)
 
-// --- dispatch to correct expander ---
-#define _ak_offn(n, t, ...)                 \
-  _ak_off##n(t, __VA_ARGS__)
-#define _ak_offn_(n, t, ...)                \
-  _ak_offn(                                 \
-    n, t, __VA_ARGS__) // extra pass for
-                       // expansion
-
-// --- the actual macro ---
-#define ak_d_set_ett_ref(name, ...)         \
+#define ak_comp_set_ref(name, ...)          \
   do {                                      \
-    uint32_t _offs[] = { _ak_offn_(         \
-      _ak_nargs(__VA_ARGS__),               \
+    uint32_t _offs[] = { ak_comp_offn(      \
+      ak_nargs(__VA_ARGS__),                \
       name,                                 \
       __VA_ARGS__) };                       \
     uint32_t _n =                           \
       sizeof(_offs) / sizeof(_offs[0]);     \
-    _Static_assert(_n <= ak_d_max_ett_ref,  \
-                   "too many ett refs");    \
-    ak_comp_ett_refs[ak_comp_##name##_e]    \
+    ak_log_assert(_n <= ak_d_max_ett_ref,   \
+                  "too many ett refs");     \
+    ak_comp_ett_refs[ak_as_comp_e(name)]    \
       .count = _n;                          \
     for (uint32_t _i = 0; _i < _n; _i++)    \
-      ak_comp_ett_refs[ak_comp_##name##_e]  \
+      ak_comp_ett_refs[ak_as_comp_e(name)]  \
         .offsets[_i] = _offs[_i];           \
   } while (0)
-
-static void
-a()
-{
-  // ak_d_set_ett_ref(compA, a, b, c);
-}
 
 #endif

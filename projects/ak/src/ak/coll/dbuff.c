@@ -9,8 +9,12 @@
 static uint32_t
 get_new_cap(uint32_t cur_cap,
             uint32_t cap_inc_by,
-            float gr)
+            float gr,
+            uint32_t sc)
 {
+  if (cur_cap == 0) {
+    return sc;
+  }
   uint32_t min_cap = cur_cap + cap_inc_by;
   uint32_t cap = cur_cap;
   while (cap < min_cap) {
@@ -170,8 +174,8 @@ ak_dbuff_cap_inc(ak_dbuff* d,
   if (inc_by == 0) {
     return;
   }
-  uint32_t new_cap =
-    get_new_cap(d->cap, inc_by, d->gr);
+  uint32_t new_cap = get_new_cap(
+    d->cap, inc_by, d->gr, d->sc);
 
   ak_alct_free(d->alct, d->buff);
 
@@ -202,8 +206,8 @@ ak_dbuff_cap_inc_w_copy(ak_dbuff* d,
     return;
   }
 
-  uint32_t new_cap =
-    get_new_cap(d->cap, inc_by, d->gr);
+  uint32_t new_cap = get_new_cap(
+    d->cap, inc_by, d->gr, d->sc);
   void* new_buff =
     ak_alct_alloc(d->alct, new_cap * d->is);
 

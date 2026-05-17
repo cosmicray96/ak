@@ -123,4 +123,18 @@ bool
 ak_wv_itbfs_next(ak_wv_itbfs* it,
                  ak_ett* o_e);
 
+//===== ak_wv_itbfs =====//
+typedef struct
+{
+  ak_wv* wv;
+  ak_ett e;
+  ak_comp_enum ce;
+} ak_wv_itettcomp;
+
+ak_wv_itettcomp
+ak_wv_itettcomp_make(ak_wv* wv, ak_ett e);
+bool
+ak_wv_itettcomp_next(ak_wv_itettcomp* it,
+                     ak_comp_tu* o_ctu);
+
 #endif

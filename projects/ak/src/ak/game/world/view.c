@@ -272,3 +272,34 @@ ak_wv_itbfs_next(ak_wv_itbfs* it,
   }
   return true;
 }
+
+//===== ak_wv_itettcomp =====//
+ak_wv_itettcomp
+ak_wv_itettcomp_make(ak_wv* wv, ak_ett e)
+{
+  ak_wv_itettcomp it = { 0 };
+  it.wv = wv;
+  it.e = e;
+  it.ce = 0;
+  return it;
+}
+
+bool
+ak_wv_itettcomp_next(ak_wv_itettcomp* it,
+                     ak_comp_tu* o_ctu)
+{
+  for (; it->ce < ak_comp_count_e;
+       it->ce++) {
+    if (ak_world_comp_exist(
+          it->wv->w, it->e, it->ce)) {
+      void* comp = ak_world_comp_at(
+        it->wv->w, it->e, it->ce);
+      ak_comp_tu_make_ip(
+        o_ctu, it->ce, comp);
+
+      it->ce++;
+      return true;
+    }
+  }
+  return false;
+}

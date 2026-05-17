@@ -4,3 +4,25 @@ implimentation
 private
 
 4 levels of visibility
+
+each basic type will have a seralize function. each field will expand to its function but if its a compound field then it will expands to all the functions that makes it up. this compound field will also have its own field list so i think its doable
+
+#define ak_vec2_f \
+  ak_as_comp_f(float,    x, ); \
+  ak_as_comp_f(float,    y, );
+
+#define ak_transform_f \
+  ak_as_comp_f(ak_vec2_t, pos,   ); \
+  ak_as_comp_f(ak_vec2_t, rot,   ); \
+  ak_as_comp_f(ak_vec2_t, scale, );
+Define ak_as_comp_f as the serializer expander, then call ak_gen_writer:
+#define ak_as_comp_f(t, n, f) write_##t(file, &s->n);
+
+ak_gen_writer(vec2)
+That generates:
+static void write_ak_vec2_t(FILE *file, const ak_vec2_t *s) {
+    write_float(file, &s->x);   // hand-written
+    write_float(file, &s->y);   // hand-written
+}
+Then:
+ak_gen_writer(transform)

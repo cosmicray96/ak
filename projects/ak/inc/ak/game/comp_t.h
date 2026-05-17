@@ -38,4 +38,35 @@ typedef struct
   ak_mtrl_basedata data;
 } ak_mtrl_base_t;
 
+/*
+typedef struct
+{
+  ak_ett a;
+  ak_ett b;
+  ak_ett c;
+} ak_ctest_t;
+*/
+
+#define ak_as_comp_f(t, n, f) t n
+
+#define ak_as_comp_td(name)                 \
+  typedef struct ak_##name##_t              \
+    ak_##name##_t;                          \
+  struct ak_##name##_t                      \
+  {                                         \
+    ak_##name##_f                           \
+  };
+
+#define ak_ctest_f                          \
+  ak_as_comp_f(ak_ett, a, ett);             \
+  ak_as_comp_f(ak_ett, b, ett);             \
+  ak_as_comp_f(ak_ett, c, ett);
+ak_as_comp_td(ctest);
+
+static void
+a()
+{
+  ak_ctest_t c;
+}
+
 #endif

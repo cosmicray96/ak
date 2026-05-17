@@ -73,6 +73,12 @@ ak_ettstg_destroy(ak_ettstg* es)
   es->root = 0;
 }
 
+uint32_t
+ak_ettstg_count(ak_ettstg* es)
+{
+  return ak_spa_count(&es->etts);
+}
+
 void
 ak_ettstg_newett(ak_ettstg* es,
                  ak_ett e,
@@ -98,6 +104,26 @@ ak_ett
 ak_ettstg_root(ak_ettstg* es)
 {
   return es->root;
+}
+
+uint32_t
+ak_ettstg_order(ak_ettstg* es, ak_ett e)
+{
+  ak_ett pt = ak_ettstg_parent(es, e);
+  if (!pt) {
+    return 0;
+  }
+  ak_ett c = ak_ettstg_firstchild(es, pt);
+  uint32_t order = 0;
+  while (c) {
+    if (c == e) {
+      return order;
+    }
+    order++;
+    c = ak_ettstg_nextsib(es, c);
+  }
+  ak_assert(false);
+  return order;
 }
 
 bool

@@ -6,6 +6,7 @@
 #include "ak/game/stg/core.h"
 #include "ak/game/stg/ett.h"
 #include <stdbool.h>
+#include <stdint.h>
 typedef struct
 {
   ak_ettstg es;
@@ -17,9 +18,17 @@ ak_world_make(ak_ett root, ak_alct alct);
 void
 ak_world_destroy(ak_world* w);
 
+uint32_t
+ak_world_ett_count(ak_world* w);
+
 ak_ett
 ak_world_ett_root(ak_world* w);
 
+uint32_t
+ak_world_ett_compcount(ak_world* w,
+                       ak_ett e);
+uint32_t
+ak_world_ett_order(ak_world* w, ak_ett e);
 bool
 ak_world_ett_exist(ak_world* w, ak_ett e);
 void

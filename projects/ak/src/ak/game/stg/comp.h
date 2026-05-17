@@ -14,6 +14,10 @@ ak_compstg_make(ak_alct alct);
 void
 ak_compstg_destroy(ak_compstg* cs);
 
+uint32_t
+ak_compstg_compcount(ak_compstg* cs,
+                     ak_ett e);
+
 bool
 ak_compstg_exist(ak_compstg* cs,
                  ak_ett e,

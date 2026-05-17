@@ -39,6 +39,18 @@ ak_da_clear(ak_da* da)
 }
 
 void
+ak_da_reserve(ak_da* da, uint32_t count)
+{
+  uint32_t remaining =
+    ak_da_cap(da) - ak_da_count(da);
+  if (remaining >= count) {
+    return;
+  }
+  ak_dbuff_cap_inc_w_copy(&da->dbuff,
+                          count - remaining);
+}
+
+void
 ak_da_overwrite_zero(ak_da* da, uint32_t idx)
 {
   ak_assert(idx < da->count);

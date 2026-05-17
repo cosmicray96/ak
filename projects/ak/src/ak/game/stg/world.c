@@ -22,10 +22,28 @@ ak_world_destroy(ak_world* w)
   ak_compstg_destroy(w->cs);
 }
 
+uint32_t
+ak_world_ett_count(ak_world* w)
+{
+  return ak_ettstg_count(&w->es);
+}
+
 ak_ett
 ak_world_ett_root(ak_world* w)
 {
   return ak_ettstg_root(&w->es);
+}
+
+uint32_t
+ak_world_ett_compcount(ak_world* w, ak_ett e)
+{
+  return ak_compstg_compcount(w->cs, e);
+}
+
+uint32_t
+ak_world_ett_order(ak_world* w, ak_ett e)
+{
+  return ak_ettstg_order(&w->es, e);
 }
 
 bool
