@@ -3,6 +3,7 @@
 
 #include "ak/export.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 
 //===== ak_job =====//
@@ -31,5 +32,8 @@ ak_thpool_job_status(ak_thpool* jp,
 void
 ak_thpool_job_remove(ak_thpool* jp,
                      ak_jobid jid);
+
+bool
+ak_thpool_try_run_one(ak_thpool* tp);
 
 #endif

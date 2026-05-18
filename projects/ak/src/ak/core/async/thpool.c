@@ -187,3 +187,21 @@ ak_thpool_job_remove(ak_thpool* jp,
   ak_sla_remove(&jp->jobs, jid);
   ak_mutex_unlock(&jp->m);
 }
+
+bool
+ak_thpool_try_run_one(ak_thpool* tp)
+{
+  ak_jobid jid = 0;
+  ak_job_fn jfunc = 0;
+  void* jctx = 0;
+  bool isjob =
+    thpool_next_job(tp, &jid, &jfunc, &jctx);
+  if (isjob) {
+    thpool_job_status_set(
+      tp, jid, ak_job_working);
+    jfunc(jctx);
+    thpool_job_status_set(
+      tp, jid, ak_job_done);
+  }
+  return isjob;
+}

@@ -2,6 +2,7 @@
 #define ak_da_h
 
 #include "ak/coll/dbuff.h"
+#include "ak/export.h"
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -92,6 +93,11 @@ ak_da_findfirst(ak_da* da,
                 const void* item,
                 uint32_t* idx,
                 ak_equal_fn fn);
+
+ak_ex void
+ak_da_sort(ak_da* da,
+           bool (*sort_fn)(const void* a,
+                           const void* b));
 
 #define ak_da_for_rev_begin(                \
   type, da, idx, elm)                       \

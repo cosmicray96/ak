@@ -1,7 +1,6 @@
 #include "ak/coll/da.h"
 #include "ak/coll/dbuff.h"
 #include "ak/debug.h"
-#include <string.h>
 
 //===== ak_da =====//
 //--- private ---//
@@ -183,4 +182,12 @@ ak_da_findfirst(ak_da* da,
   }
 
   return false;
+}
+
+void
+ak_da_sort(ak_da* da,
+           bool (*sort_fn)(const void* a,
+                           const void* b))
+{
+  ak_assert(false);
 }

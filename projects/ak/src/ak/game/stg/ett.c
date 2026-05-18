@@ -10,6 +10,7 @@ typedef struct
   ak_ett pt;
   ak_ett fc;
   ak_ett ns;
+  uint32_t depth;
 } ettitn;
 
 static ettitn*
@@ -60,6 +61,7 @@ ak_ettstg_make(ak_ett root, ak_alct alct)
   es.root = root;
   {
     ettitn ritn = { 0 };
+    ritn.depth = 0;
     ak_spa_insert(&es.etts, root, &ritn);
   }
 
@@ -86,12 +88,14 @@ ak_ettstg_newett(ak_ettstg* es,
 {
   ak_assert(!ak_ettstg_exist(es, e));
 
+  ettitn* ptitn = get_ettitn(es, pt);
+
   ettitn eitn = { 0 };
   eitn.pt = pt;
   eitn.fc = 0;
   eitn.ns = 0;
+  eitn.depth = ptitn->depth + 1;
 
-  ettitn* ptitn = get_ettitn(es, pt);
   if (ptitn->fc) {
     eitn.ns = ptitn->fc;
   }
@@ -108,12 +112,14 @@ ak_ettstg_newett_last(ak_ettstg* es,
 
   ak_assert(!ak_ettstg_exist(es, e));
 
+  ettitn* ptitn = get_ettitn(es, pt);
+
   ettitn eitn = { 0 };
   eitn.pt = pt;
   eitn.fc = 0;
   eitn.ns = 0;
+  eitn.depth = ptitn->depth + 1;
 
-  ettitn* ptitn = get_ettitn(es, pt);
   if (!ptitn->fc) {
     ptitn->fc = e;
     new_ettitn(es, e, &eitn);
@@ -137,6 +143,12 @@ ak_ett
 ak_ettstg_root(ak_ettstg* es)
 {
   return es->root;
+}
+
+uint32_t
+ak_ettstg_depth(ak_ettstg* es, ak_ett e)
+{
+  return get_ettitn(es, e)->depth;
 }
 
 uint32_t

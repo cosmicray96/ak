@@ -25,6 +25,8 @@ ak_ett
 ak_ettstg_root(ak_ettstg* es);
 
 uint32_t
+ak_ettstg_depth(ak_ettstg* es, ak_ett e);
+uint32_t
 ak_ettstg_order(ak_ettstg* es, ak_ett e);
 bool
 ak_ettstg_exist(ak_ettstg* es, ak_ett e);
