@@ -235,6 +235,10 @@ on_update(void* ctx, ak_dur delta)
   ak_resman_update(&l->rm);
 
   ak_sys_tf_update(&l->sys_tf);
+  // other world wide system
+  // script system
+  // physic system
+  // ai/path system
 }
 
 static void
