@@ -6,9 +6,8 @@
 #include "ak/debug.h"
 #include "ak/gfx/core.h"
 #include "ak/gfx/gresman.h"
-#include "ak/gfx/mtrl.h"
 #include "ak/gfx/mtrl_itn.h"
-#include "ak_opengl/gfx/gfx_itn.h"
+#include "ak_opengl/gfx/gfx_impl.h"
 
 #include <stddef.h>
 

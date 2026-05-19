@@ -5,7 +5,7 @@
 #include "ak/gfx/core.h"
 
 #include "ak/platform/plat_base.h"
-#include "ak_opengl/gfx/gfx_itn.h"
+#include "ak_opengl/gfx/gfx_impl.h"
 
 #include <glad/glad.h>
 

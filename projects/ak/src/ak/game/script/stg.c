@@ -1,5 +1,4 @@
 #include "ak/game/script/stg.h"
-#include "ak/game/script/script.h"
 
 //===== ak_scriptstg =====//
 //--- private ---//

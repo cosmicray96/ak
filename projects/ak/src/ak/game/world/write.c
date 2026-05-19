@@ -4,7 +4,6 @@
 #include "ak/coll/hmn.h"
 #include "ak/core/io.h"
 #include "ak/game/comp.h"
-#include "ak/game/stg/core.h"
 #include "ak/game/world/view.h"
 #include "ak/game/world/view_itn.h"
 #include "ak/system/idgen.h"

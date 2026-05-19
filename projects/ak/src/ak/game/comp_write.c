@@ -2,6 +2,7 @@
 #include "ak/core/math/fixed.h"
 #include "ak/debug.h"
 #include "ak/game/comp.h"
+#include "ak/game/comp_t.h"
 #include <ak/core/math/vec3.h>
 
 //--- private ---//
@@ -209,4 +210,18 @@ ak_read_mtrl_base(ak_iostream io)
   ak_mtrl_base_t mb = { 0 };
   mb.me = ak_read_i32(io);
   return mb;
+}
+
+void
+ak_write_script(ak_iostream io,
+                ak_script_t script)
+{
+  ak_write_i32(io, script.se);
+}
+ak_script_t
+ak_read_script(ak_iostream io)
+{
+  ak_script_t script = { 0 };
+  script.se = ak_read_i32(io);
+  return script;
 }

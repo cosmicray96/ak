@@ -3,7 +3,6 @@
 #include "ak/core/mem/ptr.h"
 #include "ak/debug.h"
 #include "ak/game/comp.h"
-#include "ak/game/stg/core.h"
 #include "ak/game/stg/world.h"
 #include "ak/game/world/view_itn.h"
 
@@ -23,6 +22,12 @@ ak_wv_destroy(ak_wv* wv)
 }
 
 //--- export ---//
+uint32_t
+ak_wv_ett_depth(ak_wv* wv, ak_ett e)
+{
+  return ak_world_ett_depth(wv->w, e);
+}
+
 bool
 ak_wv_ett_exist(ak_wv* wv, ak_ett e)
 {

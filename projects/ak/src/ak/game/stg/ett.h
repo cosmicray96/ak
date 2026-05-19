@@ -2,7 +2,7 @@
 #define ak_game_stg_ett_h
 
 #include "ak/coll/spa.h"
-#include "ak/game/stg/core.h"
+#include "ak/game/core.h"
 
 #include <stdbool.h>
 

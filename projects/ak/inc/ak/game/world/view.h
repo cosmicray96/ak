@@ -6,12 +6,14 @@
 #include "ak/core/mem/allocator.h"
 #include "ak/export.h"
 #include "ak/game/comp.h"
-#include "ak/game/stg/core.h"
+#include "ak/game/core.h"
 
 #include <stdbool.h>
 
 typedef struct ak_wv ak_wv;
 
+ak_ex uint32_t
+ak_wv_ett_depth(ak_wv* wv, ak_ett e);
 ak_ex bool
 ak_wv_ett_exist(ak_wv* wv, ak_ett e);
 ak_ex ak_ett

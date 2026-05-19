@@ -1,7 +1,7 @@
 #include "ak/game/stg/ett.h"
 #include "ak/coll/spa.h"
 #include "ak/debug.h"
-#include "ak/game/stg/core.h"
+#include "ak/game/core.h"
 
 //===== ak_ettstg =====//
 //--- private ---//

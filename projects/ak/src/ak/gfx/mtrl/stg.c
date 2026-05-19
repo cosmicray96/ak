@@ -1,6 +1,6 @@
-#include "ak/gfx/stg/mtrl.h"
+#include "ak/gfx/mtrl/stg.h"
 #include "ak/core/mem/allocator.h"
-#include "ak/gfx/mtrl.h"
+#include "ak/gfx/core.h"
 #include "ak/gfx/mtrl_itn.h"
 
 #define ak_d_mtrl_x(name)                   \

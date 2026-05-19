@@ -3,7 +3,7 @@
 
 #include "ak/core/mem/allocator.h"
 #include "ak/game/comp.h"
-#include "ak/game/stg/core.h"
+#include "ak/game/core.h"
 #include "ak/game/stg/ettgen.h"
 #include "ak/game/world/cb.h"
 
@@ -44,5 +44,8 @@ ak_wcb_peek(ak_wcb* wcb,
 bool
 ak_wcb_pop(ak_wcb* wcb,
            ak_world_cmditem* o_item);
+
+void
+ak_wcb_joinback(ak_wcb* dest, ak_wcb* src);
 
 #endif

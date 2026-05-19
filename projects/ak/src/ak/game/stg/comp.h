@@ -1,10 +1,9 @@
 #ifndef ak_game_stg_comp_h
 #define ak_game_stg_comp_h
 
-#include "ak/coll/spa.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/game/comp.h"
-#include "ak/game/stg/core.h"
+#include "ak/game/core.h"
 #include <stdint.h>
 
 typedef struct ak_compstg ak_compstg;

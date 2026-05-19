@@ -115,3 +115,10 @@ ak_comp_ett_offsets_mtrl_base(
     offsetof(ak_mtrl_t, base_id);
   return 1;
 }
+
+uint32_t
+ak_comp_ett_offsets_script(
+  uint32_t o_offsets[16])
+{
+  return 0;
+}

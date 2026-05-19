@@ -86,13 +86,14 @@ ak_dq_push(ak_dq* q, const void* item)
 }
 
 bool
-ak_dq_pop(ak_dq* q, void* item)
+ak_dq_pop(ak_dq* q, void* o_item)
 {
   if (q->count == 0) {
     return false;
   }
 
-  ak_dbuff_at_copy(&q->dbuff, q->ridx, item);
+  ak_dbuff_at_copy(
+    &q->dbuff, q->ridx, o_item);
 
   q->ridx =
     (q->ridx + 1) % ak_dbuff_cap(&q->dbuff);
@@ -101,9 +102,9 @@ ak_dq_pop(ak_dq* q, void* item)
 }
 
 bool
-ak_dq_peek(ak_dq* q,
+ak_dq_peek(const ak_dq* q,
            uint32_t idx,
-           void* item)
+           void* o_item)
 {
   if (idx >= q->count) {
     return false;
@@ -111,6 +112,6 @@ ak_dq_peek(ak_dq* q,
   uint32_t ridx = (q->ridx + idx) %
                   ak_dbuff_cap(&q->dbuff);
 
-  ak_dbuff_at_copy(&q->dbuff, ridx, item);
+  ak_dbuff_at_copy(&q->dbuff, ridx, o_item);
   return true;
 }

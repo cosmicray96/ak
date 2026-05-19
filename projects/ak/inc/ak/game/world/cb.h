@@ -3,7 +3,7 @@
 
 #include "ak/export.h"
 #include "ak/game/comp.h"
-#include "ak/game/stg/core.h"
+#include "ak/game/core.h"
 
 #include <stdbool.h>
 

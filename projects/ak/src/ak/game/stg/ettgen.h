@@ -3,7 +3,8 @@
 
 #include "ak/coll/dq.h"
 #include "ak/core/mem/allocator.h"
-#include "ak/game/stg/core.h"
+#include "ak/game/core.h"
+
 typedef struct
 {
   ak_dq freelist;

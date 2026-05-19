@@ -3,8 +3,8 @@
 
 #include "ak/core/mem/allocator.h"
 #include "ak/game/comp.h"
+#include "ak/game/core.h"
 #include "ak/game/stg/comp.h"
-#include "ak/game/stg/core.h"
 #include "ak/game/stg/ett.h"
 #include <stdbool.h>
 #include <stdint.h>
@@ -28,6 +28,9 @@ ak_world_ett_root(ak_world* w);
 uint32_t
 ak_world_ett_compcount(ak_world* w,
                        ak_ett e);
+
+uint32_t
+ak_world_ett_depth(ak_world* w, ak_ett e);
 uint32_t
 ak_world_ett_order(ak_world* w, ak_ett e);
 bool

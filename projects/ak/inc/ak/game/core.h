@@ -1,5 +1,5 @@
-#ifndef ak_game_stg_h
-#define ak_game_stg_h
+#ifndef ak_game_core_h
+#define ak_game_core_h
 
 #include <stdint.h>
 

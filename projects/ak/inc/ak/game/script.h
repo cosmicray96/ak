@@ -2,16 +2,17 @@
 #define ak_game_script_h
 
 #include "ak/app/event.h"
-#include "ak/game/stg/core.h"
-#include "ak/game/world/cb.h"
-#include "ak/game/world/view.h"
+#include "ak/game/core.h"
 #include "ak/os/time.h"
+
+typedef struct ak_wv ak_wv;
+typedef struct ak_wcb ak_wcb;
 
 typedef struct
 {
+  ak_ett e;
   ak_wv* wv;
   ak_wcb* wcb;
-  ak_ett e;
   ak_dur delta;
   ak_evt evt;
 } ak_script_ctx;
@@ -28,7 +29,6 @@ typedef void (*ak_script_update_fn)(
 typedef void (*ak_script_upost_fn)(
   ak_script_ctx ctx);
 
-typedef uint32_t ak_scriptid;
 typedef struct ak_script ak_script;
 struct ak_script
 {
@@ -40,7 +40,6 @@ struct ak_script
 };
 
 #define ak_as_script_e(name) ak_##name##_e
-
 typedef enum
 {
 #define ak_script_x(name)                   \

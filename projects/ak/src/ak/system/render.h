@@ -5,8 +5,8 @@
 #include "ak/game/world/view.h"
 #include "ak/gfx/core.h"
 #include "ak/gfx/gresman.h"
-#include "ak/gfx/stg/mtrl.h"
 #include "ak/platform/plat_base.h"
+
 typedef struct ak_renderer ak_renderer;
 
 ak_renderer*

@@ -2,7 +2,8 @@
 #define ak_game_script_stg_h
 
 #include "ak/core/mem/allocator.h"
-#include "ak/game/script/script.h"
+#include "ak/game/script.h"
+
 typedef struct ak_scriptstg ak_scriptstg;
 
 ak_scriptstg*

@@ -6,7 +6,7 @@
 #include "ak/gfx/core.h"
 #include "ak/gfx/gfx.h"
 #include "ak/gfx/gresman.h"
-#include "ak/gfx/stg/mtrl.h"
+#include "ak/gfx/mtrl/stg.h"
 #include "ak/os/time.h"
 #include "ak/platform/plat_base.h"
 #include <stdbool.h>

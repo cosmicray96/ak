@@ -1,6 +1,6 @@
 #include "ak/game/stg/world.h"
+#include "ak/game/core.h"
 #include "ak/game/stg/comp.h"
-#include "ak/game/stg/core.h"
 #include "ak/game/stg/ett.h"
 #include <threads.h>
 
@@ -38,6 +38,12 @@ uint32_t
 ak_world_ett_compcount(ak_world* w, ak_ett e)
 {
   return ak_compstg_compcount(w->cs, e);
+}
+
+uint32_t
+ak_world_ett_depth(ak_world* w, ak_ett e)
+{
+  return ak_ettstg_depth(&w->es, e);
 }
 
 uint32_t

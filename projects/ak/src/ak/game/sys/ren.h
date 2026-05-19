@@ -7,8 +7,9 @@
 #include "ak/core/mem/allocator.h"
 #include "ak/game/world/view.h"
 #include "ak/gfx/core.h"
-#include "ak/gfx/stg/mtrl.h"
+#include "ak/gfx/mtrl/stg.h"
 #include "ak/os/time.h"
+
 typedef struct
 {
   ak_alct alct;

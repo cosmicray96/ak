@@ -1,11 +1,13 @@
-#ifndef ak_gfx_mtrl_mtrl_h
-#define ak_gfx_mtrl_mtrl_h
+#ifndef ak_gfx_mtrl_h
+#define ak_gfx_mtrl_h
 
 #include "ak/core/math/vec2.h"
 #include "ak/core/math/vec4.h"
 #include "ak/gfx/core.h"
-#define ak_as_mtrl_e(name) ak_mtrl_##name##_e
 
+#include <stdint.h>
+
+#define ak_as_mtrl_e(name) ak_mtrl_##name##_e
 typedef enum
 {
 #define ak_d_mtrl_x(name) ak_as_mtrl_e(name),

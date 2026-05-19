@@ -4,7 +4,6 @@
 #include "ak/debug.h"
 #include "ak/game/comp.h"
 #include "ak/game/comp_t.h"
-#include "ak/game/stg/core.h"
 #include "ak/game/stg/ettgen.h"
 #include "ak/game/stg/world.h"
 #include "ak/game/world/cb_itn.h"

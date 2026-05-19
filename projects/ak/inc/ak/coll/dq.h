@@ -26,10 +26,10 @@ ak_dq_count(const ak_dq* q);
 ak_ex void
 ak_dq_push(ak_dq* q, const void* item);
 ak_ex bool
-ak_dq_pop(ak_dq* q, void* item);
+ak_dq_pop(ak_dq* q, void* o_item);
 ak_ex bool
-ak_dq_peek(ak_dq* q,
+ak_dq_peek(const ak_dq* q,
            uint32_t idx,
-           void* item);
+           void* o_item);
 
 #endif

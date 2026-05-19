@@ -7,12 +7,12 @@
 #include "ak/debug.h"
 #include "ak/game/comp.h"
 #include "ak/game/comp_t.h"
-#include "ak/game/stg/core.h"
+#include "ak/game/core.h"
 #include "ak/game/world/view.h"
+#include "ak/gfx/core.h"
 #include "ak/gfx/gfx.h"
-#include "ak/gfx/gresman.h"
-#include "ak/gfx/mtrl.h"
-#include "ak/gfx/stg/mtrl.h"
+#include "ak/gfx/mtrl/stg.h"
+#include "ak/gfx/mtrl_itn.h"
 #include "ak/os/time.h"
 #include <stdint.h>
 
