@@ -10,8 +10,6 @@
 
 #include <stdbool.h>
 
-typedef struct ak_wv ak_wv;
-
 ak_ex uint32_t
 ak_wv_ett_depth(ak_wv* wv, ak_ett e);
 ak_ex bool

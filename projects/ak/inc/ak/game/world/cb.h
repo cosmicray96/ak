@@ -7,8 +7,6 @@
 
 #include <stdbool.h>
 
-typedef struct ak_wcb ak_wcb;
-
 ak_ex ak_ett
 ak_wcb_ett_new(ak_wcb* wcb, ak_ett pt);
 ak_ex void

@@ -8,7 +8,6 @@
 #include "ak/game/core.h"
 #include "ak/game/script.h"
 #include "ak/game/script/stg.h"
-#include "ak/game/stg/ettgen.h"
 #include "ak/game/world/cb.h"
 #include "ak/game/world/cb_itn.h"
 #include "ak/game/world/view.h"
@@ -65,7 +64,7 @@ run_update(ak_sys_script* s, ak_dur delta)
 ak_sys_script
 ak_sys_script_make(ak_wv* wv,
                    ak_wcb* wcb,
-                   ak_ettgen* eg,
+                   ak_idgen* ig,
                    ak_thpool* tp,
                    ak_alct alct)
 {
@@ -73,7 +72,7 @@ ak_sys_script_make(ak_wv* wv,
   s.alct = alct;
   s.wv = wv;
   s.wcb = wcb;
-  s.eg = eg;
+  s.ig = ig;
   s.tp = tp;
 
   s.ss = ak_scriptstg_make(alct);
@@ -104,7 +103,7 @@ ak_sys_script_update(ak_sys_script* s,
     ak_wv_itcomp_next(&it, &e, &script)) {
     if (!ak_hmn_exist(&s->map, e)) {
       ak_wcb wcb =
-        ak_wcb_make(s->eg, s->alct);
+        ak_wcb_make(s->ig, s->alct);
       ak_hmn_insert(&s->map, e, &wcb);
     }
     script_item di = { 0 };

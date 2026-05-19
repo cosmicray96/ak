@@ -11,7 +11,6 @@
 #include "ak/core/math/vec2.h"
 #include "ak/game/comp_t.h"
 #include "ak/game/core.h"
-#include "ak/game/stg/ettgen.h"
 #include "ak/game/stg/world.h"
 #include "ak/game/sys/tf.h"
 #include "ak/game/world/cb.h"
@@ -35,7 +34,7 @@ struct ak_lworld
 
   ak_lcore* lcore;
 
-  ak_ettgen eg;
+  ak_idgen ig;
   ak_world w;
   ak_wv wv;
   ak_wcb wcb;
@@ -140,11 +139,11 @@ on_startup(void* ctx, ak_app* app)
 {
   ak_lworld* l = ctx;
   l->app = app;
-  l->eg = ak_ettgen_make(l->alct);
-  l->w = ak_world_make(ak_ettgen_new(&l->eg),
+  l->ig = ak_idgen_make(l->alct);
+  l->w = ak_world_make(ak_idgen_new(&l->ig),
                        l->alct);
   l->wv = ak_wv_make(&l->w);
-  l->wcb = ak_wcb_make(&l->eg, l->alct);
+  l->wcb = ak_wcb_make(&l->ig, l->alct);
 
   l->tp = ak_thpool_startup();
   l->rm = ak_resman_make(l->tp, l->alct);
@@ -169,7 +168,7 @@ on_startup(void* ctx, ak_app* app)
 
   set_root(l);
   push_child(l, 0, 0, 1.0f, l->dog_gid);
-  ak_world_cb_flush(&l->w, &l->wcb, &l->eg);
+  ak_world_cb_flush(&l->w, &l->wcb, &l->ig);
 }
 
 static void
@@ -188,7 +187,7 @@ on_shutdown(void* ctx)
   ak_wcb_destroy(&l->wcb);
   ak_wv_destroy(&l->wv);
   ak_world_destroy(&l->w);
-  ak_ettgen_destroy(&l->eg);
+  ak_idgen_destroy(&l->ig);
 }
 
 void
@@ -244,7 +243,7 @@ on_upost(void* ctx, ak_dur delta)
 {
   ak_lworld* l = ctx;
   ak_renderer_stallwait(l->renderer);
-  ak_world_cb_flush(&l->w, &l->wcb, &l->eg);
+  ak_world_cb_flush(&l->w, &l->wcb, &l->ig);
   ak_renderer_render(l->renderer);
 }
 

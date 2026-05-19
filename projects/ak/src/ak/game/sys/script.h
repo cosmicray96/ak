@@ -5,16 +5,16 @@
 #include "ak/coll/hmn.h"
 #include "ak/core/async/thpool.h"
 #include "ak/game/script/stg.h"
-#include "ak/game/stg/ettgen.h"
 #include "ak/game/world/cb.h"
 #include "ak/game/world/view.h"
 #include "ak/os/time.h"
+#include "ak/system/idgen.h"
 typedef struct
 {
   ak_alct alct;
   ak_wv* wv;
   ak_wcb* wcb;
-  ak_ettgen* eg;
+  ak_idgen* ig;
   ak_thpool* tp;
 
   ak_scriptstg* ss;
@@ -25,7 +25,7 @@ typedef struct
 ak_sys_script
 ak_sys_script_make(ak_wv* wv,
                    ak_wcb* wcb,
-                   ak_ettgen* eg,
+                   ak_idgen* ig,
                    ak_thpool* tp,
                    ak_alct alct);
 

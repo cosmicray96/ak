@@ -4,20 +4,19 @@
 #include "ak/debug.h"
 #include "ak/game/comp.h"
 #include "ak/game/comp_t.h"
-#include "ak/game/stg/ettgen.h"
 #include "ak/game/stg/world.h"
 #include "ak/game/world/cb_itn.h"
 
 static void
-ett_remove_cb(void* eg, ak_ett e)
+ett_remove_cb(void* ig, ak_ett e)
 {
-  ak_ettgen_remove((ak_ettgen*)eg, e);
+  ak_idgen_remove((ak_idgen*)ig, e);
 }
 
 void
 ak_world_cb_flush(ak_world* w,
                   ak_wcb* wcb,
-                  ak_ettgen* eg)
+                  ak_idgen* ig)
 {
   ak_world_cmditem item = { 0 };
   ak_tf2d_t tf2d = ak_tf2d_identity();
@@ -35,7 +34,7 @@ ak_world_cb_flush(ak_world* w,
       }
       case ak_world_cmd_ett_remove: {
         ak_world_ett_remove_cb(
-          w, item.e, &ett_remove_cb, eg);
+          w, item.e, &ett_remove_cb, ig);
         break;
       }
       case ak_world_cmd_comp_add: {

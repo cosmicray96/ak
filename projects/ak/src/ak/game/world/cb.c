@@ -2,7 +2,6 @@
 #include "ak/coll/dq.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/game/comp.h"
-#include "ak/game/stg/ettgen.h"
 #include "ak/game/world/cb_itn.h"
 
 //===== ak_gcmdbuff  =====//
@@ -36,11 +35,11 @@ comp_remove(ak_wcb* wcb,
 
 //--- internal ---//
 ak_wcb
-ak_wcb_make(ak_ettgen* eg, ak_alct alct)
+ak_wcb_make(ak_idgen* ig, ak_alct alct)
 {
   ak_wcb wcb;
   wcb.alct = alct;
-  wcb.eg = eg;
+  wcb.ig = ig;
   wcb.cmds = ak_dq_make(
     sizeof(ak_world_cmditem), alct);
   return wcb;
@@ -50,7 +49,7 @@ void
 ak_wcb_destroy(ak_wcb* wcb)
 {
   ak_dq_destroy(&wcb->cmds);
-  wcb->eg = 0;
+  wcb->ig = 0;
   ak_alct_invalidate(&wcb->alct);
 }
 
@@ -88,7 +87,7 @@ ak_wcb_joinback(ak_wcb* dest, ak_wcb* src)
 ak_ett
 ak_wcb_ett_new(ak_wcb* wcb, ak_ett pt)
 {
-  ak_ett e = ak_ettgen_new(wcb->eg);
+  ak_ett e = ak_idgen_new(wcb->ig);
   ak_world_cmditem item = { 0 };
   item.cmd = ak_world_cmd_ett_new;
   item.e = e;

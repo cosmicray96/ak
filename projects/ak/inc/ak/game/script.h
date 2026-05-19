@@ -5,9 +5,6 @@
 #include "ak/game/core.h"
 #include "ak/os/time.h"
 
-typedef struct ak_wv ak_wv;
-typedef struct ak_wcb ak_wcb;
-
 typedef struct
 {
   ak_ett e;

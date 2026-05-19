@@ -4,8 +4,8 @@
 #include "ak/core/mem/allocator.h"
 #include "ak/game/comp.h"
 #include "ak/game/core.h"
-#include "ak/game/stg/ettgen.h"
 #include "ak/game/world/cb.h"
+#include "ak/system/idgen.h"
 
 typedef enum
 {
@@ -26,12 +26,12 @@ typedef struct
 struct ak_wcb
 {
   ak_alct alct;
-  ak_ettgen* eg;
+  ak_idgen* ig;
   ak_dq cmds;
 };
 
 ak_wcb
-ak_wcb_make(ak_ettgen* eg, ak_alct alct);
+ak_wcb_make(ak_idgen* ig, ak_alct alct);
 void
 ak_wcb_destroy(ak_wcb* gc);
 
