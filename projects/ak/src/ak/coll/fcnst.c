@@ -160,3 +160,64 @@ ak_fcnst_ps(ak_fcnst* t, uint32_t id)
   }
   return 0;
 }
+
+uint32_t
+ak_fcnst_leftmost(ak_fcnst* t, uint32_t id)
+{
+  uint32_t c = ak_fcnst_fc(t, id);
+  while (c) {
+    id = c;
+    c = ak_fcnst_fc(t, id);
+  }
+  return id;
+}
+
+//===== ak_fcnst_itdfspre =====//
+//--- export ---//
+ak_fcnst_itdfspost
+ak_fcnst_itdfspost_make(ak_fcnst* t,
+                        uint32_t root)
+{
+  ak_fcnst_itdfspost it = { 0 };
+  it.t = t;
+  it.root = root;
+  it.last = ak_fcnst_leftmost(t, root);
+  it.started = false;
+  return it;
+}
+uint32_t
+ak_fcnst_itdfspost_next(
+  ak_fcnst_itdfspost* it)
+{
+  if (!it->started) {
+    it->started = true;
+    return it->last;
+  }
+
+  if (it->last == it->root) {
+    return 0;
+  }
+
+  uint32_t ns = ak_fcnst_ns(it->t, it->last);
+  if (ns) {
+    it->last = ak_fcnst_leftmost(it->t, ns);
+  } else {
+    it->last = ak_fcnst_pt(it->t, it->last);
+  }
+  return it->last;
+}
+
+//===== ak_fcnst_itdfspre =====//
+//--- export ---//
+ak_fcnst_itdfspre
+ak_fcnst_itdfspre_make(ak_fcnst* t,
+                       uint32_t root);
+void
+ak_fcnst_itdfspre_destroy(
+  ak_fcnst_itdfspre* it);
+void
+ak_fcnst_itdfspre_reset(
+  ak_fcnst_itdfspre* it);
+uint32_t
+ak_fcnst_itdfspre_next(
+  ak_fcnst_itdfspre* it);
