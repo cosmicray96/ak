@@ -1,6 +1,8 @@
 #include "ak/coll/fcnst.h"
+#include "ak/coll/ds.h"
 #include "ak/coll/spa.h"
 #include "ak/debug.h"
+#include <stdint.h>
 
 //===== metadata =====//
 //--- private ---//
@@ -172,6 +174,55 @@ ak_fcnst_leftmost(ak_fcnst* t, uint32_t id)
   return id;
 }
 
+//===== ak_fcnst_itchild =====//
+//--- export ---//
+ak_fcnst_itchild
+ak_fcnst_itchild_make(ak_fcnst* t,
+                      uint32_t pt)
+{
+  ak_fcnst_itchild it = { 0 };
+  it.t = t;
+  it.last = ak_fcnst_fc(t, pt);
+  it.started = false;
+  return it;
+}
+
+uint32_t
+ak_fcnst_itchild_next(ak_fcnst_itchild* it)
+{
+  if (!it->started) {
+    it->started = true;
+    return it->last;
+  }
+  it->last = ak_fcnst_ns(it->t, it->last);
+
+  return it->last;
+}
+
+//===== ak_fcnst_itancestor =====//
+//--- export ---//
+ak_fcnst_itancestor
+ak_fcnst_itancestor_make(ak_fcnst* t,
+                         uint32_t id)
+{
+  ak_fcnst_itancestor it = { 0 };
+  it.t = t;
+  it.id = id;
+  return it;
+}
+
+uint32_t
+ak_fcnst_itancestor_next(
+  ak_fcnst_itancestor* it)
+{
+  if (!it->id) {
+    return 0;
+  }
+  uint32_t id = it->id;
+  it->id = ak_fcnst_pt(it->t, it->id);
+  return id;
+}
+
 //===== ak_fcnst_itdfspre =====//
 //--- export ---//
 ak_fcnst_itdfspost
@@ -185,6 +236,7 @@ ak_fcnst_itdfspost_make(ak_fcnst* t,
   it.started = false;
   return it;
 }
+
 uint32_t
 ak_fcnst_itdfspost_next(
   ak_fcnst_itdfspost* it)
@@ -211,13 +263,127 @@ ak_fcnst_itdfspost_next(
 //--- export ---//
 ak_fcnst_itdfspre
 ak_fcnst_itdfspre_make(ak_fcnst* t,
-                       uint32_t root);
+                       uint32_t root,
+                       ak_alct alct)
+{
+  ak_fcnst_itdfspre it = { 0 };
+  it.t = t;
+  it.s = ak_ds_make(sizeof(uint32_t), alct);
+  ak_ds_push(&it.s, &root);
+  return it;
+}
+
 void
 ak_fcnst_itdfspre_destroy(
-  ak_fcnst_itdfspre* it);
+  ak_fcnst_itdfspre* it)
+{
+  ak_ds_destroy(&it->s);
+  it->t = 0;
+}
+
 void
 ak_fcnst_itdfspre_reset(
-  ak_fcnst_itdfspre* it);
+  ak_fcnst_itdfspre* it,
+  uint32_t root)
+{
+  ak_ds_clear(&it->s);
+  ak_ds_push(&it->s, &root);
+}
+
 uint32_t
-ak_fcnst_itdfspre_next(
-  ak_fcnst_itdfspre* it);
+ak_fcnst_itdfspre_next(ak_fcnst_itdfspre* it)
+{
+  uint32_t id = 0;
+  if (!ak_ds_pop(&it->s, &id)) {
+    return 0;
+  }
+
+  uint32_t ns = ak_fcnst_ns(it->t, id);
+  if (ns) {
+    ak_ds_push(&it->s, &ns);
+  }
+
+  uint32_t fc = ak_fcnst_fc(it->t, id);
+  if (fc) {
+    ak_ds_push(&it->s, &fc);
+  }
+
+  return id;
+}
+
+//===== ak_fcnst_itbfs =====//
+//--- export ---//
+ak_fcnst_itbfs
+ak_fcnst_itbfs_make(ak_fcnst* t,
+                    uint32_t root,
+                    ak_alct alct)
+{
+  ak_fcnst_itbfs it = { 0 };
+  it.t = t;
+  it.q = ak_dq_make(sizeof(uint32_t), alct);
+  ak_dq_push(&it.q, &root);
+  return it;
+}
+
+void
+ak_fcnst_itbfs_destroy(ak_fcnst_itbfs* it)
+{
+  ak_dq_destroy(&it->q);
+  it->t = 0;
+}
+
+void
+ak_fcnst_itbfs_reset(ak_fcnst_itbfs* it,
+                     uint32_t root)
+{
+  ak_dq_clear(&it->q);
+  ak_dq_push(&it->q, &root);
+}
+
+uint32_t
+ak_fcnst_itbfs_next(ak_fcnst_itbfs* it)
+{
+  uint32_t id = 0;
+  if (!ak_dq_pop(&it->q, &id)) {
+    return 0;
+  }
+  ak_fcnst_itchild cit =
+    ak_fcnst_itchild_make(it->t, id);
+  while (true) {
+    uint32_t c = ak_fcnst_itchild_next(&cit);
+    if (!c) {
+      break;
+    }
+    ak_dq_push(&it->q, &c);
+  }
+
+  return id;
+}
+
+//===== ak_fcnst_itleaf =====//
+//--- export ---//
+ak_fcnst_itleaf
+ak_fcnst_itleaf_make(ak_fcnst* t,
+                     uint32_t root)
+{
+  ak_fcnst_itleaf it = { 0 };
+  it.dfsit =
+    ak_fcnst_itdfspost_make(t, root);
+  return it;
+}
+
+uint32_t
+ak_fcnst_itleaf_next(ak_fcnst_itleaf* it)
+{
+  while (true) {
+    uint32_t id =
+      ak_fcnst_itdfspost_next(&it->dfsit);
+    if (!id) {
+      return 0;
+    }
+    if (!ak_fcnst_fc(it->dfsit.t, id)) {
+      return id;
+    }
+  }
+  return 0;
+}
