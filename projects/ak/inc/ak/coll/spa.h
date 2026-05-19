@@ -23,6 +23,11 @@ ak_spa_clear(ak_spa* s);
 
 ak_ex uint32_t
 ak_spa_count(const ak_spa* s);
+static uint32_t
+ak_spa_itemsize(const ak_spa* s)
+{
+  return ak_da_itemsize(&s->denses);
+}
 
 ak_ex bool
 ak_spa_exist(ak_spa* s, uint32_t s_idx);
@@ -30,6 +35,9 @@ ak_spa_exist(ak_spa* s, uint32_t s_idx);
 ak_ex void*
 ak_spa_at(ak_spa* s, uint32_t s_idx);
 
+ak_ex void
+ak_spa_insert_zero(ak_spa* s,
+                   uint32_t s_idx);
 ak_ex void
 ak_spa_insert(ak_spa* s,
               uint32_t s_idx,

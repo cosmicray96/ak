@@ -94,6 +94,20 @@ ak_spa_at(ak_spa* s, uint32_t s_idx)
 }
 
 void
+ak_spa_insert_zero(ak_spa* s, uint32_t s_idx)
+{
+  ak_assert(!ak_spa_exist(s, s_idx));
+
+  uint32_t d_idx = ak_da_count(&s->denses);
+
+  ak_da_pushback_zero(&s->denses);
+  ak_da_pushback(&s->d_to_s_idxs, &s_idx);
+
+  *(uint32_t*)ak_pbuff_at(&s->s_to_d_idxs,
+                          s_idx) = d_idx;
+}
+
+void
 ak_spa_insert(ak_spa* s,
               uint32_t s_idx,
               const void* item)
