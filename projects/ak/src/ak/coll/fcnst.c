@@ -10,6 +10,8 @@ typedef struct
   ak_fcnstid pt;
   ak_fcnstid fc;
   ak_fcnstid ns;
+  uint32_t depth;
+  uint32_t ud;
 } metadata;
 
 //===== ak_fcnst =====//
@@ -29,6 +31,8 @@ remove_rec(ak_fcnst* t,
   if (remove_fn) {
     remove_fn(remove_ctx, id);
   }
+
+  t->count--;
   ak_sla_remove(&t->slots, id);
 }
 
@@ -54,17 +58,27 @@ ak_fcnst_destroy(ak_fcnst* t)
 }
 
 ak_fcnstid
-ak_fcnst_add(ak_fcnst* t, ak_fcnstid ptid)
+ak_fcnst_add(ak_fcnst* t,
+             ak_fcnstid ptid,
+             uint32_t ud)
 {
+  ak_fcnstid id = 0;
+  metadata* md = 0;
+  {
+    metadata mditn = { 0 };
+    mditn.pt = 0;
+    mditn.fc = 0;
+    mditn.ns = 0;
+    mditn.depth = 0;
+    mditn.ud = ud;
+    id = ak_sla_insert(&t->slots, &mditn);
+    md = ak_sla_at(&t->slots, id);
+  }
+
   if (ptid == 0) {
     if (t->root == 0) {
-      metadata md = { 0 };
-      md.pt = 0;
-      md.fc = 0;
-      md.ns = 0;
-      ak_fcnstid id =
-        ak_sla_insert(&t->slots, &md);
       t->root = id;
+      t->count++;
       return id;
     }
     ak_assert(false);
@@ -72,17 +86,66 @@ ak_fcnst_add(ak_fcnst* t, ak_fcnstid ptid)
   ak_assert(t->root);
   ak_assert(ak_fcnst_exist(t, ptid));
 
-  metadata md = { 0 };
-  md.pt = ptid;
-  md.fc = 0;
-  md.ns = 0;
-  ak_fcnstid id =
-    ak_sla_insert(&t->slots, &md);
+  metadata* ptmd =
+    ak_sla_at(&t->slots, ptid);
+
+  md->pt = ptid;
+  md->depth = ptmd->depth + 1;
+
+  ak_fcnstid fc = ptmd->fc;
+  ptmd->fc = id;
+  md->ns = fc;
+
+  t->count++;
+  return id;
+}
+
+ak_fcnstid
+ak_fcnst_add_last(ak_fcnst* t,
+                  ak_fcnstid ptid,
+                  uint32_t ud)
+{
+  ak_fcnstid id = 0;
+  metadata* md = 0;
+  {
+    metadata mditn = { 0 };
+    mditn.pt = 0;
+    mditn.fc = 0;
+    mditn.ns = 0;
+    mditn.depth = 0;
+    mditn.ud = ud;
+    id = ak_sla_insert(&t->slots, &mditn);
+    md = ak_sla_at(&t->slots, id);
+  }
+
+  if (ptid == 0) {
+    if (t->root == 0) {
+      t->root = id;
+      t->count++;
+      return id;
+    }
+    ak_assert(false);
+  }
+  ak_assert(t->root);
+  ak_assert(ak_fcnst_exist(t, ptid));
 
   metadata* ptmd =
     ak_sla_at(&t->slots, ptid);
-  ak_fcnstid fc = ptmd->fc;
-  ptmd->fc = id;
+
+  md->pt = ptid;
+  md->depth = ptmd->depth + 1;
+
+  if (!ptmd->fc) {
+    ptmd->fc = id;
+  } else {
+    ak_fcnstid lc = ak_fcnst_lc(t, ptid);
+    metadata* lcmd =
+      ak_sla_at(&t->slots, lc);
+    lcmd->ns = id;
+  }
+
+  t->count++;
+  return id;
 }
 
 void
@@ -125,25 +188,53 @@ ak_fcnst_root(ak_fcnst* t)
   return t->root;
 }
 
+uint32_t
+ak_fcnst_order(ak_fcnst* t, ak_fcnstid id)
+{
+  uint32_t order = 0;
+  ak_fcnstid c =
+    ak_fcnst_fc(t, ak_fcnst_pt(t, id));
+  while (c != id) {
+    order++;
+    c = ak_fcnst_ns(t, c);
+  }
+  return order;
+}
+
+uint32_t
+ak_fcnst_depth(ak_fcnst* t, ak_fcnstid id)
+{
+  return ((metadata*)ak_sla_at(&t->slots,
+                               id))
+    ->depth;
+}
+uint32_t
+ak_fcnst_ud(ak_fcnst* t, ak_fcnstid id)
+{
+  return ((metadata*)ak_sla_at(&t->slots,
+                               id))
+    ->ud;
+}
+
 ak_fcnstid
 ak_fcnst_pt(ak_fcnst* t, ak_fcnstid id)
 {
-  return ((metadata*)ak_sla_exist(&t->slots,
-                                  id))
+  return ((metadata*)ak_sla_at(&t->slots,
+                               id))
     ->pt;
 }
 ak_fcnstid
 ak_fcnst_fc(ak_fcnst* t, ak_fcnstid id)
 {
-  return ((metadata*)ak_sla_exist(&t->slots,
-                                  id))
+  return ((metadata*)ak_sla_at(&t->slots,
+                               id))
     ->fc;
 }
 ak_fcnstid
 ak_fcnst_ns(ak_fcnst* t, ak_fcnstid id)
 {
-  return ((metadata*)ak_sla_exist(&t->slots,
-                                  id))
+  return ((metadata*)ak_sla_at(&t->slots,
+                               id))
     ->ns;
 }
 
@@ -165,6 +256,20 @@ ak_fcnst_ps(ak_fcnst* t, ak_fcnstid id)
       return c;
     }
     c = cmd->ns;
+  }
+  return 0;
+}
+
+ak_fcnstid
+ak_fcnst_lc(ak_fcnst* t, ak_fcnstid ptid)
+{
+  ak_fcnstid c = ak_fcnst_fc(t, ptid);
+  while (c) {
+    ak_fcnstid next = ak_fcnst_ns(t, c);
+    if (!next) {
+      return c;
+    }
+    c = next;
   }
   return 0;
 }

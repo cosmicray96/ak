@@ -1,16 +1,20 @@
 #ifndef ak_game_stg_world_h
 #define ak_game_stg_world_h
 
+#include "ak/coll/fcnst.h"
+#include "ak/coll/hmn.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/game/comp.h"
 #include "ak/game/core.h"
 #include "ak/game/stg/comp.h"
-#include "ak/game/stg/ett.h"
+
 #include <stdbool.h>
 #include <stdint.h>
+
 typedef struct
 {
-  ak_ettstg es;
+  ak_fcnst tree;
+  ak_hmn map;
   ak_compstg* cs;
 } ak_world;
 
@@ -18,6 +22,15 @@ ak_world
 ak_world_make(ak_ett root, ak_alct alct);
 void
 ak_world_destroy(ak_world* w);
+
+ak_fcnst*
+ak_world_tree(ak_world* w);
+
+ak_ett
+ak_world_id_to_ett(ak_world* w,
+                   ak_fcnstid id);
+ak_ett
+ak_world_ett_to_id(ak_world* w, ak_ett e);
 
 uint32_t
 ak_world_ett_count(ak_world* w);
@@ -47,7 +60,7 @@ void
 ak_world_ett_remove_cb(
   ak_world* w,
   ak_ett e,
-  ak_ettstg_remove_fn remove_fn,
+  ak_fcnst_remove_fn remove_fn,
   void* remove_ctx);
 ak_ett
 ak_world_ett_parent(ak_world* w, ak_ett e);

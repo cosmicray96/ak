@@ -15,7 +15,7 @@ ak_sys_tf_make(ak_wv* wv,
   stf.alct = alct;
   stf.wv = wv;
   stf.wcb = wcb;
-  stf.it = ak_wv_itdfs_pre_make(
+  stf.it = ak_wv_itdfspre_make(
     wv, ak_wv_ett_root(wv), alct);
   stf.gmat3s =
     ak_spa_make(sizeof(ak_gmat3_t), alct);
@@ -26,7 +26,7 @@ void
 ak_sys_tf_destroy(ak_sys_tf* stf)
 {
   ak_spa_destroy(&stf->gmat3s);
-  ak_wv_itdfs_pre_destroy(&stf->it);
+  ak_wv_itdfspre_destroy(&stf->it);
   stf->wv = 0;
   ak_alct_invalidate(&stf->alct);
 }
@@ -34,16 +34,13 @@ ak_sys_tf_destroy(ak_sys_tf* stf)
 void
 ak_sys_tf_update(ak_sys_tf* stf)
 {
-  ak_wv_itdfs_pre_reset(
+  ak_wv_itdfspre_reset(
     &stf->it, ak_wv_ett_root(stf->wv));
   ak_spa_clear(&stf->gmat3s);
 
-  ak_ett e = 0;
+  ak_ett e = ak_wv_itdfspre_next(&stf->it);
   {
-    if (!ak_wv_itdfs_pre_next(&stf->it,
-                              &e)) {
-      ak_assert(false);
-    }
+    ak_assert(e);
     ak_assert(!ak_wv_ett_parent(stf->wv, e));
 
     ak_tf2d_t tf =
@@ -52,8 +49,12 @@ ak_sys_tf_update(ak_sys_tf* stf)
     ak_spa_insert(&stf->gmat3s, e, &mat);
     ak_wcb_comp_gmat3_add(stf->wcb, e, mat);
   }
-  while (
-    ak_wv_itdfs_pre_next(&stf->it, &e)) {
+
+  while (1) {
+    e = ak_wv_itdfspre_next(&stf->it);
+    if (!e) {
+      break;
+    }
 
     ak_assert(
       ak_wv_comp_tf2d_exist(stf->wv, e));

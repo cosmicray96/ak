@@ -99,8 +99,11 @@ ak_sys_script_update(ak_sys_script* s,
     ak_wv_itcomp_make(s->wv, ak_screen_e);
   ak_ett e;
   ak_script_t script = { 0 };
-  while (
-    ak_wv_itcomp_next(&it, &e, &script)) {
+  while (1) {
+    e = ak_wv_itcomp_next(&it, &script);
+    if (!e) {
+      break;
+    }
     if (!ak_hmn_exist(&s->map, e)) {
       ak_wcb wcb =
         ak_wcb_make(s->ig, s->alct);

@@ -102,8 +102,8 @@ ak_sys_ren_render(ak_sys_ren* r,
       ak_camera_t cam = { 0 };
       ak_wv_itcomp it = ak_wv_itcomp_make(
         r->wv, ak_camera_e);
-      if (!ak_wv_itcomp_next(
-            &it, &e_cam, &cam)) {
+      e_cam = ak_wv_itcomp_next(&it, &cam);
+      if (!e_cam) {
         return;
       }
     }
@@ -129,8 +129,11 @@ ak_sys_ren_render(ak_sys_ren* r,
       ak_wv_itcomp_make(r->wv, ak_mtrl_e);
     ak_mtrl_t mat = { 0 };
     ak_ett e = 0;
-    while (
-      ak_wv_itcomp_next(&it, &e, &mat)) {
+    while (1) {
+      e = ak_wv_itcomp_next(&it, &mat);
+      if (!e) {
+        break;
+      }
 
       if (!ak_hmn_exist(&r->mtrls,
                         mat.base_id)) {

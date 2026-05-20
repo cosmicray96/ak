@@ -1,9 +1,7 @@
 #ifndef ak_game_world_view_h
 #define ak_game_world_view_h
 
-#include "ak/coll/dq.h"
-#include "ak/coll/ds.h"
-#include "ak/core/mem/allocator.h"
+#include "ak/coll/fcnst.h"
 #include "ak/export.h"
 #include "ak/game/comp.h"
 #include "ak/game/core.h"
@@ -39,6 +37,57 @@ ak_wv_comp_tu(ak_wv* w,
 #include "ak/game/comp.inc"
 #undef ak_d_comp_x
 
+//===== ak_wv_itchild =====//
+typedef struct
+{
+  ak_fcnst_itchild it;
+  ak_wv* wv;
+} ak_wv_itchild;
+ak_wv_itchild
+ak_wv_itchild_make(ak_wv* wv, ak_ett pt);
+ak_ett
+ak_wv_itchild_next(ak_wv_itchild* it);
+
+//===== ak_wv_itancestor =====//
+typedef struct
+{
+  ak_fcnst_itancestor it;
+  ak_wv* wv;
+} ak_wv_itancestor;
+ak_wv_itancestor
+ak_wv_itancestor_make(ak_wv* wv, ak_ett e);
+ak_ett
+ak_wv_itancestor_next(ak_wv_itancestor* it);
+
+//===== ak_wv_itdfspost =====//
+typedef struct
+{
+  ak_fcnst_itdfspost it;
+  ak_wv* wv;
+} ak_wv_itdfspost;
+ak_wv_itdfspost
+ak_wv_itdfspost_make(ak_wv* wv, ak_ett root);
+ak_ett
+ak_wv_itdfspost_next(ak_wv_itdfspost* it);
+
+//===== ak_wv_itdfspre =====//
+typedef struct
+{
+  ak_fcnst_itdfspre it;
+  ak_wv* wv;
+} ak_wv_itdfspre;
+ak_wv_itdfspre
+ak_wv_itdfspre_make(ak_wv* wv,
+                    ak_ett root,
+                    ak_alct alct);
+void
+ak_wv_itdfspre_destroy(ak_wv_itdfspre* it);
+void
+ak_wv_itdfspre_reset(ak_wv_itdfspre* it,
+                     ak_ett root);
+ak_ett
+ak_wv_itdfspre_next(ak_wv_itdfspre* it);
+
 //===== ak_wv_itcomp =====//
 typedef struct
 {
@@ -49,81 +98,11 @@ typedef struct
 ak_ex ak_wv_itcomp
 ak_wv_itcomp_make(ak_wv* wv,
                   ak_comp_enum ce);
-ak_ex bool
+ak_ex ak_ett
 ak_wv_itcomp_next(ak_wv_itcomp* it,
-                  ak_ett* o_e,
                   void* o_comp);
 
-//===== ak_world_v_itdfs_pt =====//
-typedef struct
-{
-  ak_wv* wv;
-  ak_ett root;
-  ak_ett last;
-  bool started;
-} ak_wv_itdfs_pt;
-ak_wv_itdfs_pt
-ak_wv_itdfs_pt_make(ak_wv* v, ak_ett root);
-bool
-ak_wv_itdfs_pt_next(ak_wv_itdfs_pt* it,
-                    ak_ett* o_e);
-
-//===== ak_world_v_itdfs_pt =====//
-typedef struct
-{
-  ak_wv* wv;
-  ak_ds s;
-} ak_wv_itdfs_pre;
-ak_wv_itdfs_pre
-ak_wv_itdfs_pre_make(ak_wv* v,
-                     ak_ett root,
-                     ak_alct alct);
-void
-ak_wv_itdfs_pre_destroy(ak_wv_itdfs_pre* it);
-void
-ak_wv_itdfs_pre_reset(ak_wv_itdfs_pre* it,
-                      ak_ett root);
-
-bool
-ak_wv_itdfs_pre_next(ak_wv_itdfs_pre* it,
-                     ak_ett* o_e);
-
-//===== ak_world_v_itchild =====//
-typedef struct
-{
-  ak_wv* wv;
-  ak_dq q;
-  ak_ett pt;
-  ak_ett child;
-  bool started;
-} ak_wv_itchild;
-ak_wv_itchild
-ak_wv_itchild_make(ak_wv* wv, ak_ett pt);
-bool
-ak_wv_itchild_next(ak_wv_itchild* it,
-                   ak_ett* o_e);
-
-//===== ak_wv_itbfs =====//
-typedef struct
-{
-  ak_wv* wv;
-  ak_dq q;
-} ak_wv_itbfs;
-ak_wv_itbfs
-ak_wv_itbfs_make(ak_wv* wv,
-                 ak_ett root,
-                 ak_alct alct);
-void
-ak_wv_itbfs_destroy(ak_wv_itbfs* it);
-void
-ak_wv_itbfs_reset(ak_wv_itbfs* it,
-                  ak_ett root);
-
-bool
-ak_wv_itbfs_next(ak_wv_itbfs* it,
-                 ak_ett* o_e);
-
-//===== ak_wv_itbfs =====//
+//===== ak_wv_itettcomp =====//
 typedef struct
 {
   ak_wv* wv;
@@ -136,5 +115,35 @@ ak_wv_itettcomp_make(ak_wv* wv, ak_ett e);
 bool
 ak_wv_itettcomp_next(ak_wv_itettcomp* it,
                      ak_comp_tu* o_ctu);
+
+//===== ak_wv_itbfs =====//
+typedef struct
+{
+  ak_fcnst_itbfs it;
+  ak_wv* wv;
+} ak_wv_itbfs;
+ak_wv_itbfs
+ak_wv_itbfs_make(ak_wv* wv,
+                 ak_ett root,
+                 ak_alct alct);
+void
+ak_wv_itbfs_destroy(ak_wv_itbfs* it);
+void
+ak_wv_itbfs_reset(ak_wv_itbfs* it,
+                  ak_ett root);
+ak_ett
+ak_wv_itbfs_next(ak_wv_itbfs* it);
+
+//===== ak_wv_itleaf =====//
+typedef struct
+{
+  ak_fcnst_itleaf it;
+  ak_wv* wv;
+} ak_wv_itleaf;
+
+ak_wv_itleaf
+ak_wv_itleaf_make(ak_wv* wv, ak_ett root);
+ak_ett
+ak_wv_itleaf_next(ak_wv_itleaf* it);
 
 #endif

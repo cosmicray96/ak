@@ -1,5 +1,4 @@
 #include "ak/game/world/view.h"
-#include "ak/coll/dq.h"
 #include "ak/core/mem/ptr.h"
 #include "ak/debug.h"
 #include "ak/game/comp.h"
@@ -79,201 +78,26 @@ ak_wv_comp_tu(ak_wv* wv,
 #include "ak/game/comp.inc"
 #undef ak_d_comp_x
 
-//===== ak_wv_itcomp =====//
-//--- export ---//
-ak_wv_itcomp
-ak_wv_itcomp_make(ak_wv* wv, ak_comp_enum ce)
-{
-  ak_wv_itcomp it = { 0 };
-  it.wv = wv;
-  it.ce = ce;
-  it.idx = 0;
-  return it;
-}
-
-bool
-ak_wv_itcomp_next(ak_wv_itcomp* it,
-                  ak_ett* o_e,
-                  void* o_comp)
-{
-  if (it->idx >= ak_world_comp_count(
-                   it->wv->w, it->ce)) {
-    return false;
-  }
-  void* comp = ak_world_comp_at_idx(
-    it->wv->w, it->ce, it->idx, o_e);
-  ak_p_cpy(
-    o_comp, comp, ak_comp_sizes[it->ce]);
-  it->idx++;
-  return true;
-}
-
-//===== ak_world_v_itdfs =====//
-//--- export ---//
-ak_wv_itdfs_pt
-ak_wv_itdfs_pt_make(ak_wv* wv, ak_ett root)
-{
-  ak_wv_itdfs_pt it = { 0 };
-  it.wv = wv;
-  it.root = root;
-  it.last =
-    ak_world_ett_leftmost(wv->w, root);
-  it.started = false;
-  return it;
-}
-
-bool
-ak_wv_itdfs_pt_next(ak_wv_itdfs_pt* it,
-                    ak_ett* o_e)
-{
-  if (!it->started) {
-    it->started = true;
-    *o_e = it->last;
-    return true;
-  }
-
-  if (it->last == it->root) {
-    return false;
-  }
-
-  ak_ett ns = ak_world_ett_nextsib(it->wv->w,
-                                   it->last);
-  if (ns) {
-    it->last =
-      ak_world_ett_leftmost(it->wv->w, ns);
-  } else {
-    it->last = ak_world_ett_parent(it->wv->w,
-                                   it->last);
-  }
-
-  *o_e = it->last;
-  return true;
-}
-
-//===== ak_wv_itdfs_pre =====//
-//--- private ---//
-ak_wv_itdfs_pre
-ak_wv_itdfs_pre_make(ak_wv* wv,
-                     ak_ett root,
-                     ak_alct alct)
-{
-  ak_wv_itdfs_pre it = { 0 };
-  it.wv = wv;
-  it.s = ak_ds_make(sizeof(ak_ett), alct);
-  ak_ds_push(&it.s, &root);
-  return it;
-}
-
-void
-ak_wv_itdfs_pre_destroy(ak_wv_itdfs_pre* it)
-{
-  ak_ds_destroy(&it->s);
-}
-
-void
-ak_wv_itdfs_pre_reset(ak_wv_itdfs_pre* it,
-                      ak_ett root)
-{
-  ak_ds_clear(&it->s);
-  ak_ds_push(&it->s, &root);
-}
-
-bool
-ak_wv_itdfs_pre_next(ak_wv_itdfs_pre* it,
-                     ak_ett* o_e)
-{
-  ak_ett e = 0;
-  if (!ak_ds_pop(&it->s, &e)) {
-    return false;
-  }
-
-  ak_ett ns =
-    ak_world_ett_nextsib(it->wv->w, e);
-  if (ns) {
-    ak_ds_push(&it->s, &ns);
-  }
-
-  ak_ett fc =
-    ak_world_ett_firstchild(it->wv->w, e);
-  if (fc) {
-    ak_ds_push(&it->s, &fc);
-  }
-
-  *o_e = e;
-  return true;
-}
-
-//===== ak_world_v_itchild =====//
-//--- export ---//
+//===== ak_wv_itchild =====//
 ak_wv_itchild
-ak_wv_itchild_make(ak_wv* wv, ak_ett root)
+ak_wv_itchild_make(ak_wv* wv, ak_ett pt)
 {
-  ak_wv_itchild it = { 0 };
-  it.wv = wv;
-  it.pt = root;
-  it.child =
-    ak_world_ett_firstchild(wv->w, root);
-  it.started = false;
-  return it;
+  return (ak_wv_itchild){
+    .it = ak_fcnst_itchild_make(
+      ak_world_tree(wv->w),
+      ak_world_ett_to_id(wv->w, pt)),
+    .wv = wv
+  };
 }
 
-bool
-ak_wv_itchild_next(ak_wv_itchild* it,
-                   ak_ett* o_e)
+ak_ett
+ak_wv_itchild_next(ak_wv_itchild* it)
 {
-  if (!it->started) {
-    it->started = true;
-    *o_e = it->child;
-    return it->child != 0;
-  }
-
-  it->child = ak_world_ett_nextsib(
-    it->wv->w, it->child);
-  *o_e = it->child;
-  return it->child != 0;
-}
-
-//===== ak_wv_itbfs =====//
-//--- export ---//
-ak_wv_itbfs
-ak_wv_itbfs_make(ak_wv* wv,
-                 ak_ett root,
-                 ak_alct alct)
-{
-  ak_wv_itbfs it = { 0 };
-  it.wv = wv;
-  it.q = ak_dq_make(sizeof(ak_ett), alct);
-  ak_dq_push(&it.q, &root);
-  return it;
-}
-void
-ak_wv_itbfs_destroy(ak_wv_itbfs* it)
-{
-  ak_dq_destroy(&it->q);
-}
-
-void
-ak_wv_itbfs_reset(ak_wv_itbfs* it,
-                  ak_ett root)
-{
-  ak_dq_clear(&it->q);
-  ak_dq_push(&it->q, &root);
-}
-
-bool
-ak_wv_itbfs_next(ak_wv_itbfs* it,
-                 ak_ett* o_e)
-{
-  if (!ak_dq_pop(&it->q, o_e)) {
-    return false;
-  }
-  ak_wv_itchild cit =
-    ak_wv_itchild_make(it->wv, *o_e);
-  ak_ett c = 0;
-  while (ak_wv_itchild_next(&cit, &c)) {
-    ak_dq_push(&it->q, &c);
-  }
-  return true;
+  ak_fcnstid id =
+    ak_fcnst_itchild_next(&it->it);
+  return id ? ak_fcnst_ud(
+                ak_world_tree(it->wv->w), id)
+            : 0;
 }
 
 //===== ak_wv_itettcomp =====//
@@ -305,4 +129,179 @@ ak_wv_itettcomp_next(ak_wv_itettcomp* it,
     }
   }
   return false;
+}
+
+//===== ak_wv_itancestor =====//
+ak_wv_itancestor
+ak_wv_itancestor_make(ak_wv* wv, ak_ett e)
+{
+  return (ak_wv_itancestor){
+    .it = ak_fcnst_itancestor_make(
+      ak_world_tree(wv->w),
+      ak_world_ett_to_id(wv->w, e)),
+    .wv = wv
+  };
+}
+
+ak_ett
+ak_wv_itancestor_next(ak_wv_itancestor* it)
+{
+  ak_fcnstid id =
+    ak_fcnst_itancestor_next(&it->it);
+  return id ? ak_fcnst_ud(
+                ak_world_tree(it->wv->w), id)
+            : 0;
+}
+
+//===== ak_wv_itdfspost =====//
+ak_wv_itdfspost
+ak_wv_itdfspost_make(ak_wv* wv, ak_ett root)
+{
+  return (ak_wv_itdfspost){
+    .it = ak_fcnst_itdfspost_make(
+      ak_world_tree(wv->w),
+      ak_world_ett_to_id(wv->w, root)),
+    .wv = wv
+  };
+}
+
+ak_ett
+ak_wv_itdfspost_next(ak_wv_itdfspost* it)
+{
+  ak_fcnstid id =
+    ak_fcnst_itdfspost_next(&it->it);
+  return id ? ak_fcnst_ud(
+                ak_world_tree(it->wv->w), id)
+            : 0;
+}
+
+//===== ak_wv_itdfspre =====//
+ak_wv_itdfspre
+ak_wv_itdfspre_make(ak_wv* wv,
+                    ak_ett root,
+                    ak_alct alct)
+{
+  return (ak_wv_itdfspre){
+    .it = ak_fcnst_itdfspre_make(
+      ak_world_tree(wv->w),
+      ak_world_ett_to_id(wv->w, root),
+      alct),
+    .wv = wv
+  };
+}
+
+void
+ak_wv_itdfspre_destroy(ak_wv_itdfspre* it)
+{
+  ak_fcnst_itdfspre_destroy(&it->it);
+}
+
+void
+ak_wv_itdfspre_reset(ak_wv_itdfspre* it,
+                     ak_ett root)
+{
+  ak_fcnst_itdfspre_reset(
+    &it->it,
+    ak_world_ett_to_id(it->wv->w, root));
+}
+
+ak_ett
+ak_wv_itdfspre_next(ak_wv_itdfspre* it)
+{
+  ak_fcnstid id =
+    ak_fcnst_itdfspre_next(&it->it);
+  return id ? ak_fcnst_ud(
+                ak_world_tree(it->wv->w), id)
+            : 0;
+}
+
+//===== ak_wv_itcomp =====//
+//--- export ---//
+ak_wv_itcomp
+ak_wv_itcomp_make(ak_wv* wv, ak_comp_enum ce)
+{
+  ak_wv_itcomp it = { 0 };
+  it.wv = wv;
+  it.ce = ce;
+  it.idx = 0;
+  return it;
+}
+
+ak_ett
+ak_wv_itcomp_next(ak_wv_itcomp* it,
+                  void* o_comp)
+{
+  if (it->idx >= ak_world_comp_count(
+                   it->wv->w, it->ce)) {
+    return 0;
+  }
+  ak_ett e = 0;
+  void* comp = ak_world_comp_at_idx(
+    it->wv->w, it->ce, it->idx, &e);
+  ak_p_cpy(
+    o_comp, comp, ak_comp_sizes[it->ce]);
+  it->idx++;
+  return e;
+}
+
+//===== ak_wv_itbfs =====//
+ak_wv_itbfs
+ak_wv_itbfs_make(ak_wv* wv,
+                 ak_ett root,
+                 ak_alct alct)
+{
+  return (ak_wv_itbfs){
+    .it = ak_fcnst_itbfs_make(
+      ak_world_tree(wv->w),
+      ak_world_ett_to_id(wv->w, root),
+      alct),
+    .wv = wv
+  };
+}
+
+void
+ak_wv_itbfs_destroy(ak_wv_itbfs* it)
+{
+  ak_fcnst_itbfs_destroy(&it->it);
+}
+
+void
+ak_wv_itbfs_reset(ak_wv_itbfs* it,
+                  ak_ett root)
+{
+  ak_fcnst_itbfs_reset(
+    &it->it,
+    ak_world_ett_to_id(it->wv->w, root));
+}
+
+ak_ett
+ak_wv_itbfs_next(ak_wv_itbfs* it)
+{
+  ak_fcnstid id =
+    ak_fcnst_itbfs_next(&it->it);
+  return id ? ak_fcnst_ud(
+                ak_world_tree(it->wv->w), id)
+            : 0;
+}
+
+//===== ak_wv_itleaf =====//
+ak_wv_itleaf
+ak_wv_itleaf_make(ak_wv* wv, ak_ett root)
+{
+  return (ak_wv_itleaf){
+    .it = ak_fcnst_itleaf_make(
+      ak_world_tree(wv->w),
+      ak_world_ett_to_id(wv->w, root)),
+    .wv = wv
+  };
+}
+
+ak_ett
+ak_wv_itleaf_next(ak_wv_itleaf* it)
+{
+  ak_fcnstid id =
+    ak_fcnst_itleaf_next(&it->it);
+  return id ? ak_fcnst_ud(
+                ak_world_tree(it->wv->w), id)
+            : 0;
 }

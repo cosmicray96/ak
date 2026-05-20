@@ -46,7 +46,11 @@ ak_write_world(ak_iostream io,
   ak_wv_itbfs it =
     ak_wv_itbfs_make(&wv, root, alct);
   ak_ett e = 0;
-  while (ak_wv_itbfs_next(&it, &e)) {
+  while (1) {
+    e = ak_wv_itbfs_next(&it);
+    if (!e) {
+      break;
+    }
 
     ak_write_u32(io, e);
     ak_write_u32(io,

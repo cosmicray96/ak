@@ -1,37 +1,72 @@
 #include "ak/game/stg/world.h"
+#include "ak/coll/fcnst.h"
+#include "ak/coll/hmn.h"
 #include "ak/game/core.h"
 #include "ak/game/stg/comp.h"
-#include "ak/game/stg/ett.h"
 #include <threads.h>
 
 //===== ak_world =====//
+//--- private ---//
+static ak_fcnstid
+id_from_ett(ak_world* w, ak_ett e)
+{
+  ak_fcnstid* id = ak_hmn_at(&w->map, e);
+  return *id;
+}
+
 //--- public ---//
 ak_world
 ak_world_make(ak_ett root, ak_alct alct)
 {
   ak_world w = { 0 };
-  w.es = ak_ettstg_make(root, alct);
+  w.tree = ak_fcnst_make(alct);
+  w.map =
+    ak_hmn_make(sizeof(ak_fcnstid), alct);
   w.cs = ak_compstg_make(alct);
+
+  ak_fcnstid roott =
+    ak_fcnst_add(&w.tree, 0, root);
+  ak_hmn_insert(&w.map, root, &roott);
+
   return w;
 }
 
 void
 ak_world_destroy(ak_world* w)
 {
-  ak_ettstg_destroy(&w->es);
+  ak_hmn_destroy(&w->map);
+  ak_fcnst_destroy(&w->tree);
   ak_compstg_destroy(w->cs);
+}
+
+ak_fcnst*
+ak_world_tree(ak_world* w)
+{
+  return &w->tree;
+}
+
+ak_ett
+ak_world_id_to_ett(ak_world* w,
+                   ak_fcnstid id)
+{
+  return ak_fcnst_ud(&w->tree, id);
+}
+ak_ett
+ak_world_ett_to_id(ak_world* w, ak_ett e)
+{
+  return id_from_ett(w, e);
 }
 
 uint32_t
 ak_world_ett_count(ak_world* w)
 {
-  return ak_ettstg_count(&w->es);
+  return ak_fcnst_count(&w->tree);
 }
 
 ak_ett
 ak_world_ett_root(ak_world* w)
 {
-  return ak_ettstg_root(&w->es);
+  return ak_fcnst_root(&w->tree);
 }
 
 uint32_t
@@ -43,19 +78,21 @@ ak_world_ett_compcount(ak_world* w, ak_ett e)
 uint32_t
 ak_world_ett_depth(ak_world* w, ak_ett e)
 {
-  return ak_ettstg_depth(&w->es, e);
+  return ak_fcnst_depth(&w->tree,
+                        id_from_ett(w, e));
 }
 
 uint32_t
 ak_world_ett_order(ak_world* w, ak_ett e)
 {
-  return ak_ettstg_order(&w->es, e);
+  return ak_fcnst_order(&w->tree,
+                        id_from_ett(w, e));
 }
 
 bool
 ak_world_ett_exist(ak_world* w, ak_ett e)
 {
-  return ak_ettstg_exist(&w->es, e);
+  return ak_hmn_exist(&w->map, e);
 }
 
 void
@@ -63,7 +100,9 @@ ak_world_ett_new(ak_world* w,
                  ak_ett e,
                  ak_ett pt)
 {
-  ak_ettstg_newett(&w->es, e, pt);
+  ak_fcnstid id = ak_fcnst_add(
+    &w->tree, id_from_ett(w, pt), e);
+  ak_hmn_insert(&w->map, e, &id);
 }
 
 void
@@ -71,41 +110,49 @@ ak_world_ett_new_last(ak_world* w,
                       ak_ett e,
                       ak_ett pt)
 {
-  ak_ettstg_newett_last(&w->es, e, pt);
+  ak_fcnstid id = ak_fcnst_add_last(
+    &w->tree, id_from_ett(w, pt), e);
+  ak_hmn_insert(&w->map, e, &id);
 }
 
 void
 ak_world_ett_remove_cb(
   ak_world* w,
   ak_ett e,
-  ak_ettstg_remove_fn remove_fn,
+  ak_fcnst_remove_fn remove_fn,
   void* remove_ctx)
 {
   ak_compstg_remove_all(w->cs, e);
-  ak_ettstg_remove_cb(
-    &w->es, e, remove_fn, remove_ctx);
+  ak_fcnst_remove(&w->tree,
+                  id_from_ett(w, e),
+                  remove_fn,
+                  remove_ctx);
 }
 
 ak_ett
 ak_world_ett_parent(ak_world* w, ak_ett e)
 {
-  return ak_ettstg_parent(&w->es, e);
+  return ak_fcnst_pt(&w->tree,
+                     id_from_ett(w, e));
 }
 ak_ett
 ak_world_ett_firstchild(ak_world* w,
                         ak_ett e)
 {
-  return ak_ettstg_firstchild(&w->es, e);
+  return ak_fcnst_fc(&w->tree,
+                     id_from_ett(w, e));
 }
 ak_ett
 ak_world_ett_nextsib(ak_world* w, ak_ett e)
 {
-  return ak_ettstg_nextsib(&w->es, e);
+  return ak_fcnst_ns(&w->tree,
+                     id_from_ett(w, e));
 }
 ak_ett
 ak_world_ett_leftmost(ak_world* w, ak_ett e)
 {
-  return ak_ettstg_leftmost(&w->es, e);
+  return ak_fcnst_leftmost(
+    &w->tree, id_from_ett(w, e));
 }
 
 bool

@@ -10,7 +10,7 @@ typedef struct
   ak_alct alct;
   ak_wv* wv;
   ak_wcb* wcb;
-  ak_wv_itdfs_pre it;
+  ak_wv_itdfspre it;
   ak_spa gmat3s;
 } ak_sys_tf;
 

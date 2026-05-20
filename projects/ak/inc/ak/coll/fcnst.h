@@ -12,6 +12,7 @@ typedef struct
 {
   ak_sla slots;
   uint32_t root;
+  uint32_t count;
 } ak_fcnst;
 
 ak_fcnst
@@ -19,8 +20,20 @@ ak_fcnst_make(ak_alct alct);
 void
 ak_fcnst_destroy(ak_fcnst* t);
 
+static uint32_t
+ak_fcnst_count(ak_fcnst* t)
+{
+  return t->count;
+}
+
 ak_fcnstid
-ak_fcnst_add(ak_fcnst* t, ak_fcnstid ptid);
+ak_fcnst_add(ak_fcnst* t,
+             ak_fcnstid ptid,
+             uint32_t ud);
+ak_fcnstid
+ak_fcnst_add_last(ak_fcnst* t,
+                  ak_fcnstid ptid,
+                  uint32_t ud);
 
 typedef void (*ak_fcnst_remove_fn)(
   void* ctx,
@@ -36,6 +49,12 @@ ak_fcnst_root(ak_fcnst* t);
 bool
 ak_fcnst_exist(ak_fcnst* t, ak_fcnstid id);
 
+uint32_t
+ak_fcnst_order(ak_fcnst* t, ak_fcnstid id);
+uint32_t
+ak_fcnst_depth(ak_fcnst* t, ak_fcnstid id);
+uint32_t
+ak_fcnst_ud(ak_fcnst* t, ak_fcnstid id);
 ak_fcnstid
 ak_fcnst_pt(ak_fcnst* t, ak_fcnstid id);
 ak_fcnstid
@@ -44,6 +63,12 @@ ak_fcnstid
 ak_fcnst_ns(ak_fcnst* t, ak_fcnstid id);
 ak_fcnstid
 ak_fcnst_ps(ak_fcnst* t, ak_fcnstid id);
+ak_fcnstid
+ak_fcnst_lc(ak_fcnst* t, ak_fcnstid ptid);
+
+ak_fcnstid
+ak_fcnst_leftmost(ak_fcnst* t,
+                  ak_fcnstid id);
 
 //===== ak_fcnst_itchild =====//
 typedef struct
