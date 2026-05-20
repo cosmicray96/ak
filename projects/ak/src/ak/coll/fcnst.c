@@ -1,6 +1,5 @@
 #include "ak/coll/fcnst.h"
 #include "ak/coll/ds.h"
-#include "ak/coll/spa.h"
 #include "ak/debug.h"
 #include <stdint.h>
 
@@ -8,29 +7,29 @@
 //--- private ---//
 typedef struct
 {
-  uint32_t pt;
-  uint32_t fc;
-  uint32_t ns;
+  ak_fcnstid pt;
+  ak_fcnstid fc;
+  ak_fcnstid ns;
 } metadata;
 
 //===== ak_fcnst =====//
 //--- private ---//
 static void
 remove_rec(ak_fcnst* t,
-           uint32_t id,
+           ak_fcnstid id,
            ak_fcnst_remove_fn remove_fn,
            void* remove_ctx)
 {
-  uint32_t c = ak_fcnst_fc(t, id);
+  ak_fcnstid c = ak_fcnst_fc(t, id);
   while (c) {
-    uint32_t next = ak_fcnst_ns(t, c);
+    ak_fcnstid next = ak_fcnst_ns(t, c);
     remove_rec(t, c, remove_fn, remove_ctx);
     c = next;
   }
   if (remove_fn) {
     remove_fn(remove_ctx, id);
   }
-  ak_spa_remove(&t->spa, id);
+  ak_sla_remove(&t->slots, id);
 }
 
 //--- export ---//
@@ -38,8 +37,11 @@ ak_fcnst
 ak_fcnst_make(ak_alct alct)
 {
   ak_fcnst t = { 0 };
-  t.spa =
-    ak_spa_make(sizeof(metadata), alct);
+  t.slots =
+    ak_sla_make(sizeof(metadata), alct);
+  uint32_t id =
+    ak_sla_insert_empty(&t.slots);
+  ak_assert(id == 0);
   t.root = 0;
   return t;
 }
@@ -47,45 +49,45 @@ ak_fcnst_make(ak_alct alct)
 void
 ak_fcnst_destroy(ak_fcnst* t)
 {
-  ak_spa_destroy(&t->spa);
+  ak_sla_destroy(&t->slots);
   t->root = 0;
 }
 
-void
-ak_fcnst_add(ak_fcnst* t,
-             uint32_t id,
-             uint32_t ptid)
+ak_fcnstid
+ak_fcnst_add(ak_fcnst* t, ak_fcnstid ptid)
 {
-  ak_assert(!ak_fcnst_exist(t, id));
-
   if (ptid == 0) {
     if (t->root == 0) {
       metadata md = { 0 };
       md.pt = 0;
       md.fc = 0;
       md.ns = 0;
-      ak_spa_insert(&t->spa, id, &md);
+      ak_fcnstid id =
+        ak_sla_insert(&t->slots, &md);
       t->root = id;
-      return;
+      return id;
     }
     ak_assert(false);
   }
   ak_assert(t->root);
   ak_assert(ak_fcnst_exist(t, ptid));
 
-  metadata* ptmd = ak_spa_at(&t->spa, ptid);
-  uint32_t fc = ptmd->fc;
-  ptmd->fc = id;
   metadata md = { 0 };
   md.pt = ptid;
   md.fc = 0;
-  md.ns = fc;
-  ak_spa_insert(&t->spa, id, &md);
+  md.ns = 0;
+  ak_fcnstid id =
+    ak_sla_insert(&t->slots, &md);
+
+  metadata* ptmd =
+    ak_sla_at(&t->slots, ptid);
+  ak_fcnstid fc = ptmd->fc;
+  ptmd->fc = id;
 }
 
 void
 ak_fcnst_remove(ak_fcnst* t,
-                uint32_t id,
+                ak_fcnstid id,
                 ak_fcnst_remove_fn remove_fn,
                 void* remove_ctx)
 {
@@ -95,15 +97,16 @@ ak_fcnst_remove(ak_fcnst* t,
     return;
   }
 
-  metadata* md = ak_spa_at(&t->spa, id);
+  metadata* md = ak_sla_at(&t->slots, id);
   metadata* ptmd =
-    ak_spa_at(&t->spa, md->pt);
+    ak_sla_at(&t->slots, md->pt);
 
   if (ptmd->fc == id) {
     ptmd->fc = md->ns;
   } else {
-    uint32_t ps = ak_fcnst_ps(t, id);
-    metadata* psmd = ak_spa_at(&t->spa, ps);
+    ak_fcnstid ps = ak_fcnst_ps(t, id);
+    metadata* psmd =
+      ak_sla_at(&t->slots, ps);
     psmd->ns = md->ns;
   }
 
@@ -111,50 +114,53 @@ ak_fcnst_remove(ak_fcnst* t,
 }
 
 bool
-ak_fcnst_exist(ak_fcnst* t, uint32_t id)
+ak_fcnst_exist(ak_fcnst* t, ak_fcnstid id)
 {
-  return ak_spa_exist(&t->spa, id);
+  return ak_sla_exist(&t->slots, id);
 }
 
-uint32_t
+ak_fcnstid
 ak_fcnst_root(ak_fcnst* t)
 {
   return t->root;
 }
 
-uint32_t
-ak_fcnst_pt(ak_fcnst* t, uint32_t id)
+ak_fcnstid
+ak_fcnst_pt(ak_fcnst* t, ak_fcnstid id)
 {
-  return ((metadata*)ak_spa_at(&t->spa, id))
+  return ((metadata*)ak_sla_exist(&t->slots,
+                                  id))
     ->pt;
 }
-uint32_t
-ak_fcnst_fc(ak_fcnst* t, uint32_t id)
+ak_fcnstid
+ak_fcnst_fc(ak_fcnst* t, ak_fcnstid id)
 {
-  return ((metadata*)ak_spa_at(&t->spa, id))
+  return ((metadata*)ak_sla_exist(&t->slots,
+                                  id))
     ->fc;
 }
-uint32_t
-ak_fcnst_ns(ak_fcnst* t, uint32_t id)
+ak_fcnstid
+ak_fcnst_ns(ak_fcnst* t, ak_fcnstid id)
 {
-  return ((metadata*)ak_spa_at(&t->spa, id))
+  return ((metadata*)ak_sla_exist(&t->slots,
+                                  id))
     ->ns;
 }
 
-uint32_t
-ak_fcnst_ps(ak_fcnst* t, uint32_t id)
+ak_fcnstid
+ak_fcnst_ps(ak_fcnst* t, ak_fcnstid id)
 {
-  metadata* md = ak_spa_at(&t->spa, id);
+  metadata* md = ak_sla_at(&t->slots, id);
   metadata* ptmd =
-    ak_spa_at(&t->spa, md->pt);
-  uint32_t c = ptmd->fc;
+    ak_sla_at(&t->slots, md->pt);
+  ak_fcnstid c = ptmd->fc;
 
   if (c == id) {
     return 0;
   }
 
   while (c) {
-    metadata* cmd = ak_spa_at(&t->spa, c);
+    metadata* cmd = ak_sla_at(&t->slots, c);
     if (cmd->ns == id) {
       return c;
     }
@@ -163,10 +169,10 @@ ak_fcnst_ps(ak_fcnst* t, uint32_t id)
   return 0;
 }
 
-uint32_t
-ak_fcnst_leftmost(ak_fcnst* t, uint32_t id)
+ak_fcnstid
+ak_fcnst_leftmost(ak_fcnst* t, ak_fcnstid id)
 {
-  uint32_t c = ak_fcnst_fc(t, id);
+  ak_fcnstid c = ak_fcnst_fc(t, id);
   while (c) {
     id = c;
     c = ak_fcnst_fc(t, id);
@@ -178,7 +184,7 @@ ak_fcnst_leftmost(ak_fcnst* t, uint32_t id)
 //--- export ---//
 ak_fcnst_itchild
 ak_fcnst_itchild_make(ak_fcnst* t,
-                      uint32_t pt)
+                      ak_fcnstid pt)
 {
   ak_fcnst_itchild it = { 0 };
   it.t = t;
@@ -187,7 +193,7 @@ ak_fcnst_itchild_make(ak_fcnst* t,
   return it;
 }
 
-uint32_t
+ak_fcnstid
 ak_fcnst_itchild_next(ak_fcnst_itchild* it)
 {
   if (!it->started) {
@@ -203,7 +209,7 @@ ak_fcnst_itchild_next(ak_fcnst_itchild* it)
 //--- export ---//
 ak_fcnst_itancestor
 ak_fcnst_itancestor_make(ak_fcnst* t,
-                         uint32_t id)
+                         ak_fcnstid id)
 {
   ak_fcnst_itancestor it = { 0 };
   it.t = t;
@@ -211,14 +217,14 @@ ak_fcnst_itancestor_make(ak_fcnst* t,
   return it;
 }
 
-uint32_t
+ak_fcnstid
 ak_fcnst_itancestor_next(
   ak_fcnst_itancestor* it)
 {
   if (!it->id) {
     return 0;
   }
-  uint32_t id = it->id;
+  ak_fcnstid id = it->id;
   it->id = ak_fcnst_pt(it->t, it->id);
   return id;
 }
@@ -227,7 +233,7 @@ ak_fcnst_itancestor_next(
 //--- export ---//
 ak_fcnst_itdfspost
 ak_fcnst_itdfspost_make(ak_fcnst* t,
-                        uint32_t root)
+                        ak_fcnstid root)
 {
   ak_fcnst_itdfspost it = { 0 };
   it.t = t;
@@ -237,7 +243,7 @@ ak_fcnst_itdfspost_make(ak_fcnst* t,
   return it;
 }
 
-uint32_t
+ak_fcnstid
 ak_fcnst_itdfspost_next(
   ak_fcnst_itdfspost* it)
 {
@@ -250,7 +256,8 @@ ak_fcnst_itdfspost_next(
     return 0;
   }
 
-  uint32_t ns = ak_fcnst_ns(it->t, it->last);
+  ak_fcnstid ns =
+    ak_fcnst_ns(it->t, it->last);
   if (ns) {
     it->last = ak_fcnst_leftmost(it->t, ns);
   } else {
@@ -263,12 +270,13 @@ ak_fcnst_itdfspost_next(
 //--- export ---//
 ak_fcnst_itdfspre
 ak_fcnst_itdfspre_make(ak_fcnst* t,
-                       uint32_t root,
+                       ak_fcnstid root,
                        ak_alct alct)
 {
   ak_fcnst_itdfspre it = { 0 };
   it.t = t;
-  it.s = ak_ds_make(sizeof(uint32_t), alct);
+  it.s =
+    ak_ds_make(sizeof(ak_fcnstid), alct);
   ak_ds_push(&it.s, &root);
   return it;
 }
@@ -284,26 +292,26 @@ ak_fcnst_itdfspre_destroy(
 void
 ak_fcnst_itdfspre_reset(
   ak_fcnst_itdfspre* it,
-  uint32_t root)
+  ak_fcnstid root)
 {
   ak_ds_clear(&it->s);
   ak_ds_push(&it->s, &root);
 }
 
-uint32_t
+ak_fcnstid
 ak_fcnst_itdfspre_next(ak_fcnst_itdfspre* it)
 {
-  uint32_t id = 0;
+  ak_fcnstid id = 0;
   if (!ak_ds_pop(&it->s, &id)) {
     return 0;
   }
 
-  uint32_t ns = ak_fcnst_ns(it->t, id);
+  ak_fcnstid ns = ak_fcnst_ns(it->t, id);
   if (ns) {
     ak_ds_push(&it->s, &ns);
   }
 
-  uint32_t fc = ak_fcnst_fc(it->t, id);
+  ak_fcnstid fc = ak_fcnst_fc(it->t, id);
   if (fc) {
     ak_ds_push(&it->s, &fc);
   }
@@ -315,12 +323,13 @@ ak_fcnst_itdfspre_next(ak_fcnst_itdfspre* it)
 //--- export ---//
 ak_fcnst_itbfs
 ak_fcnst_itbfs_make(ak_fcnst* t,
-                    uint32_t root,
+                    ak_fcnstid root,
                     ak_alct alct)
 {
   ak_fcnst_itbfs it = { 0 };
   it.t = t;
-  it.q = ak_dq_make(sizeof(uint32_t), alct);
+  it.q =
+    ak_dq_make(sizeof(ak_fcnstid), alct);
   ak_dq_push(&it.q, &root);
   return it;
 }
@@ -334,23 +343,24 @@ ak_fcnst_itbfs_destroy(ak_fcnst_itbfs* it)
 
 void
 ak_fcnst_itbfs_reset(ak_fcnst_itbfs* it,
-                     uint32_t root)
+                     ak_fcnstid root)
 {
   ak_dq_clear(&it->q);
   ak_dq_push(&it->q, &root);
 }
 
-uint32_t
+ak_fcnstid
 ak_fcnst_itbfs_next(ak_fcnst_itbfs* it)
 {
-  uint32_t id = 0;
+  ak_fcnstid id = 0;
   if (!ak_dq_pop(&it->q, &id)) {
     return 0;
   }
   ak_fcnst_itchild cit =
     ak_fcnst_itchild_make(it->t, id);
   while (true) {
-    uint32_t c = ak_fcnst_itchild_next(&cit);
+    ak_fcnstid c =
+      ak_fcnst_itchild_next(&cit);
     if (!c) {
       break;
     }
@@ -364,7 +374,7 @@ ak_fcnst_itbfs_next(ak_fcnst_itbfs* it)
 //--- export ---//
 ak_fcnst_itleaf
 ak_fcnst_itleaf_make(ak_fcnst* t,
-                     uint32_t root)
+                     ak_fcnstid root)
 {
   ak_fcnst_itleaf it = { 0 };
   it.dfsit =
@@ -372,11 +382,11 @@ ak_fcnst_itleaf_make(ak_fcnst* t,
   return it;
 }
 
-uint32_t
+ak_fcnstid
 ak_fcnst_itleaf_next(ak_fcnst_itleaf* it)
 {
   while (true) {
-    uint32_t id =
+    ak_fcnstid id =
       ak_fcnst_itdfspost_next(&it->dfsit);
     if (!id) {
       return 0;

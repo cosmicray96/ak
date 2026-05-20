@@ -22,6 +22,8 @@ ak_sla_destroy(ak_sla* s);
 
 ak_ex void*
 ak_sla_at(ak_sla* s, uint32_t idx);
+ak_ex bool
+ak_sla_exist(ak_sla* s, uint32_t idx);
 
 ak_ex uint32_t
 ak_sla_insert_empty(ak_sla* s);
