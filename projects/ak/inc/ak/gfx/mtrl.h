@@ -33,7 +33,6 @@ typedef struct
 
 typedef struct
 {
-  ak_mtrl_enum me;
   ak_vec4 col;
   ak_vec2 uv_min;
   ak_vec2 uv_max;
@@ -41,6 +40,7 @@ typedef struct
 
 typedef struct
 {
+  ak_mtrl_enum me;
   ak_tex tex;
 } ak_mtrl_basedata;
 

@@ -200,7 +200,7 @@ ak_write_mtrl_base(ak_iostream io,
                    ak_mtrl_base_t mtrl_base)
 {
   ak_assert(false);
-  ak_write_i32(io, mtrl_base.me);
+  ak_write_i32(io, mtrl_base.data.me);
 }
 
 ak_mtrl_base_t
@@ -208,7 +208,7 @@ ak_read_mtrl_base(ak_iostream io)
 {
   ak_assert(false);
   ak_mtrl_base_t mb = { 0 };
-  mb.me = ak_read_i32(io);
+  mb.data.me = ak_read_i32(io);
   return mb;
 }
 

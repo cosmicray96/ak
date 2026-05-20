@@ -169,7 +169,7 @@ ak_sys_ren_render(ak_sys_ren* r,
         ak_wv_comp_mtrl_base(r->wv, base_id);
 
       ak_mtrl m =
-        ak_mtrlstg_at(r->ms, base_t.me);
+        ak_mtrlstg_at(r->ms, base_t.data.me);
       m.call_begin(
         m.ctx, &base_t.data, &vp, r->time);
 

@@ -115,7 +115,7 @@ push_child(ak_lworld* l,
   ak_ett mbase =
     ak_wcb_ett_new(&l->wcb, root);
   ak_mtrl_base_t base = { 0 };
-  base.me = ak_mtrl_tex_e;
+  base.data.me = ak_mtrl_tex_e;
   base.data.tex =
     (ak_tex){ .gid = gid,
               .uv_type = ak_uv_repeat,
@@ -126,7 +126,6 @@ push_child(ak_lworld* l,
 
   ak_mtrl_t mat = { 0 };
   mat.base_id = mbase;
-  mat.data.me = ak_mtrl_tex_e;
   mat.data.uv_min =
     ak_vec2_make(ak_fx_f(0), ak_fx_f(0));
   mat.data.uv_max =

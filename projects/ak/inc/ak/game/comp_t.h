@@ -35,7 +35,6 @@ typedef struct
 
 typedef struct
 {
-  ak_mtrl_enum me;
   ak_mtrl_basedata data;
 } ak_mtrl_base_t;
 
