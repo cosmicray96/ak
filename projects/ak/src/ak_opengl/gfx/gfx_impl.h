@@ -5,6 +5,11 @@
 
 #include <glad/glad.h>
 
+typedef struct
+{
+  float u0, v0, u1, v1;
+} ak_opengl_quad_uv;
+
 GLuint
 program_make(const char* fs_src,
              const char* vs_src);

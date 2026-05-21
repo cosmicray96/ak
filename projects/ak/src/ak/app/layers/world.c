@@ -128,8 +128,8 @@ push_child(ak_lworld* l,
   mat.base_id = mbase;
   mat.data.uv_min =
     ak_vec2_make(ak_fx_f(0), ak_fx_f(0));
-  mat.data.uv_max =
-    ak_vec2_make(ak_fx_f(1), ak_fx_f(1));
+  mat.data.uv_max = ak_vec2_make(
+    ak_fx_f(1.0f), ak_fx_f(1.0f));
   ak_wcb_comp_mtrl_add(&l->wcb, e, mat);
 }
 

@@ -22,28 +22,6 @@ typedef struct
   bool used;
 } map_item;
 
-//--- private ---//
-static ak_mat3
-get_vp(const ak_mat3* cam,
-       uint32_t w,
-       uint32_t h)
-{
-  ak_fx pixelsize = ak_fx_f(1.0f);
-  ak_mat3 cimat3x3 = ak_mat3_inv_fast(cam);
-  ak_mat3 proj = ak_mat3_identity();
-  {
-    ak_fx sx = ak_fxdiv(
-      ak_fxmul(pixelsize, ak_fx_f(2.0f)),
-      ak_fx_f(w));
-    ak_fx sy = ak_fxdiv(
-      ak_fxmul(pixelsize, ak_fx_f(-2.0f)),
-      ak_fx_f(h));
-    proj.m[0][0] = sx;
-    proj.m[1][1] = sy;
-  }
-  return ak_mat3_mul(&proj, &cimat3x3);
-}
-
 //--- internal ---//
 ak_sys_ren
 ak_sys_ren_make(ak_gfx* gf,
@@ -111,7 +89,10 @@ ak_sys_ren_render(ak_sys_ren* r,
     }
     ak_mat3 cmat =
       ak_wv_comp_gmat3(r->wv, e_cam);
-    vp = get_vp(&cmat, screen.w, screen.h);
+    vp = ak_gfx_vp_make(&cmat,
+                        screen.w,
+                        screen.h,
+                        ak_fx_f(1.0));
   }
 
   {

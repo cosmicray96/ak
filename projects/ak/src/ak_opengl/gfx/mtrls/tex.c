@@ -4,6 +4,7 @@
 #include "ak/debug.h"
 #include "ak/gfx/core.h"
 #include "ak/gfx/mtrl_itn.h"
+#include "ak_opengl/gfx/convert.h"
 #include "ak_opengl/gfx/gfx_impl.h"
 #include "ak_opengl/gfx/gresman_impl.h"
 
@@ -47,8 +48,9 @@
         vi_uv.x, vi_uv.z, vi_cor.x + 0.5),  \
       mix(                                  \
         vi_uv.y, vi_uv.w, vi_cor.y + 0.5)); \
-    vo_uv.x += u_t;                         \
   }
+//vo_uv.x += u_t;                         \
+
 static const char* vs_src =
   "#version 330 core\n" s_str(s_vert);
 
@@ -69,7 +71,7 @@ static const char* fs_src =
 typedef struct
 {
   float m3x3[9];
-  float u0, v0, u1, v1;
+  ak_opengl_quad_uv uv;
 } quad;
 
 typedef struct ak_mtrl_tex ak_mtrl_tex;
@@ -161,7 +163,7 @@ ak_mtrl_tex_make(ak_gfx* g,
     GL_FLOAT,
     GL_FALSE,
     sizeof(quad),
-    (void*)offsetof(quad, u0));
+    (void*)offsetof(quad, uv));
   glEnableVertexAttribArray(4);
   glVertexAttribDivisor(4, 1);
 
@@ -274,13 +276,9 @@ ak_mtrl_tex_pushquad(
   ak_mtrl_tex* m = mtrl;
   ak_assert(m->call_begin);
 
-  quad q = { .u0 = ak_fx_to_f(qd->uv_min.x),
-             .v0 = ak_fx_to_f(qd->uv_min.y),
-             .u1 = ak_fx_to_f(qd->uv_max.x),
-             .v1 =
-               ak_fx_to_f(qd->uv_max.y) };
+  quad q = { .uv = ak_opengl_convert_uv(
+               qd->uv_min, qd->uv_max) };
 
   ak_mat3_to_f(gmat3, q.m3x3);
-
   ak_gfx_pushquad(m->g, &q);
 }

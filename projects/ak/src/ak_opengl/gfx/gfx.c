@@ -1,4 +1,6 @@
 #include "ak/gfx/gfx.h"
+#include "ak/core/math/fixed.h"
+#include "ak/core/math/mat3x3.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/core/mem/ptr.h"
 #include "ak/debug.h"
@@ -254,4 +256,25 @@ void
 ak_gfx_frame_end(ak_gfx* g)
 {
   ak_plat_base_swapbuffer(g->pb);
+}
+
+ak_mat3
+ak_gfx_vp_make(const ak_mat3* cam,
+               uint32_t w,
+               uint32_t h,
+               ak_fx pixelsize)
+{
+  ak_mat3 cimat3x3 = ak_mat3_inv_fast(cam);
+  ak_mat3 proj = ak_mat3_identity();
+  {
+    ak_fx sx = ak_fxdiv(
+      ak_fxmul(pixelsize, ak_fx_f(2.0f)),
+      ak_fx_f(w));
+    ak_fx sy = ak_fxdiv(
+      ak_fxmul(pixelsize, ak_fx_f(-2.0f)),
+      ak_fx_f(h));
+    proj.m[0][0] = sx;
+    proj.m[1][1] = sy;
+  }
+  return ak_mat3_mul(&proj, &cimat3x3);
 }

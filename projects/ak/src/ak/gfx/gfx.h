@@ -1,6 +1,7 @@
 #ifndef ak_gfx_gfx_h
 #define ak_gfx_gfx_h
 
+#include "ak/core/math/mat3x3.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/gfx/core.h"
 #include "ak/platform/plat_base.h"
@@ -21,5 +22,11 @@ void
 ak_gfx_frame_begin(ak_gfx* g);
 void
 ak_gfx_frame_end(ak_gfx* g);
+
+ak_mat3
+ak_gfx_vp_make(const ak_mat3* cam,
+               uint32_t w,
+               uint32_t h,
+               ak_fx pixelsize);
 
 #endif

@@ -30,6 +30,12 @@ ak_fx_to_f(ak_fx fx)
   return (float)fx / (float)ak_s_fx32_fm;
 }
 
+static int32_t
+ak_fx_to_i(ak_fx fx)
+{
+  return fx >> ak_s_fx32_fbits;
+}
+
 static ak_fx
 ak_fxadd(ak_fx fx1, ak_fx fx2)
 {
@@ -71,10 +77,10 @@ ak_fx_abs(ak_fx fx)
   }
 }
 
-static int32_t
-ak_fx_whole(ak_fx fx)
+static ak_fx
+ak_fx_round(ak_fx fx)
 {
-  return fx >> ak_s_fx32_fbits;
+  return ak_fx_i(ak_fx_to_i(fx));
 }
 
 static ak_fx
@@ -82,6 +88,21 @@ ak_fx_frac(ak_fx fx)
 {
   fx = ak_fx_abs(fx);
   return fx & ((1 << ak_s_fx32_fbits) - 1);
+}
+
+static ak_fx
+ak_fx_floor(ak_fx fx)
+{
+  return fx & ~((1 << ak_s_fx32_fbits) - 1);
+}
+
+static ak_fx
+ak_fx_ceil(ak_fx fx)
+{
+  ak_fx frac = ak_fx_frac(fx);
+  if (frac == 0)
+    return fx;
+  return ak_fx_floor(fx) + ak_fx_i(1);
 }
 
 static ak_fx
