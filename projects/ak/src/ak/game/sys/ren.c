@@ -12,7 +12,6 @@
 #include "ak/gfx/core.h"
 #include "ak/gfx/gfx.h"
 #include "ak/gfx/mtrl/stg.h"
-#include "ak/gfx/mtrl_itn.h"
 #include "ak/os/time.h"
 #include <stdint.h>
 
@@ -62,12 +61,15 @@ ak_sys_ren_make(ak_gfx* gf,
   r.free_mtrls =
     ak_da_make(sizeof(ak_ett), alct);
   r.time = ak_fx_f(0);
+  r.gcb = ak_gcb_make(r.ms, alct);
+
   return r;
 }
 
 void
 ak_sys_ren_destroy(ak_sys_ren* r)
 {
+  ak_gcb_destroy(&r->gcb);
   ak_da_destroy(&r->free_mtrls);
 
   ak_hmn_iter it =
@@ -152,7 +154,7 @@ ak_sys_ren_render(ak_sys_ren* r,
     }
   }
 
-  ak_gfx_frame_begin(r->gf);
+  ak_gcb_begin(&r->gcb, &vp, r->time);
   {
     ak_hmn_iter it =
       ak_hmn_iter_make(&r->mtrls);
@@ -168,10 +170,8 @@ ak_sys_ren_render(ak_sys_ren* r,
       ak_mtrl_base_t base_t =
         ak_wv_comp_mtrl_base(r->wv, base_id);
 
-      ak_mtrl m =
-        ak_mtrlstg_at(r->ms, base_t.data.me);
-      m.call_begin(
-        m.ctx, &base_t.data, &vp, r->time);
+      ak_gcb_push_mtrl(&r->gcb,
+                       &base_t.data);
 
       uint32_t count = ak_da_count(&mi->da);
       for (uint32_t i = 0; i < count; i++) {
@@ -183,14 +183,12 @@ ak_sys_ren_render(ak_sys_ren* r,
         ak_mtrl_t mat =
           ak_wv_comp_mtrl(r->wv, e);
 
-        m.push_quad(
-          m.ctx, &mat.data, &gmat3x3);
+        ak_gcb_push_quad(
+          &r->gcb, &mat.data, &gmat3x3);
       }
-
-      m.call_end(m.ctx);
     }
   }
-  ak_gfx_frame_end(r->gf);
+  ak_gcb_flush(&r->gcb, r->gf);
 
   {
     ak_da_clear(&r->free_mtrls);

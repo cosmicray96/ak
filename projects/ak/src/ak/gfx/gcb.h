@@ -11,7 +11,6 @@
 
 typedef struct
 {
-  ak_gfx* gfx;
   ak_mtrlstg* ms;
   ak_da mtrls;
   ak_da quads;
@@ -20,9 +19,7 @@ typedef struct
 } ak_gcb;
 
 ak_gcb
-ak_gcb_make(ak_gfx* gfx,
-            ak_mtrlstg* ms,
-            ak_alct alct);
+ak_gcb_make(ak_mtrlstg* ms, ak_alct alct);
 void
 ak_gcb_destroy(ak_gcb* gcb);
 
@@ -32,7 +29,7 @@ ak_gcb_begin(ak_gcb* gcb,
              ak_fx time);
 
 void
-ak_gcb_flush(ak_gcb* gcb);
+ak_gcb_flush(ak_gcb* gcb, ak_gfx* gfx);
 
 void
 ak_gcb_push_mtrl(ak_gcb* gcb,

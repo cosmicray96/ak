@@ -1,6 +1,7 @@
 #include "ak/gfx/gcb.h"
 #include "ak/core/math/fixed.h"
 #include "ak/core/math/mat3x3.h"
+#include "ak/gfx/gfx.h"
 #include "ak/gfx/mtrl/stg.h"
 #include "ak/gfx/mtrl_itn.h"
 
@@ -21,12 +22,9 @@ typedef struct
 
 //--- internal ---//
 ak_gcb
-ak_gcb_make(ak_gfx* gfx,
-            ak_mtrlstg* ms,
-            ak_alct alct)
+ak_gcb_make(ak_mtrlstg* ms, ak_alct alct)
 {
   ak_gcb gcb = { 0 };
-  gcb.gfx = gfx;
   gcb.ms = ms;
   gcb.quads =
     ak_da_make(sizeof(quad_item), alct);
@@ -41,7 +39,6 @@ ak_gcb_destroy(ak_gcb* gcb)
 {
   ak_da_destroy(&gcb->mtrls);
   ak_da_destroy(&gcb->quads);
-  gcb->gfx = 0;
   gcb->ms = 0;
 }
 
@@ -57,7 +54,7 @@ ak_gcb_begin(ak_gcb* gcb,
 }
 
 void
-ak_gcb_flush(ak_gcb* gcb)
+ak_gcb_flush(ak_gcb* gcb, ak_gfx* gfx)
 {
   uint32_t mcount = ak_da_count(&gcb->mtrls);
   {
@@ -71,6 +68,7 @@ ak_gcb_flush(ak_gcb* gcb)
     }
   }
 
+  ak_gfx_frame_begin(gfx);
   for (uint32_t i = 0; i < mcount; i++) {
     mtrl_item* mi =
       ak_da_at_impl(&gcb->mtrls, i);
@@ -89,6 +87,8 @@ ak_gcb_flush(ak_gcb* gcb)
 
     m.call_end(m.ctx);
   }
+
+  ak_gfx_frame_end(gfx);
 }
 
 void

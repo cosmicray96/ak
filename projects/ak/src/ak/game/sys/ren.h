@@ -7,6 +7,7 @@
 #include "ak/core/mem/allocator.h"
 #include "ak/game/world/view.h"
 #include "ak/gfx/core.h"
+#include "ak/gfx/gcb.h"
 #include "ak/gfx/mtrl/stg.h"
 #include "ak/os/time.h"
 
@@ -16,6 +17,7 @@ typedef struct
   ak_gfx* gf;
   ak_wv* wv;
   ak_mtrlstg* ms;
+  ak_gcb gcb;
   ak_hmn mtrls;
   ak_da free_mtrls;
   ak_fx time;
