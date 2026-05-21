@@ -23,6 +23,15 @@ ak_gfx_frame_begin(ak_gfx* g);
 void
 ak_gfx_frame_end(ak_gfx* g);
 
+void
+ak_gfx_scissor_reset(ak_gfx* gfx);
+void
+ak_gfx_scissor_set(ak_gfx* gfx,
+                   int32_t x,
+                   int32_t y,
+                   uint32_t w,
+                   uint32_t h);
+
 ak_mat3
 ak_gfx_vp_make(const ak_mat3* cam,
                uint32_t w,

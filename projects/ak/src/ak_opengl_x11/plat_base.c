@@ -257,6 +257,17 @@ ak_plat_ren_wm_delete(ak_plat_base* pr)
   return pr->wm_delete;
 }
 
+uint32_t
+ak_plat_base_init_width(ak_plat_base* pr)
+{
+  return s_init_width;
+}
+uint32_t
+ak_plat_base_init_height(ak_plat_base* pr)
+{
+  return s_init_height;
+}
+
 int32_t
 ak_plat_ren_init_width(ak_plat_base* pr)
 {

@@ -10,8 +10,6 @@
 typedef struct
 {
   ak_mtrl_basedata bd;
-  uint32_t offset_begin;
-  uint32_t offset_end;
 } mtrl_item;
 
 typedef struct
@@ -19,6 +17,30 @@ typedef struct
   ak_mtrl_quaddata qd;
   ak_mat3 gmat;
 } quad_item;
+typedef struct
+{
+  int32_t x;
+  int32_t y;
+  uint32_t w;
+  uint32_t h;
+} scissor_item;
+typedef enum
+{
+  cmdtype_quad,
+  cmdtype_mtrl,
+  cmdtype_scissor,
+  cmdtype_scissor_reset,
+} cmdtype;
+typedef struct
+{
+  cmdtype type;
+  union
+  {
+    mtrl_item mi;
+    quad_item qi;
+    scissor_item si;
+  };
+} cmd_item;
 
 //--- internal ---//
 ak_gcb
@@ -26,19 +48,15 @@ ak_gcb_make(ak_mtrlstg* ms, ak_alct alct)
 {
   ak_gcb gcb = { 0 };
   gcb.ms = ms;
-  gcb.quads =
-    ak_da_make(sizeof(quad_item), alct);
-  gcb.mtrls =
-    ak_da_make(sizeof(mtrl_item), alct);
-
+  gcb.cmds =
+    ak_da_make(sizeof(cmd_item), alct);
   return gcb;
 }
 
 void
 ak_gcb_destroy(ak_gcb* gcb)
 {
-  ak_da_destroy(&gcb->mtrls);
-  ak_da_destroy(&gcb->quads);
+  ak_da_destroy(&gcb->cmds);
   gcb->ms = 0;
 }
 
@@ -47,8 +65,7 @@ ak_gcb_begin(ak_gcb* gcb,
              const ak_mat3* vp,
              ak_fx time)
 {
-  ak_da_clear(&gcb->mtrls);
-  ak_da_clear(&gcb->quads);
+  ak_da_clear(&gcb->cmds);
   gcb->vp = *vp;
   gcb->time = time;
 }
@@ -56,35 +73,54 @@ ak_gcb_begin(ak_gcb* gcb,
 void
 ak_gcb_flush(ak_gcb* gcb, ak_gfx* gfx)
 {
-  uint32_t mcount = ak_da_count(&gcb->mtrls);
-  {
-    if (mcount > 0) {
-      mtrl_item* mi = ak_da_at_impl(
-        &gcb->mtrls, mcount - 1);
-      mi->offset_end =
-        ak_da_count(&gcb->quads);
-    } else {
-      return;
-    }
-  }
 
   ak_gfx_frame_begin(gfx);
-  for (uint32_t i = 0; i < mcount; i++) {
-    mtrl_item* mi =
-      ak_da_at_impl(&gcb->mtrls, i);
-    ak_mtrl m =
-      ak_mtrlstg_at(gcb->ms, mi->bd.me);
-    m.call_begin(
-      m.ctx, &mi->bd, &gcb->vp, gcb->time);
+  uint32_t count = ak_da_count(&gcb->cmds);
+  ak_mtrl m = { 0 };
+  bool has_mtrl = false;
+  for (uint32_t i = 0; i < count; i++) {
+    cmd_item* ci =
+      ak_da_at_impl(&gcb->cmds, i);
 
-    uint32_t cur_quad = mi->offset_begin;
-    while (cur_quad < mi->offset_end) {
-      quad_item* qi =
-        ak_da_at_impl(&gcb->quads, cur_quad);
-      m.push_quad(m.ctx, &qi->qd, &qi->gmat);
-      cur_quad++;
+    switch (ci->type) {
+      case cmdtype_mtrl: {
+        if (has_mtrl) {
+          m.call_end(m.ctx);
+        }
+        m = ak_mtrlstg_at(gcb->ms,
+                          ci->mi.bd.me);
+        m.call_begin(m.ctx,
+                     &ci->mi.bd,
+                     &gcb->vp,
+                     gcb->time);
+        has_mtrl = true;
+        break;
+      }
+      case cmdtype_quad: {
+        ak_assert(has_mtrl);
+        m.push_quad(
+          m.ctx, &ci->qi.qd, &ci->qi.gmat);
+        break;
+      }
+      case cmdtype_scissor: {
+        ak_gfx_scissor_set(gfx,
+                           ci->si.x,
+                           ci->si.y,
+                           ci->si.w,
+                           ci->si.h);
+        break;
+      }
+      case cmdtype_scissor_reset: {
+        ak_gfx_scissor_reset(gfx);
+        break;
+      }
+      default: {
+        ak_assert(false);
+        break;
+      }
     }
-
+  }
+  if (has_mtrl) {
     m.call_end(m.ctx);
   }
 
@@ -95,19 +131,10 @@ void
 ak_gcb_push_mtrl(ak_gcb* gcb,
                  const ak_mtrl_basedata* bd)
 {
-  if (ak_da_count(&gcb->mtrls) > 0) {
-    mtrl_item* mi = ak_da_at_impl(
-      &gcb->mtrls,
-      ak_da_count(&gcb->mtrls) - 1);
-    mi->offset_end =
-      ak_da_count(&gcb->quads);
-  }
-  mtrl_item item =
-    (mtrl_item){ .bd = *bd,
-                 .offset_begin =
-                   ak_da_count(&gcb->quads),
-                 .offset_end = 0 };
-  ak_da_pushback(&gcb->mtrls, &item);
+
+  cmd_item ci = { .type = cmdtype_mtrl,
+                  .mi = { .bd = *bd } };
+  ak_da_pushback(&gcb->cmds, &ci);
 }
 
 void
@@ -115,8 +142,30 @@ ak_gcb_push_quad(ak_gcb* gcb,
                  const ak_mtrl_quaddata* qd,
                  const ak_mat3* gmat)
 {
-  ak_assert(ak_da_count(&gcb->mtrls) > 0);
-  quad_item qi = { .qd = *qd,
-                   .gmat = *gmat };
-  ak_da_pushback(&gcb->quads, &qi);
+  cmd_item ci = { .type = cmdtype_quad,
+                  .qi = { .qd = *qd,
+                          .gmat = *gmat } };
+  ak_da_pushback(&gcb->cmds, &ci);
+}
+
+void
+ak_gcb_push_scissor_reset(ak_gcb* gcb)
+{
+  cmd_item ci = {
+    .type = cmdtype_scissor_reset,
+  };
+  ak_da_pushback(&gcb->cmds, &ci);
+}
+void
+ak_gcb_push_scissor(ak_gcb* gcb,
+                    int32_t x,
+                    int32_t y,
+                    uint32_t w,
+                    uint32_t h)
+{
+  cmd_item ci = {
+    .type = cmdtype_scissor,
+    .si = { .x = x, .y = y, .w = w, .h = h }
+  };
+  ak_da_pushback(&gcb->cmds, &ci);
 }

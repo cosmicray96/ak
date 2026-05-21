@@ -6,6 +6,7 @@
 #include "ak/debug.h"
 #include "ak/gfx/core.h"
 
+#include "ak/platform/plat.h"
 #include "ak/platform/plat_base.h"
 #include "ak_opengl/gfx/gfx_impl.h"
 
@@ -35,6 +36,9 @@ struct ak_gfx
 {
   ak_alct alct;
   ak_plat_base* pb;
+
+  uint32_t screen_w;
+  uint32_t screen_h;
 
   bool call_began;
 
@@ -159,6 +163,8 @@ ak_gfx_startup(ak_plat_base* pr,
     ak_alct_alloc(alct, sizeof(ak_gfx));
   r->alct = alct;
   r->pb = pr;
+  r->screen_w = ak_plat_base_init_width(pr);
+  r->screen_h = ak_plat_base_init_height(pr);
 
   ak_plat_base_glmakecurrent(pr);
 
@@ -240,6 +246,8 @@ ak_gfx_resize(ak_gfx* g,
 {
   ak_assert(!g->call_began);
   glViewport(0, 0, w, h);
+  g->screen_w = w;
+  g->screen_h = h;
 }
 
 void
@@ -277,4 +285,25 @@ ak_gfx_vp_make(const ak_mat3* cam,
     proj.m[1][1] = sy;
   }
   return ak_mat3_mul(&proj, &cimat3x3);
+}
+
+void
+ak_gfx_scissor_reset(ak_gfx* gfx)
+{
+  (void)gfx;
+  glDisable(GL_SCISSOR_TEST);
+}
+void
+ak_gfx_scissor_set(ak_gfx* gfx,
+                   int32_t x,
+                   int32_t y,
+                   uint32_t w,
+                   uint32_t h)
+{
+  (void)gfx;
+  glEnable(GL_SCISSOR_TEST);
+  glScissor(x,
+            (GLint)(gfx->screen_h - y - h),
+            (GLsizei)w,
+            (GLsizei)h);
 }

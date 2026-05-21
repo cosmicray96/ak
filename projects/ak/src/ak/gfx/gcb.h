@@ -11,9 +11,8 @@
 
 typedef struct
 {
+  ak_da cmds;
   ak_mtrlstg* ms;
-  ak_da mtrls;
-  ak_da quads;
   ak_mat3 vp;
   ak_fx time;
 } ak_gcb;
@@ -38,5 +37,14 @@ void
 ak_gcb_push_quad(ak_gcb* gcb,
                  const ak_mtrl_quaddata* qd,
                  const ak_mat3* gmat);
+
+void
+ak_gcb_push_scissor_reset(ak_gcb* gcb);
+void
+ak_gcb_push_scissor(ak_gcb* gcb,
+                    int32_t x,
+                    int32_t y,
+                    uint32_t w,
+                    uint32_t h);
 
 #endif

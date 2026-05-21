@@ -9,6 +9,11 @@ ak_plat_base_startup(ak_alct alct);
 void
 ak_plat_base_shutdown(ak_plat_base* pr);
 
+uint32_t
+ak_plat_base_init_width(ak_plat_base* pr);
+uint32_t
+ak_plat_base_init_height(ak_plat_base* pr);
+
 void
 ak_plat_base_swapbuffer(ak_plat_base* pr);
 
