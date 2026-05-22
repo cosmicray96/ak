@@ -51,6 +51,8 @@ struct ak_lworld
 
   ak_resid dog_rid;
   ak_gresid dog_gid;
+
+  ak_ett e_mtrl_base;
 };
 
 //--- public ---//
@@ -91,41 +93,37 @@ set_root(ak_lworld* l)
   ak_camera_t cam = { 0 };
   ak_wcb_comp_camera_add(
     &l->wcb, e_cam, cam);
-}
 
-static void
-push_child(ak_lworld* l,
-           float x,
-           float y,
-           float c,
-           ak_gresid gid)
-{
-  ak_ett root = ak_wv_ett_root(&l->wv);
-  ak_ett e = ak_wcb_ett_new(&l->wcb, root);
-
-  float scale = 300.0f;
-  ak_tf2d_t tf = { 0 };
-  tf = ak_tf2d_make(
-    ak_vec2_make(ak_fx_f(x), ak_fx_f(y)),
-    ak_angle_deg(ak_fx_f(0)),
-    ak_vec2_make(ak_fx_f(scale),
-                 ak_fx_f(scale)));
-  ak_wcb_comp_tf2d_add(&l->wcb, e, tf);
-
-  ak_ett mbase =
+  l->e_mtrl_base =
     ak_wcb_ett_new(&l->wcb, root);
   ak_mtrl_base_t base = { 0 };
   base.data.me = ak_mtrl_tex_e;
   base.data.tex =
-    (ak_tex){ .gid = gid,
+    (ak_tex){ .gid = l->dog_gid,
               .uv_type = ak_uv_repeat,
               .filter_type =
                 ak_filter_linear };
   ak_wcb_comp_mtrl_base_add(
-    &l->wcb, mbase, base);
+    &l->wcb, l->e_mtrl_base, base);
+}
+
+static void
+push_child(ak_lworld* l, float x, float y)
+{
+  ak_ett root = ak_wv_ett_root(&l->wv);
+  ak_ett e = ak_wcb_ett_new(&l->wcb, root);
+
+  ak_fx scale_x = ak_fx_i(800);
+  ak_fx scale_y = ak_fx_i(600);
+  ak_tf2d_t tf = { 0 };
+  tf = ak_tf2d_make(
+    ak_vec2_make(ak_fx_f(x), ak_fx_f(y)),
+    ak_angle_deg(ak_fx_f(0)),
+    ak_vec2_make(scale_x, scale_y));
+  ak_wcb_comp_tf2d_add(&l->wcb, e, tf);
 
   ak_mtrl_t mat = { 0 };
-  mat.base_id = mbase;
+  mat.base_id = l->e_mtrl_base;
   mat.data.uv_min =
     ak_vec2_make(ak_fx_f(0), ak_fx_f(0));
   mat.data.uv_max = ak_vec2_make(
@@ -166,7 +164,7 @@ on_startup(void* ctx, ak_app* app)
     ak_sys_tf_make(&l->wv, &l->wcb, l->alct);
 
   set_root(l);
-  push_child(l, 0, 0, 1.0f, l->dog_gid);
+  push_child(l, 0, 0);
   ak_world_cb_flush(&l->w, &l->wcb, &l->ig);
 }
 

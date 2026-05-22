@@ -61,6 +61,9 @@ ak_plat_startup(ak_plat_base* pr,
   p->wn = ak_plat_ren_window(pr);
   p->wm_delete = ak_plat_ren_wm_delete(pr);
 
+  p->width = ak_plat_base_init_width(pr);
+  p->height = ak_plat_base_init_height(pr);
+
   ak_p_set_byte(
     p->key_down, false, ak_key_count);
   p->visible = true;

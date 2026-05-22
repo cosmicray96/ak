@@ -5,7 +5,7 @@ ak_tf2d_identity()
 {
   return ak_tf2d_make(
     ak_vec2_make(ak_fx_i(0), ak_fx_i(0)),
-    0,
+    ak_angle_rad(0),
     ak_vec2_make(ak_fx_i(1), ak_fx_i(1)));
 }
 

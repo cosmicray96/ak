@@ -94,7 +94,6 @@ ak_sys_ren_render(ak_sys_ren* r,
                         screen.h,
                         ak_fx_f(1.0));
   }
-
   {
     ak_hmn_iter it =
       ak_hmn_iter_make(&r->mtrls);

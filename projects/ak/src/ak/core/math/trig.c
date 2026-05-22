@@ -36,7 +36,7 @@ ak_sin_lut_init()
       (float)i / 4096.0f * (ak_tau_f / 4.0f);
     ak_s_sin_lut[i] = ak_fx_f(sinf(a));
   }
-  ak_s_sin_lut[4096] = ak_fx_f(sinf(1));
+  ak_s_sin_lut[4096] = ak_fx_f(1);
 }
 
 ak_fx
@@ -52,58 +52,16 @@ ak_sin(ak_angle a)
     case 1:
       // mirrored - next sample goes backward
       // in lut
-      return ak_s_sin_lut[4095 - idx];
+      return ak_s_sin_lut[4096 - idx];
     case 2:
       return -ak_s_sin_lut[idx];
     case 3:
-      return -ak_s_sin_lut[4095 - idx];
+      return -ak_s_sin_lut[4096 - idx];
     default:
       ak_assert(false);
   }
   return 0;
 }
-
-/*
-ak_fx32
-ak_sin_old(ak_angle a)
-{
-  uint16_t quad = a >> 14;
-  uint16_t intra = a & 0x3FFF;
-  uint16_t idx = intra >> 2;
-
-  ak_fx32 t = (ak_fx32)(a & 0b11)
-              << (ak_s_fx32_fbits - 2);
-  ak_fx32 s0 = ak_fx32_f(0);
-  ak_fx32 s1 = ak_fx32_f(0);
-
-  switch (quad) {
-    case 0:
-      s0 = ak_s_sin_lut[idx];
-      s1 = ak_s_sin_lut[idx + 1];
-      break;
-    case 1:
-      // mirrored - next sample goes backward
-      // in lut
-      s0 = ak_s_sin_lut[4095 - idx];
-      s1 =
-        ak_s_sin_lut[4096 -
-                     idx]; // note: toward
-                           // higher values
-      break;
-    case 2:
-      s0 = -ak_s_sin_lut[idx];
-      s1 = -ak_s_sin_lut[idx + 1];
-      break;
-    case 3:
-      s0 = -ak_s_sin_lut[4095 - idx];
-      s1 = -ak_s_sin_lut[4096 - idx];
-      break;
-  }
-  ak_log("t = %f", ak_fx32_to_f(t));
-  return s0;
-  //  return ak_fx32_lerp(s0, s1, t);
-}
-*/
 
 ak_fx
 ak_cos(ak_angle a)
