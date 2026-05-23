@@ -17,7 +17,8 @@ typedef struct
   ak_gfx* gf;
   ak_wv* wv;
   ak_mtrlstg* ms;
-  ak_gcb gcb;
+  ak_gcb* gcb;
+
   ak_hmn mtrls;
   ak_da free_mtrls;
   ak_fx time;
@@ -25,6 +26,7 @@ typedef struct
 
 ak_sys_ren
 ak_sys_ren_make(ak_gfx* gf,
+                ak_gcb* gcb,
                 ak_mtrlstg* ms,
                 ak_wv* wv,
                 ak_alct alct);

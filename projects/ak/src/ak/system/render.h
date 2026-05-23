@@ -27,6 +27,10 @@ void
 ak_renderer_render(ak_renderer* r);
 
 void
+ak_renderer_resize(ak_renderer* r,
+                   uint32_t w,
+                   uint32_t h);
+void
 ak_renderer_stallwait(ak_renderer* r);
 
 #endif

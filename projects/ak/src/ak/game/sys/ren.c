@@ -25,6 +25,7 @@ typedef struct
 //--- internal ---//
 ak_sys_ren
 ak_sys_ren_make(ak_gfx* gf,
+                ak_gcb* gcb,
                 ak_mtrlstg* ms,
                 ak_wv* wv,
                 ak_alct alct)
@@ -39,7 +40,7 @@ ak_sys_ren_make(ak_gfx* gf,
   r.free_mtrls =
     ak_da_make(sizeof(ak_ett), alct);
   r.time = ak_fx_f(0);
-  r.gcb = ak_gcb_make(r.ms, alct);
+  r.gcb = gcb;
 
   return r;
 }
@@ -47,7 +48,6 @@ ak_sys_ren_make(ak_gfx* gf,
 void
 ak_sys_ren_destroy(ak_sys_ren* r)
 {
-  ak_gcb_destroy(&r->gcb);
   ak_da_destroy(&r->free_mtrls);
 
   ak_hmn_iter it =
@@ -134,7 +134,6 @@ ak_sys_ren_render(ak_sys_ren* r,
     }
   }
 
-  ak_gcb_begin(&r->gcb, &vp, r->time);
   {
     ak_hmn_iter it =
       ak_hmn_iter_make(&r->mtrls);
@@ -150,8 +149,8 @@ ak_sys_ren_render(ak_sys_ren* r,
       ak_mtrl_base_t base_t =
         ak_wv_comp_mtrl_base(r->wv, base_id);
 
-      ak_gcb_push_mtrl(&r->gcb,
-                       &base_t.data);
+      ak_gcb_push_mtrl(
+        r->gcb, &base_t.data, &vp, r->time);
 
       uint32_t count = ak_da_count(&mi->da);
       for (uint32_t i = 0; i < count; i++) {
@@ -164,11 +163,10 @@ ak_sys_ren_render(ak_sys_ren* r,
           ak_wv_comp_mtrl(r->wv, e);
 
         ak_gcb_push_quad(
-          &r->gcb, &mat.data, &gmat3x3);
+          r->gcb, &mat.data, &gmat3x3);
       }
     }
   }
-  ak_gcb_flush(&r->gcb, r->gf);
 
   {
     ak_da_clear(&r->free_mtrls);

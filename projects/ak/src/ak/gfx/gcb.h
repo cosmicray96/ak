@@ -2,7 +2,6 @@
 #define ak_gfx_gcb_h
 
 #include "ak/coll/da.h"
-#include "ak/core/math/fixed.h"
 #include "ak/core/math/mat3x3.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/gfx/core.h"
@@ -13,8 +12,6 @@ typedef struct
 {
   ak_da cmds;
   ak_mtrlstg* ms;
-  ak_mat3_f vp;
-  ak_fx time;
 } ak_gcb;
 
 ak_gcb
@@ -23,16 +20,18 @@ void
 ak_gcb_destroy(ak_gcb* gcb);
 
 void
-ak_gcb_begin(ak_gcb* gcb,
-             const ak_mat3_f* vp,
-             ak_fx time);
+ak_gcb_push_resize(ak_gcb* gcb,
+                   uint32_t w,
+                   uint32_t h);
 
 void
 ak_gcb_flush(ak_gcb* gcb, ak_gfx* gfx);
 
 void
 ak_gcb_push_mtrl(ak_gcb* gcb,
-                 const ak_mtrl_basedata* bd);
+                 const ak_mtrl_basedata* bd,
+                 const ak_mat3_f* vp,
+                 ak_fx time);
 void
 ak_gcb_push_quad(ak_gcb* gcb,
                  const ak_mtrl_quaddata* qd,

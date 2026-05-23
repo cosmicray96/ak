@@ -4,6 +4,7 @@
 #include "ak/core/mem/allocator.h"
 #include "ak/game/sys/ren.h"
 #include "ak/gfx/core.h"
+#include "ak/gfx/gcb.h"
 #include "ak/gfx/gfx.h"
 #include "ak/gfx/gresman.h"
 #include "ak/gfx/mtrl/stg.h"
@@ -24,6 +25,9 @@ struct ak_renderer
   ak_resman* rm;
   ak_gresman* grm;
   ak_mtrlstg* ms;
+
+  ak_gcb gcb;
+
   ak_sys_ren sys_ren;
 
   ak_dur time;
@@ -31,7 +35,6 @@ struct ak_renderer
   ak_atomicint rendering;
 
   ak_atomicint gfx_made;
-  ak_atomicint grm_made;
 };
 
 void
@@ -40,16 +43,16 @@ thread_fn(void* ctx)
   ak_renderer* r = ctx;
 
   r->gf = ak_gfx_startup(r->pb, r->alct);
-  ak_atomicint_store(&r->gfx_made, 1);
-
   r->grm = ak_gresman_startup(
     r->rm, r->gf, r->alct);
-  ak_atomicint_store(&r->grm_made, 1);
-
   r->ms =
     ak_mtrlstg_make(r->gf, r->grm, r->alct);
+  r->gcb = ak_gcb_make(r->ms, r->alct);
+
+  ak_atomicint_store(&r->gfx_made, 1);
+
   r->sys_ren = ak_sys_ren_make(
-    r->gf, r->ms, r->wv, r->alct);
+    r->gf, &r->gcb, r->ms, r->wv, r->alct);
 
   ak_dur last = ak_dur_now();
   while (
@@ -61,12 +64,16 @@ thread_fn(void* ctx)
 
     ak_dur now = ak_dur_now();
     ak_gresman_update(r->grm);
+
     ak_sys_ren_render(
       &r->sys_ren, ak_dur_diff(last, now));
+    ak_gcb_flush(&r->gcb, r->gf);
+
     last = now;
     ak_atomicint_store(&r->rendering, 0);
   }
 
+  ak_gcb_destroy(&r->gcb);
   ak_mtrlstg_destroy(r->ms);
   ak_sys_ren_destroy(&r->sys_ren);
   ak_gfx_shutdown(r->gf);
@@ -88,7 +95,6 @@ ak_renderer_startup(ak_plat_base* pb,
 
   ak_atomicint_store(&r->shouldclose, 0);
   ak_atomicint_store(&r->rendering, 0);
-  ak_atomicint_store(&r->grm_made, 0);
   ak_atomicint_store(&r->gfx_made, 0);
 
   r->th = ak_thread_make(&thread_fn, r);
@@ -110,6 +116,18 @@ ak_renderer_render(ak_renderer* r)
 }
 
 void
+ak_renderer_resize(ak_renderer* r,
+                   uint32_t w,
+                   uint32_t h)
+{
+  if (ak_atomicint_load(&r->gfx_made) == 0) {
+    return;
+  }
+  ak_renderer_stallwait(r);
+  ak_gcb_push_resize(&r->gcb, w, h);
+}
+
+void
 ak_renderer_stallwait(ak_renderer* r)
 {
   while (ak_atomicint_load(&r->rendering))
@@ -128,7 +146,7 @@ ak_renderer_gfx(ak_renderer* r)
 ak_gresman*
 ak_renderer_gresman(ak_renderer* r)
 {
-  while (!ak_atomicint_load(&r->grm_made))
+  while (!ak_atomicint_load(&r->gfx_made))
     ;
   return r->grm;
 }

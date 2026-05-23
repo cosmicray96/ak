@@ -10,6 +10,8 @@
 typedef struct
 {
   ak_mtrl_basedata bd;
+  ak_mat3_f vp;
+  ak_fx time;
 } mtrl_item;
 
 typedef struct
@@ -30,6 +32,7 @@ typedef enum
   cmdtype_mtrl,
   cmdtype_scissor,
   cmdtype_scissor_reset,
+  cmdtype_resize,
 } cmdtype;
 typedef struct
 {
@@ -39,6 +42,11 @@ typedef struct
     mtrl_item mi;
     quad_item qi;
     scissor_item si;
+    struct resize_item
+    {
+      uint32_t w;
+      uint32_t h;
+    } ri;
   };
 } cmd_item;
 
@@ -58,16 +66,6 @@ ak_gcb_destroy(ak_gcb* gcb)
 {
   ak_da_destroy(&gcb->cmds);
   gcb->ms = 0;
-}
-
-void
-ak_gcb_begin(ak_gcb* gcb,
-             const ak_mat3_f* vp,
-             ak_fx time)
-{
-  ak_da_clear(&gcb->cmds);
-  gcb->vp = *vp;
-  gcb->time = time;
 }
 
 void
@@ -91,8 +89,8 @@ ak_gcb_flush(ak_gcb* gcb, ak_gfx* gfx)
                           ci->mi.bd.me);
         m.call_begin(m.ctx,
                      &ci->mi.bd,
-                     &gcb->vp,
-                     gcb->time);
+                     &(ci->mi.vp),
+                     ci->mi.time);
         has_mtrl = true;
         break;
       }
@@ -114,6 +112,11 @@ ak_gcb_flush(ak_gcb* gcb, ak_gfx* gfx)
         ak_gfx_scissor_reset(gfx);
         break;
       }
+      case cmdtype_resize: {
+        ak_gfx_resize(
+          gfx, ci->ri.w, ci->ri.h);
+        break;
+      }
       default: {
         ak_assert(false);
         break;
@@ -125,15 +128,30 @@ ak_gcb_flush(ak_gcb* gcb, ak_gfx* gfx)
   }
 
   ak_gfx_frame_end(gfx);
+  ak_da_clear(&gcb->cmds);
+}
+
+void
+ak_gcb_push_resize(ak_gcb* gcb,
+                   uint32_t w,
+                   uint32_t h)
+{
+  cmd_item ci = { .type = cmdtype_resize,
+                  .ri = { .w = w, .h = h } };
+  ak_da_pushback(&gcb->cmds, &ci);
 }
 
 void
 ak_gcb_push_mtrl(ak_gcb* gcb,
-                 const ak_mtrl_basedata* bd)
+                 const ak_mtrl_basedata* bd,
+                 const ak_mat3_f* vp,
+                 ak_fx time)
 {
 
   cmd_item ci = { .type = cmdtype_mtrl,
-                  .mi = { .bd = *bd } };
+                  .mi = { .bd = *bd,
+                          .vp = *vp,
+                          .time = time } };
   ak_da_pushback(&gcb->cmds, &ci);
 }
 

@@ -294,15 +294,6 @@ ak_gfx_vp_make(const ak_mat3* cam,
   proj.m[2][2] = 1.0f;
 
   ak_mat3_f result = { 0 };
-  /*
-// multiply proj * cam_f
-for (int r = 0; r < 3; r++)
-for (int c = 0; c < 3; c++)
-for (int k = 0; k < 3; k++)
-  result.m[r][c] +=
-    proj.m[r][k] * cam_f.m[k][c];
-  */
-
   // C = A * B, column-major m[col][row]
   for (int col = 0; col < 3; col++)
     for (int row = 0; row < 3; row++)

@@ -61,19 +61,18 @@ on_resize(ak_lworld* l, ak_evt e)
 {
   if (e.type == ak_evt_type_win &&
       e.win.type == ak_winevt_resize) {
+    uint32_t w = e.win.resize.w;
+    uint32_t h = e.win.resize.h;
 
     ak_ett root = ak_wv_ett_root(&l->wv);
     ak_wcb_comp_screen_add(
       &l->wcb,
       root,
-      (ak_screen_t){ .w = e.win.resize.w,
-                     .h = e.win.resize.h });
+      (ak_screen_t){ .w = w, .h = h });
 
-    ak_renderer_stallwait(l->renderer);
+    ak_renderer_resize(l->renderer, w, h);
     ak_world_cb_flush(
       &l->w, &l->wcb, &l->ig);
-    ak_gfx_resize(
-      l->gf, e.win.resize.w, e.win.resize.h);
   }
   return false;
 }
