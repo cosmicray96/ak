@@ -128,6 +128,7 @@ ak_dbuff_bulk_overwrite(ak_dbuff* dest,
   ak_assert(dest_idx <= dest->cap);
   ak_assert(src_idx < src->cap);
   ak_assert(src_idx + src_count <= src->cap);
+  ak_assert(dest->is == src->is);
 
   if (src_count == 0) {
     return;

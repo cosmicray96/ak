@@ -166,6 +166,27 @@ ak_da_remove_swaplast(ak_da* da,
   da->count--;
 }
 
+void
+ak_da_remove_range(ak_da* da,
+                   uint32_t idx,
+                   uint32_t count)
+{
+  ak_assert(idx < da->count);
+  ak_assert(idx + count <= da->count);
+
+  if (idx + count == da->count) {
+    da->count -= count;
+    return;
+  }
+  ak_dbuff_bulk_overwrite(&da->dbuff,
+                          &da->dbuff,
+                          idx,
+                          idx + count,
+                          da->count -
+                            (idx + count));
+  da->count -= count;
+}
+
 bool
 ak_da_findfirst(ak_da* da,
                 const void* item,

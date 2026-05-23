@@ -82,6 +82,11 @@ ak_ex void
 ak_da_remove_swaplast(ak_da* da,
                       uint32_t idx);
 
+ak_ex void
+ak_da_remove_range(ak_da* da,
+                   uint32_t idx,
+                   uint32_t count);
+
 typedef bool (*ak_equal_fn)(const void* a,
                             const void* b);
 ak_ex bool
