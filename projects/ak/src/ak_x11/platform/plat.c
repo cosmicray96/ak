@@ -244,18 +244,21 @@ ak_plat_eventflush(ak_plat* p, ak_app_eq* eq)
       }
       case ConfigureNotify: {
         e.win.type = ak_winevt_resize;
+        XWindowAttributes attrs;
+        XGetWindowAttributes(
+          p->d,
+          ex11.xconfigure.window,
+          &attrs);
 
-        if (ex11.xconfigure.width <= 0) {
-          p->width = 1;
-        } else {
-          p->width = ex11.xconfigure.width;
-        }
-        if (ex11.xconfigure.height <= 0) {
-          p->height = 1;
-        } else {
-          p->height = ex11.xconfigure.height;
-        }
+        int x11_width = attrs.width;
+        int x11_height = attrs.height;
 
+        p->width =
+          x11_width > 0 ? x11_width : 1;
+        p->height =
+          x11_height > 0 ? x11_height : 1;
+
+        e.win.type = ak_winevt_resize;
         e.win.resize.w = p->width;
         e.win.resize.h = p->height;
         ak_app_eq_push(eq, e);

@@ -1,5 +1,7 @@
 #include "ak/coll/fcnst.h"
 #include "ak/coll/ds.h"
+#include "ak/core/mem.h"
+#include "ak/core/mem/ptr.h"
 #include "ak/debug.h"
 #include <stdint.h>
 
@@ -11,7 +13,6 @@ typedef struct
   ak_fcnstid fc;
   ak_fcnstid ns;
   uint32_t depth;
-  uint32_t ud;
 } metadata;
 
 //===== ak_fcnst =====//
@@ -36,13 +37,63 @@ remove_rec(ak_fcnst* t,
   ak_sla_remove(&t->slots, id);
 }
 
+static ak_fcnstid
+slot_new(ak_fcnst* t)
+{
+  return ak_sla_insert_empty(&t->slots);
+}
+
+static metadata*
+metadata_get(ak_fcnst* t, ak_fcnstid id)
+{
+  metadata* p = ak_sla_at(&t->slots, id);
+  return p;
+}
+static void
+metadata_set(ak_fcnst* t,
+             ak_fcnstid id,
+             const metadata* md)
+{
+  metadata* p = ak_sla_at(&t->slots, id);
+  ak_p_cpy(p, md, sizeof(metadata));
+}
+
+static void*
+item_get(ak_fcnst* t, ak_fcnstid id)
+{
+  void* p = ak_sla_at(&t->slots, id);
+  p =
+    ak_p_add(p, ak_align8(sizeof(metadata)));
+  return p;
+}
+
+static void
+item_set(ak_fcnst* t,
+         ak_fcnstid id,
+         const void* item)
+{
+  void* p = item_get(t, id);
+  ak_p_cpy(p, item, t->itemsize);
+}
+
+static uint32_t
+get_slotsize(uint32_t itemsize)
+{
+  uint32_t size = 0;
+  size += ak_align8(sizeof(metadata));
+  size += ak_align8(itemsize);
+  return size;
+}
+
 //--- export ---//
 ak_fcnst
-ak_fcnst_make(ak_alct alct)
+ak_fcnst_make(uint32_t itemsize,
+              ak_alct alct)
 {
   ak_fcnst t = { 0 };
-  t.slots =
-    ak_sla_make(sizeof(metadata), alct);
+  t.itemsize = itemsize;
+  t.slots = ak_sla_make(
+    get_slotsize(itemsize), alct);
   uint32_t id =
     ak_sla_insert_empty(&t.slots);
   ak_assert(id == 0);
@@ -60,20 +111,15 @@ ak_fcnst_destroy(ak_fcnst* t)
 ak_fcnstid
 ak_fcnst_add(ak_fcnst* t,
              ak_fcnstid ptid,
-             uint32_t ud)
+             const void* item)
 {
-  ak_fcnstid id = 0;
-  metadata* md = 0;
-  {
-    metadata mditn = { 0 };
-    mditn.pt = 0;
-    mditn.fc = 0;
-    mditn.ns = 0;
-    mditn.depth = 0;
-    mditn.ud = ud;
-    id = ak_sla_insert(&t->slots, &mditn);
-    md = ak_sla_at(&t->slots, id);
-  }
+  ak_fcnstid id = slot_new(t);
+  metadata* md = metadata_get(t, id);
+  md->pt = 0;
+  md->fc = 0;
+  md->ns = 0;
+  md->depth = 0;
+  item_set(t, id, item);
 
   if (ptid == 0) {
     if (t->root == 0) {
@@ -86,8 +132,7 @@ ak_fcnst_add(ak_fcnst* t,
   ak_assert(t->root);
   ak_assert(ak_fcnst_exist(t, ptid));
 
-  metadata* ptmd =
-    ak_sla_at(&t->slots, ptid);
+  metadata* ptmd = metadata_get(t, ptid);
 
   md->pt = ptid;
   md->depth = ptmd->depth + 1;
@@ -103,20 +148,15 @@ ak_fcnst_add(ak_fcnst* t,
 ak_fcnstid
 ak_fcnst_add_last(ak_fcnst* t,
                   ak_fcnstid ptid,
-                  uint32_t ud)
+                  const void* item)
 {
-  ak_fcnstid id = 0;
-  metadata* md = 0;
-  {
-    metadata mditn = { 0 };
-    mditn.pt = 0;
-    mditn.fc = 0;
-    mditn.ns = 0;
-    mditn.depth = 0;
-    mditn.ud = ud;
-    id = ak_sla_insert(&t->slots, &mditn);
-    md = ak_sla_at(&t->slots, id);
-  }
+  ak_fcnstid id = slot_new(t);
+  metadata* md = metadata_get(t, id);
+  md->pt = 0;
+  md->fc = 0;
+  md->ns = 0;
+  md->depth = 0;
+  item_set(t, id, item);
 
   if (ptid == 0) {
     if (t->root == 0) {
@@ -129,8 +169,7 @@ ak_fcnst_add_last(ak_fcnst* t,
   ak_assert(t->root);
   ak_assert(ak_fcnst_exist(t, ptid));
 
-  metadata* ptmd =
-    ak_sla_at(&t->slots, ptid);
+  metadata* ptmd = metadata_get(t, ptid);
 
   md->pt = ptid;
   md->depth = ptmd->depth + 1;
@@ -139,8 +178,7 @@ ak_fcnst_add_last(ak_fcnst* t,
     ptmd->fc = id;
   } else {
     ak_fcnstid lc = ak_fcnst_lc(t, ptid);
-    metadata* lcmd =
-      ak_sla_at(&t->slots, lc);
+    metadata* lcmd = metadata_get(t, lc);
     lcmd->ns = id;
   }
 
@@ -160,16 +198,14 @@ ak_fcnst_remove(ak_fcnst* t,
     return;
   }
 
-  metadata* md = ak_sla_at(&t->slots, id);
-  metadata* ptmd =
-    ak_sla_at(&t->slots, md->pt);
+  metadata* md = metadata_get(t, id);
+  metadata* ptmd = metadata_get(t, md->pt);
 
   if (ptmd->fc == id) {
     ptmd->fc = md->ns;
   } else {
     ak_fcnstid ps = ak_fcnst_ps(t, id);
-    metadata* psmd =
-      ak_sla_at(&t->slots, ps);
+    metadata* psmd = metadata_get(t, ps);
     psmd->ns = md->ns;
   }
 
@@ -188,6 +224,12 @@ ak_fcnst_root(ak_fcnst* t)
   return t->root;
 }
 
+void*
+ak_fcnst_at(ak_fcnst* t, ak_fcnstid id)
+{
+  return item_get(t, id);
+}
+
 uint32_t
 ak_fcnst_order(ak_fcnst* t, ak_fcnstid id)
 {
@@ -204,46 +246,30 @@ ak_fcnst_order(ak_fcnst* t, ak_fcnstid id)
 uint32_t
 ak_fcnst_depth(ak_fcnst* t, ak_fcnstid id)
 {
-  return ((metadata*)ak_sla_at(&t->slots,
-                               id))
-    ->depth;
-}
-uint32_t
-ak_fcnst_ud(ak_fcnst* t, ak_fcnstid id)
-{
-  return ((metadata*)ak_sla_at(&t->slots,
-                               id))
-    ->ud;
+  return metadata_get(t, id)->depth;
 }
 
 ak_fcnstid
 ak_fcnst_pt(ak_fcnst* t, ak_fcnstid id)
 {
-  return ((metadata*)ak_sla_at(&t->slots,
-                               id))
-    ->pt;
+  return metadata_get(t, id)->pt;
 }
 ak_fcnstid
 ak_fcnst_fc(ak_fcnst* t, ak_fcnstid id)
 {
-  return ((metadata*)ak_sla_at(&t->slots,
-                               id))
-    ->fc;
+  return metadata_get(t, id)->fc;
 }
 ak_fcnstid
 ak_fcnst_ns(ak_fcnst* t, ak_fcnstid id)
 {
-  return ((metadata*)ak_sla_at(&t->slots,
-                               id))
-    ->ns;
+  return metadata_get(t, id)->ns;
 }
 
 ak_fcnstid
 ak_fcnst_ps(ak_fcnst* t, ak_fcnstid id)
 {
-  metadata* md = ak_sla_at(&t->slots, id);
-  metadata* ptmd =
-    ak_sla_at(&t->slots, md->pt);
+  metadata* md = metadata_get(t, id);
+  metadata* ptmd = metadata_get(t, md->pt);
   ak_fcnstid c = ptmd->fc;
 
   if (c == id) {
@@ -251,7 +277,7 @@ ak_fcnst_ps(ak_fcnst* t, ak_fcnstid id)
   }
 
   while (c) {
-    metadata* cmd = ak_sla_at(&t->slots, c);
+    metadata* cmd = metadata_get(t, c);
     if (cmd->ns == id) {
       return c;
     }

@@ -62,7 +62,7 @@ ak_gcb_destroy(ak_gcb* gcb)
 
 void
 ak_gcb_begin(ak_gcb* gcb,
-             const ak_mat3* vp,
+             const ak_mat3_f* vp,
              ak_fx time)
 {
   ak_da_clear(&gcb->cmds);

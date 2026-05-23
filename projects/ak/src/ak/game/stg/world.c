@@ -19,13 +19,14 @@ ak_world
 ak_world_make(ak_ett root, ak_alct alct)
 {
   ak_world w = { 0 };
-  w.tree = ak_fcnst_make(alct);
+  w.tree =
+    ak_fcnst_make(sizeof(ak_ett), alct);
   w.map =
     ak_hmn_make(sizeof(ak_fcnstid), alct);
   w.cs = ak_compstg_make(alct);
 
   ak_fcnstid roott =
-    ak_fcnst_add(&w.tree, 0, root);
+    ak_fcnst_add(&w.tree, 0, &root);
   ak_hmn_insert(&w.map, root, &roott);
 
   return w;
@@ -49,7 +50,7 @@ ak_ett
 ak_world_id_to_ett(ak_world* w,
                    ak_fcnstid id)
 {
-  return ak_fcnst_ud(&w->tree, id);
+  return *(ak_ett*)ak_fcnst_at(&w->tree, id);
 }
 ak_ett
 ak_world_ett_to_id(ak_world* w, ak_ett e)
@@ -101,7 +102,7 @@ ak_world_ett_new(ak_world* w,
                  ak_ett pt)
 {
   ak_fcnstid id = ak_fcnst_add(
-    &w->tree, id_from_ett(w, pt), e);
+    &w->tree, id_from_ett(w, pt), &e);
   ak_hmn_insert(&w->map, e, &id);
 }
 
@@ -111,7 +112,7 @@ ak_world_ett_new_last(ak_world* w,
                       ak_ett pt)
 {
   ak_fcnstid id = ak_fcnst_add_last(
-    &w->tree, id_from_ett(w, pt), e);
+    &w->tree, id_from_ett(w, pt), &e);
   ak_hmn_insert(&w->map, e, &id);
 }
 

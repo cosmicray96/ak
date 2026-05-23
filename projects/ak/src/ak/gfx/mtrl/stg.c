@@ -15,7 +15,7 @@
   void ak_mtrl_##name##_call_begin(         \
     void* m,                                \
     const ak_mtrl_basedata* bd,             \
-    const ak_mat3* vp,                      \
+    const ak_mat3_f* vp,                    \
     ak_fx time);                            \
   void ak_mtrl_##name##_call_end(void* m);  \
   void ak_mtrl_##name##_pushquad(           \

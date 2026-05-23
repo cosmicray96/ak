@@ -19,6 +19,7 @@
 #include "ak/game/world/view.h"
 #include "ak/game/world/view_itn.h"
 #include "ak/gfx/core.h"
+#include "ak/gfx/gfx.h"
 #include "ak/gfx/gresman.h"
 #include "ak/system/render.h"
 #include "ak/system/resman.h"
@@ -54,6 +55,28 @@ struct ak_lworld
 
   ak_ett e_mtrl_base;
 };
+
+bool
+on_resize(ak_lworld* l, ak_evt e)
+{
+  if (e.type == ak_evt_type_win &&
+      e.win.type == ak_winevt_resize) {
+
+    ak_ett root = ak_wv_ett_root(&l->wv);
+    ak_wcb_comp_screen_add(
+      &l->wcb,
+      root,
+      (ak_screen_t){ .w = e.win.resize.w,
+                     .h = e.win.resize.h });
+
+    ak_renderer_stallwait(l->renderer);
+    ak_world_cb_flush(
+      &l->w, &l->wcb, &l->ig);
+    ak_gfx_resize(
+      l->gf, e.win.resize.w, e.win.resize.h);
+  }
+  return false;
+}
 
 //--- public ---//
 ak_lworld*
@@ -198,6 +221,10 @@ on_event(void* ctx, ak_evt e)
 {
   ak_lworld* l = ctx;
 
+  if (on_resize(l, e)) {
+    return true;
+  }
+
   if (e.type != ak_evt_type_win) {
     return false;
   }
@@ -227,6 +254,10 @@ on_update(void* ctx, ak_dur delta)
 {
   ak_lworld* l = ctx;
   ak_resman_update(&l->rm);
+
+  ak_renderer_stallwait(l->renderer);
+
+  ak_world_cb_flush(&l->w, &l->wcb, &l->ig);
 
   ak_sys_tf_update(&l->sys_tf);
   // other world wide system

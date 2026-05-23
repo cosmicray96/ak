@@ -157,17 +157,15 @@ void
 ak_mtrl_col_call_begin(
   void* mtrl,
   const ak_mtrl_basedata* bd,
-  const ak_mat3* vp,
+  const ak_mat3_f* vp,
   ak_fx time)
 {
   ak_mtrl_col* m = mtrl;
   ak_assert(!m->call_begin);
 
   glUseProgram(m->program);
-  float vp_f[9] = { 0 };
-  ak_mat3_to_f(vp, vp_f);
   glUniformMatrix3fv(
-    m->vp_loc, 1, GL_FALSE, vp_f);
+    m->vp_loc, 1, GL_FALSE, vp->v);
 
   glBindVertexArray(m->vao);
 

@@ -73,7 +73,7 @@ ak_sys_ren_render(ak_sys_ren* r,
     r->time, ak_dur_as_secs_fx(delta));
   ak_ett root = ak_wv_ett_root(r->wv);
 
-  ak_mat3 vp = { 0 };
+  ak_mat3_f vp = { 0 };
   {
     ak_screen_t screen =
       ak_wv_comp_screen(r->wv, root);

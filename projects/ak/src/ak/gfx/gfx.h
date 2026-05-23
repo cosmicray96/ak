@@ -32,7 +32,7 @@ ak_gfx_scissor_set(ak_gfx* gfx,
                    uint32_t w,
                    uint32_t h);
 
-ak_mat3
+ak_mat3_f
 ak_gfx_vp_make(const ak_mat3* cam,
                uint32_t w,
                uint32_t h,

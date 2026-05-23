@@ -10,7 +10,7 @@ typedef struct
   void (*call_begin)(
     void* ctx,
     const ak_mtrl_basedata* bd,
-    const ak_mat3* vp,
+    const ak_mat3_f* vp,
     ak_fx time);
   void (*call_end)(void* ctx);
 

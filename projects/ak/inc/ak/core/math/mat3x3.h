@@ -149,4 +149,13 @@ ak_mat3_get_rot(const ak_mat3* m)
 // [ sx*sin   sy*cos  ty ]
 // [       0        0  1 ]
 
+typedef struct
+{
+  union
+  {
+    float m[3][3];
+    float v[9];
+  };
+} ak_mat3_f;
+
 #endif

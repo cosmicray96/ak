@@ -95,7 +95,7 @@ ak_wv_itchild_next(ak_wv_itchild* it)
 {
   ak_fcnstid id =
     ak_fcnst_itchild_next(&it->it);
-  return id ? ak_fcnst_ud(
+  return id ? *(ak_ett*)ak_fcnst_at(
                 ak_world_tree(it->wv->w), id)
             : 0;
 }
@@ -148,7 +148,7 @@ ak_wv_itancestor_next(ak_wv_itancestor* it)
 {
   ak_fcnstid id =
     ak_fcnst_itancestor_next(&it->it);
-  return id ? ak_fcnst_ud(
+  return id ? *(ak_ett*)ak_fcnst_at(
                 ak_world_tree(it->wv->w), id)
             : 0;
 }
@@ -170,7 +170,7 @@ ak_wv_itdfspost_next(ak_wv_itdfspost* it)
 {
   ak_fcnstid id =
     ak_fcnst_itdfspost_next(&it->it);
-  return id ? ak_fcnst_ud(
+  return id ? *(ak_ett*)ak_fcnst_at(
                 ak_world_tree(it->wv->w), id)
             : 0;
 }
@@ -210,7 +210,7 @@ ak_wv_itdfspre_next(ak_wv_itdfspre* it)
 {
   ak_fcnstid id =
     ak_fcnst_itdfspre_next(&it->it);
-  return id ? ak_fcnst_ud(
+  return id ? *(ak_ett*)ak_fcnst_at(
                 ak_world_tree(it->wv->w), id)
             : 0;
 }
@@ -279,7 +279,7 @@ ak_wv_itbfs_next(ak_wv_itbfs* it)
 {
   ak_fcnstid id =
     ak_fcnst_itbfs_next(&it->it);
-  return id ? ak_fcnst_ud(
+  return id ? *(ak_ett*)ak_fcnst_at(
                 ak_world_tree(it->wv->w), id)
             : 0;
 }
@@ -301,7 +301,7 @@ ak_wv_itleaf_next(ak_wv_itleaf* it)
 {
   ak_fcnstid id =
     ak_fcnst_itleaf_next(&it->it);
-  return id ? ak_fcnst_ud(
+  return id ? *(ak_ett*)ak_fcnst_at(
                 ak_world_tree(it->wv->w), id)
             : 0;
 }
