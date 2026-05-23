@@ -57,14 +57,10 @@ ak_da_at_copy(const ak_da* da,
               void* o_item);
 
 ak_ex void*
-ak_da_at_impl(ak_da* da, uint32_t idx);
-#define ak_da_at(t, da, idx)                \
-  (t*)ak_da_at_impl(da, idx)
+ak_da_at(ak_da* da, uint32_t idx);
 ak_ex const void*
-ak_da_at_const_impl(const ak_da* da,
-                    uint32_t idx);
-#define ak_da_at_const(t, da, idx)          \
-  ((t)*)ak_da_at_const_impl(da, idx)
+ak_da_at_const(const ak_da* da,
+               uint32_t idx);
 
 ak_ex void
 ak_da_pushback(ak_da* da, const void* item);
@@ -99,20 +95,10 @@ ak_da_sort(ak_da* da,
            bool (*sort_fn)(const void* a,
                            const void* b));
 
-#define ak_da_for_rev_begin(                \
-  type, da, idx, elm)                       \
-  type* elm = 0;                            \
-  for (uint32_t idx = ak_da_count(da);      \
-       idx-- > 0;) {                        \
-    elm = ak_da_at_impl(da, idx);
-
-#define ak_da_for_begin(type, da, idx, elm) \
-  type* elm = 0;                            \
-  for (uint32_t idx = 0;                    \
-       idx < ak_da_count(da);               \
-       idx++) {                             \
-    elm = ak_da_at_impl(da, idx);
-
-#define ak_da_for_end() }
+ak_ex void
+ak_da_bulk_pushback(ak_da* dest,
+                    const ak_da* src,
+                    uint32_t src_idx,
+                    uint32_t src_count);
 
 #endif

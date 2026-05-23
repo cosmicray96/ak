@@ -11,7 +11,7 @@ static uint32_t*
 get_s_from_d_idx_p(ak_spa* s, uint32_t d_idx)
 {
   uint32_t* p =
-    ak_da_at_impl(&s->d_to_s_idxs, d_idx);
+    ak_da_at(&s->d_to_s_idxs, d_idx);
   return p;
 }
 static uint32_t*
@@ -90,7 +90,7 @@ ak_spa_at(ak_spa* s, uint32_t s_idx)
 
   uint32_t d_idx =
     *get_d_from_s_idx_p(s, s_idx);
-  return ak_da_at_impl(&s->denses, d_idx);
+  return ak_da_at(&s->denses, d_idx);
 }
 
 void
@@ -172,5 +172,5 @@ ak_spa_at_didx(ak_spa* s,
   *o_s_idx = *get_s_from_d_idx_p(s, d_idx);
   ak_assert(ak_spa_exist(s, *o_s_idx));
 
-  return ak_da_at_impl(&s->denses, d_idx);
+  return ak_da_at(&s->denses, d_idx);
 }

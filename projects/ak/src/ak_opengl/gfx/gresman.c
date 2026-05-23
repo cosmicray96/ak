@@ -190,9 +190,8 @@ ak_gresman_update(ak_gresman* grm)
     uint32_t count =
       ak_da_count(&grm->unloads);
     for (uint32_t i = 0; i < count; i++) {
-      ak_gresid gid =
-        *(ak_gresid*)ak_da_at_impl(
-          &grm->unloads, i);
+      ak_gresid gid = *(ak_gresid*)ak_da_at(
+        &grm->unloads, i);
       gres_unload(grm, gid);
     }
     ak_da_clear(&grm->unloads);
@@ -204,9 +203,8 @@ ak_gresman_update(ak_gresman* grm)
     uint32_t i = 0;
     while (i < count) {
 
-      ak_gresid gid =
-        *(ak_gresid*)ak_da_at_impl(
-          &grm->loads, i);
+      ak_gresid gid = *(ak_gresid*)ak_da_at(
+        &grm->loads, i);
       gres_item* gi =
         ak_hmn_at(&grm->map, gid);
       ak_res_status rs =

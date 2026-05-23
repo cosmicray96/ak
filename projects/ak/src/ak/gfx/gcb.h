@@ -11,21 +11,20 @@
 typedef struct
 {
   ak_da cmds;
-  ak_mtrlstg* ms;
 } ak_gcb;
 
 ak_gcb
-ak_gcb_make(ak_mtrlstg* ms, ak_alct alct);
+ak_gcb_make(ak_alct alct);
 void
 ak_gcb_destroy(ak_gcb* gcb);
 
 void
-ak_gcb_push_resize(ak_gcb* gcb,
-                   uint32_t w,
-                   uint32_t h);
+ak_gcb_flush(ak_gcb* gcb,
+             ak_gfx* gfx,
+             ak_mtrlstg* ms);
 
 void
-ak_gcb_flush(ak_gcb* gcb, ak_gfx* gfx);
+ak_gcb_joinback(ak_gcb* dest, ak_gcb* src);
 
 void
 ak_gcb_push_mtrl(ak_gcb* gcb,
@@ -45,5 +44,10 @@ ak_gcb_push_scissor(ak_gcb* gcb,
                     int32_t y,
                     uint32_t w,
                     uint32_t h);
+
+void
+ak_gcb_push_resize(ak_gcb* gcb,
+                   uint32_t w,
+                   uint32_t h);
 
 #endif

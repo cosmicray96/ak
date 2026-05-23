@@ -52,10 +52,9 @@ typedef struct
 
 //--- internal ---//
 ak_gcb
-ak_gcb_make(ak_mtrlstg* ms, ak_alct alct)
+ak_gcb_make(ak_alct alct)
 {
   ak_gcb gcb = { 0 };
-  gcb.ms = ms;
   gcb.cmds =
     ak_da_make(sizeof(cmd_item), alct);
   return gcb;
@@ -65,11 +64,12 @@ void
 ak_gcb_destroy(ak_gcb* gcb)
 {
   ak_da_destroy(&gcb->cmds);
-  gcb->ms = 0;
 }
 
 void
-ak_gcb_flush(ak_gcb* gcb, ak_gfx* gfx)
+ak_gcb_flush(ak_gcb* gcb,
+             ak_gfx* gfx,
+             ak_mtrlstg* ms)
 {
 
   ak_gfx_frame_begin(gfx);
@@ -77,16 +77,14 @@ ak_gcb_flush(ak_gcb* gcb, ak_gfx* gfx)
   ak_mtrl m = { 0 };
   bool has_mtrl = false;
   for (uint32_t i = 0; i < count; i++) {
-    cmd_item* ci =
-      ak_da_at_impl(&gcb->cmds, i);
+    cmd_item* ci = ak_da_at(&gcb->cmds, i);
 
     switch (ci->type) {
       case cmdtype_mtrl: {
         if (has_mtrl) {
           m.call_end(m.ctx);
         }
-        m = ak_mtrlstg_at(gcb->ms,
-                          ci->mi.bd.me);
+        m = ak_mtrlstg_at(ms, ci->mi.bd.me);
         m.call_begin(m.ctx,
                      &ci->mi.bd,
                      &(ci->mi.vp),
@@ -113,6 +111,10 @@ ak_gcb_flush(ak_gcb* gcb, ak_gfx* gfx)
         break;
       }
       case cmdtype_resize: {
+        if (has_mtrl) {
+          m.call_end(m.ctx);
+          has_mtrl = false;
+        }
         ak_gfx_resize(
           gfx, ci->ri.w, ci->ri.h);
         break;
@@ -129,6 +131,18 @@ ak_gcb_flush(ak_gcb* gcb, ak_gfx* gfx)
 
   ak_gfx_frame_end(gfx);
   ak_da_clear(&gcb->cmds);
+}
+
+void
+ak_gcb_joinback(ak_gcb* dest, ak_gcb* src)
+{
+  ak_da_bulk_pushback(
+    &dest->cmds,
+    &src->cmds,
+    0,
+    ak_da_count(&src->cmds));
+
+  ak_da_clear(&src->cmds);
 }
 
 void

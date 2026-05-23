@@ -44,8 +44,7 @@ ak_batchjob_begin(ak_batchjob* bj)
 {
   uint32_t count = ak_da_count(&bj->jobs);
   for (uint32_t i = 0; i < count; i++) {
-    job_item* ji =
-      ak_da_at_impl(&bj->jobs, i);
+    job_item* ji = ak_da_at(&bj->jobs, i);
     ji->jid = ak_thpool_submit(
       bj->tp, ji->jfunc, ji->jctx);
   }
@@ -54,8 +53,7 @@ ak_batchjob_begin(ak_batchjob* bj)
     done = 0;
 
     for (uint32_t i = 0; i < count; i++) {
-      job_item* ji =
-        ak_da_at_impl(&bj->jobs, i);
+      job_item* ji = ak_da_at(&bj->jobs, i);
       ak_jobid jid = ji->jid;
       if (ak_thpool_job_status(
             bj->tp, jid) == ak_job_done) {

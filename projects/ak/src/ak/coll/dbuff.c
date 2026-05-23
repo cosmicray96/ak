@@ -125,7 +125,7 @@ ak_dbuff_bulk_overwrite(ak_dbuff* dest,
                         uint32_t src_idx,
                         uint32_t src_count)
 {
-  ak_assert(dest_idx < dest->cap);
+  ak_assert(dest_idx <= dest->cap);
   ak_assert(src_idx < src->cap);
   ak_assert(src_idx + src_count <= src->cap);
 

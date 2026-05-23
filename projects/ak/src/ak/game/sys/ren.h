@@ -14,9 +14,7 @@
 typedef struct
 {
   ak_alct alct;
-  ak_gfx* gf;
   ak_wv* wv;
-  ak_mtrlstg* ms;
   ak_gcb* gcb;
 
   ak_hmn mtrls;
@@ -25,9 +23,7 @@ typedef struct
 } ak_sys_ren;
 
 ak_sys_ren
-ak_sys_ren_make(ak_gfx* gf,
-                ak_gcb* gcb,
-                ak_mtrlstg* ms,
+ak_sys_ren_make(ak_gcb* gcb,
                 ak_wv* wv,
                 ak_alct alct);
 void

@@ -56,15 +56,13 @@ struct ak_app
 void
 run_startup(ak_app* a)
 {
-  ak_da_for_begin(
-    ak_applayer, &a->layers, i, l);
-
-  if (l->on_startup) {
-    l->on_startup(l->ctx, a);
+  uint32_t count = ak_da_count(&a->layers);
+  for (uint32_t i = 0; i < count; i++) {
+    ak_applayer* l = ak_da_at(&a->layers, i);
+    if (l->on_startup) {
+      l->on_startup(l->ctx, a);
+    }
   }
-  a->startuped_count++;
-
-  ak_da_for_end();
 }
 
 void
@@ -72,8 +70,7 @@ run_shutdown(ak_app* a)
 {
   for (uint32_t i = a->startuped_count;
        i-- > 0;) {
-    ak_applayer* l =
-      ak_da_at(ak_applayer, &a->layers, i);
+    ak_applayer* l = ak_da_at(&a->layers, i);
 
     if (l->on_shutdown) {
       l->on_shutdown(l->ctx);
@@ -84,58 +81,53 @@ run_shutdown(ak_app* a)
 void
 run_epusher(ak_app* a)
 {
-  ak_da_for_begin(
-    ak_applayer, &a->layers, i, l);
-
-  if (l->on_epusher) {
-    l->on_epusher(l->ctx, &a->eq);
+  uint32_t count = ak_da_count(&a->layers);
+  for (uint32_t i = 0; i < count; i++) {
+    ak_applayer* l = ak_da_at(&a->layers, i);
+    if (l->on_epusher) {
+      l->on_epusher(l->ctx, &a->eq);
+    }
   }
-
-  ak_da_for_end();
 }
 
 void
 run_event(ak_app* a, ak_evt e)
 {
   bool consumed = false;
-  ak_da_for_begin(
-    ak_applayer, &a->layers, i, l);
-
-  if (l->on_event) {
-    consumed = l->on_event(l->ctx, e);
+  uint32_t count = ak_da_count(&a->layers);
+  for (uint32_t i = 0; i < count; i++) {
+    ak_applayer* l = ak_da_at(&a->layers, i);
+    if (l->on_event) {
+      consumed = l->on_event(l->ctx, e);
+    }
+    if (consumed) {
+      break;
+    }
   }
-  if (consumed) {
-    break;
-  }
-
-  ak_da_for_end();
 }
 
 void
 run_update(ak_app* a, ak_dur delta)
 {
-
-  ak_da_for_begin(
-    ak_applayer, &a->layers, i, l);
-
-  if (l->on_update) {
-    l->on_update(l->ctx, delta);
+  uint32_t count = ak_da_count(&a->layers);
+  for (uint32_t i = 0; i < count; i++) {
+    ak_applayer* l = ak_da_at(&a->layers, i);
+    if (l->on_update) {
+      l->on_update(l->ctx, delta);
+    }
   }
-
-  ak_da_for_end();
 }
 
 void
 run_upost(ak_app* a, ak_dur delta)
 {
-  ak_da_for_rev_begin(
-    ak_applayer, &a->layers, i, l);
-
-  if (l->on_upost) {
-    l->on_upost(l->ctx, delta);
+  uint32_t count = ak_da_count(&a->layers);
+  for (uint32_t i = count; i-- > 0;) {
+    ak_applayer* l = ak_da_at(&a->layers, i);
+    if (l->on_upost) {
+      l->on_upost(l->ctx, delta);
+    }
   }
-
-  ak_da_for_end();
 }
 
 static void

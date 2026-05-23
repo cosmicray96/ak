@@ -4,6 +4,7 @@
 #include "ak/core/mem/allocator.h"
 #include "ak/game/world/view.h"
 #include "ak/gfx/core.h"
+#include "ak/gfx/gcb.h"
 #include "ak/gfx/gresman.h"
 #include "ak/platform/plat_base.h"
 
@@ -18,18 +19,15 @@ ak_renderer_startup(ak_plat_base* pb,
 void
 ak_renderer_shutdown(ak_renderer* r);
 
-ak_gfx*
-ak_renderer_gfx(ak_renderer* r);
 ak_gresman*
 ak_renderer_gresman(ak_renderer* r);
 
 void
-ak_renderer_render(ak_renderer* r);
+ak_renderer_gcb(ak_renderer* r, ak_gcb* gcb);
 
 void
-ak_renderer_resize(ak_renderer* r,
-                   uint32_t w,
-                   uint32_t h);
+ak_renderer_render(ak_renderer* r);
+
 void
 ak_renderer_stallwait(ak_renderer* r);
 

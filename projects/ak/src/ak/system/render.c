@@ -28,13 +28,11 @@ struct ak_renderer
 
   ak_gcb gcb;
 
-  ak_sys_ren sys_ren;
-
   ak_dur time;
   ak_atomicint shouldclose;
   ak_atomicint rendering;
 
-  ak_atomicint gfx_made;
+  ak_atomicint inited;
 };
 
 void
@@ -47,14 +45,10 @@ thread_fn(void* ctx)
     r->rm, r->gf, r->alct);
   r->ms =
     ak_mtrlstg_make(r->gf, r->grm, r->alct);
-  r->gcb = ak_gcb_make(r->ms, r->alct);
+  r->gcb = ak_gcb_make(r->alct);
 
-  ak_atomicint_store(&r->gfx_made, 1);
+  ak_atomicint_store(&r->inited, 1);
 
-  r->sys_ren = ak_sys_ren_make(
-    r->gf, &r->gcb, r->ms, r->wv, r->alct);
-
-  ak_dur last = ak_dur_now();
   while (
     !ak_atomicint_load(&r->shouldclose)) {
 
@@ -62,20 +56,15 @@ thread_fn(void* ctx)
 
     ak_atomicint_store(&r->rendering, 1);
 
-    ak_dur now = ak_dur_now();
     ak_gresman_update(r->grm);
 
-    ak_sys_ren_render(
-      &r->sys_ren, ak_dur_diff(last, now));
-    ak_gcb_flush(&r->gcb, r->gf);
+    ak_gcb_flush(&r->gcb, r->gf, r->ms);
 
-    last = now;
     ak_atomicint_store(&r->rendering, 0);
   }
 
   ak_gcb_destroy(&r->gcb);
   ak_mtrlstg_destroy(r->ms);
-  ak_sys_ren_destroy(&r->sys_ren);
   ak_gfx_shutdown(r->gf);
 }
 
@@ -95,7 +84,7 @@ ak_renderer_startup(ak_plat_base* pb,
 
   ak_atomicint_store(&r->shouldclose, 0);
   ak_atomicint_store(&r->rendering, 0);
-  ak_atomicint_store(&r->gfx_made, 0);
+  ak_atomicint_store(&r->inited, 0);
 
   r->th = ak_thread_make(&thread_fn, r);
   return r;
@@ -116,37 +105,25 @@ ak_renderer_render(ak_renderer* r)
 }
 
 void
-ak_renderer_resize(ak_renderer* r,
-                   uint32_t w,
-                   uint32_t h)
+ak_renderer_gcb(ak_renderer* r, ak_gcb* gcb)
 {
-  if (ak_atomicint_load(&r->gfx_made) == 0) {
-    return;
-  }
   ak_renderer_stallwait(r);
-  ak_gcb_push_resize(&r->gcb, w, h);
+  ak_gcb_joinback(&r->gcb, gcb);
 }
 
 void
 ak_renderer_stallwait(ak_renderer* r)
 {
+  while (!ak_atomicint_load(&r->inited))
+    ;
   while (ak_atomicint_load(&r->rendering))
     ;
-}
-
-ak_gfx*
-ak_renderer_gfx(ak_renderer* r)
-{
-
-  while (!ak_atomicint_load(&r->gfx_made))
-    ;
-  return r->gf;
 }
 
 ak_gresman*
 ak_renderer_gresman(ak_renderer* r)
 {
-  while (!ak_atomicint_load(&r->gfx_made))
-    ;
+
+  ak_renderer_stallwait(r);
   return r->grm;
 }

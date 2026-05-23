@@ -64,7 +64,7 @@ ak_da_pushback_zero(ak_da* da)
   da->count++;
   ak_da_overwrite_zero(da, da->count - 1);
 
-  return ak_da_at_impl(da, da->count - 1);
+  return ak_da_at(da, da->count - 1);
 }
 
 void
@@ -77,14 +77,13 @@ ak_da_at_copy(const ak_da* da,
 }
 
 void*
-ak_da_at_impl(ak_da* da, uint32_t idx)
+ak_da_at(ak_da* da, uint32_t idx)
 {
   ak_assert(idx < da->count);
   return ak_dbuff_at(&da->dbuff, idx);
 }
 const void*
-ak_da_at_const_impl(const ak_da* da,
-                    uint32_t idx)
+ak_da_at_const(const ak_da* da, uint32_t idx)
 {
   ak_assert(idx < da->count);
   return ak_dbuff_at_const(&da->dbuff, idx);
@@ -175,7 +174,7 @@ ak_da_findfirst(ak_da* da,
 {
   for (uint32_t i = 0; i < ak_da_count(da);
        i++) {
-    void* cddt = ak_da_at_impl(da, i);
+    void* cddt = ak_da_at(da, i);
     if (fn(item, cddt)) {
       return true;
     }
@@ -190,4 +189,18 @@ ak_da_sort(ak_da* da,
                            const void* b))
 {
   ak_assert(false);
+}
+
+void
+ak_da_bulk_pushback(ak_da* dest,
+                    const ak_da* src,
+                    uint32_t src_idx,
+                    uint32_t src_count)
+{
+  ak_dbuff_bulk_overwrite(&dest->dbuff,
+                          &src->dbuff,
+                          ak_da_count(dest),
+                          src_idx,
+                          src_count);
+  dest->count += src_count;
 }

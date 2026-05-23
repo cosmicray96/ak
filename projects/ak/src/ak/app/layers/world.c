@@ -12,6 +12,7 @@
 #include "ak/game/comp_t.h"
 #include "ak/game/core.h"
 #include "ak/game/stg/world.h"
+#include "ak/game/sys/ren.h"
 #include "ak/game/sys/tf.h"
 #include "ak/game/world/cb.h"
 #include "ak/game/world/cb_itn.h"
@@ -19,6 +20,7 @@
 #include "ak/game/world/view.h"
 #include "ak/game/world/view_itn.h"
 #include "ak/gfx/core.h"
+#include "ak/gfx/gcb.h"
 #include "ak/gfx/gfx.h"
 #include "ak/gfx/gresman.h"
 #include "ak/system/render.h"
@@ -43,12 +45,13 @@ struct ak_lworld
   ak_thpool* tp;
   ak_resman rm;
 
+  ak_gcb gcb;
   ak_renderer* renderer;
 
-  ak_gfx* gf;
   ak_gresman* grm;
 
   ak_sys_tf sys_tf;
+  ak_sys_ren sys_ren;
 
   ak_resid dog_rid;
   ak_gresid dog_gid;
@@ -69,10 +72,10 @@ on_resize(ak_lworld* l, ak_evt e)
       &l->wcb,
       root,
       (ak_screen_t){ .w = w, .h = h });
-
-    ak_renderer_resize(l->renderer, w, h);
     ak_world_cb_flush(
       &l->w, &l->wcb, &l->ig);
+
+    ak_gcb_push_resize(&l->gcb, w, h);
   }
   return false;
 }
@@ -167,13 +170,14 @@ on_startup(void* ctx, ak_app* app)
   l->tp = ak_thpool_startup();
   l->rm = ak_resman_make(l->tp, l->alct);
 
+  l->gcb = ak_gcb_make(l->alct);
+
   l->renderer = ak_renderer_startup(
     ak_lcore_plat_base(l->lcore),
     &l->wv,
     &l->rm,
     l->alct);
 
-  l->gf = ak_renderer_gfx(l->renderer);
   l->grm = ak_renderer_gresman(l->renderer);
 
   l->dog_rid = ak_resman_register_img(
@@ -184,6 +188,8 @@ on_startup(void* ctx, ak_app* app)
 
   l->sys_tf =
     ak_sys_tf_make(&l->wv, &l->wcb, l->alct);
+  l->sys_ren = ak_sys_ren_make(
+    &l->gcb, &l->wv, l->alct);
 
   set_root(l);
   push_child(l, 0, 0);
@@ -197,6 +203,7 @@ on_shutdown(void* ctx)
 
   ak_renderer_shutdown(l->renderer);
 
+  ak_sys_ren_destroy(&l->sys_ren);
   ak_sys_tf_destroy(&l->sys_tf);
 
   ak_gresman_shutdown(l->grm);
@@ -254,10 +261,6 @@ on_update(void* ctx, ak_dur delta)
   ak_lworld* l = ctx;
   ak_resman_update(&l->rm);
 
-  ak_renderer_stallwait(l->renderer);
-
-  ak_world_cb_flush(&l->w, &l->wcb, &l->ig);
-
   ak_sys_tf_update(&l->sys_tf);
   // other world wide system
   // script system
@@ -269,8 +272,11 @@ static void
 on_upost(void* ctx, ak_dur delta)
 {
   ak_lworld* l = ctx;
-  ak_renderer_stallwait(l->renderer);
   ak_world_cb_flush(&l->w, &l->wcb, &l->ig);
+
+  ak_sys_ren_render(&l->sys_ren, delta);
+
+  ak_renderer_gcb(l->renderer, &l->gcb);
   ak_renderer_render(l->renderer);
 }
 

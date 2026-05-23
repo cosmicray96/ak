@@ -9,9 +9,7 @@
 #include "ak/game/comp_t.h"
 #include "ak/game/core.h"
 #include "ak/game/world/view.h"
-#include "ak/gfx/core.h"
 #include "ak/gfx/gfx.h"
-#include "ak/gfx/mtrl/stg.h"
 #include "ak/os/time.h"
 #include <stdint.h>
 
@@ -24,17 +22,13 @@ typedef struct
 
 //--- internal ---//
 ak_sys_ren
-ak_sys_ren_make(ak_gfx* gf,
-                ak_gcb* gcb,
-                ak_mtrlstg* ms,
+ak_sys_ren_make(ak_gcb* gcb,
                 ak_wv* wv,
                 ak_alct alct)
 {
   ak_sys_ren r = { 0 };
   r.alct = alct;
   r.wv = wv;
-  r.gf = gf;
-  r.ms = ms;
   r.mtrls =
     ak_hmn_make(sizeof(map_item), alct);
   r.free_mtrls =
@@ -61,7 +55,6 @@ ak_sys_ren_destroy(ak_sys_ren* r)
   ak_hmn_destroy(&r->mtrls);
 
   ak_alct_invalidate(&r->alct);
-  r->gf = 0;
   r->wv = 0;
 }
 
@@ -154,8 +147,8 @@ ak_sys_ren_render(ak_sys_ren* r,
 
       uint32_t count = ak_da_count(&mi->da);
       for (uint32_t i = 0; i < count; i++) {
-        ak_ett e = *(ak_ett*)ak_da_at_impl(
-          &mi->da, i);
+        ak_ett e =
+          *(ak_ett*)ak_da_at(&mi->da, i);
 
         ak_mat3 gmat3x3 =
           ak_wv_comp_gmat3(r->wv, e);
@@ -189,9 +182,8 @@ ak_sys_ren_render(ak_sys_ren* r,
     uint32_t count =
       ak_da_count(&r->free_mtrls);
     for (uint32_t i = 0; i < count; i++) {
-      ak_ett base_id =
-        *(ak_ett*)ak_da_at_impl(
-          &r->free_mtrls, i);
+      ak_ett base_id = *(ak_ett*)ak_da_at(
+        &r->free_mtrls, i);
       map_item* mi =
         ak_hmn_at(&r->mtrls, base_id);
       ak_da_destroy(&mi->da);

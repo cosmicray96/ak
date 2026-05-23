@@ -48,7 +48,7 @@ run_update(ak_sys_script* s, ak_dur delta)
   uint32_t count = ak_da_count(&s->depths);
   for (uint32_t i = 0; i < count; i++) {
     script_item* si =
-      ak_da_at_impl(&s->depths, i);
+      ak_da_at(&s->depths, i);
 
     si->ctx.e = si->e;
     si->ctx.wv = s->wv;
