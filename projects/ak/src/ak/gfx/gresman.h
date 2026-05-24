@@ -26,8 +26,9 @@ ak_gresman_startup(ak_resman* rm,
 void
 ak_gresman_shutdown(ak_gresman* grm);
 
-ak_gresid
+void
 ak_gresman_register_img(ak_gresman* grm,
+                        ak_gresid gid,
                         ak_resid rid);
 
 ak_gres_status
@@ -38,8 +39,8 @@ void
 ak_gresman_load(ak_gresman* grm,
                 ak_gresid gid);
 void
-ak_gresman_unload(ak_gresman* grm,
-                  ak_gresid gid);
+ak_gresman_release(ak_gresman* grm,
+                   ak_gresid gid);
 void
 ak_gresman_update(ak_gresman* grm);
 

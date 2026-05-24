@@ -9,22 +9,13 @@
 #include "ak/core/mem/heap.h"
 #include "ak/debug.h"
 #include "ak/gfx/img.h"
+#include "ak/os/cpu.h"
 #include "ak/os/file.h"
 #include "ak/system/resman_itn.h"
 
 #include <stdint.h>
 
 //--- private ---//
-uint32_t
-fnv1a_hash(const char* s)
-{
-  uint32_t hash = 2166136261u;
-  while (*s) {
-    hash ^= (uint8_t)*s++;
-    hash *= 16777619u;
-  }
-  return hash;
-}
 
 //===== res_item =====//
 //--- private ---//
@@ -225,6 +216,7 @@ ak_resman_load(ak_resman* rm, ak_resid id)
 
   if (s == ak_res_loaded ||
       s == ak_res_loading) {
+    ak_mutex_unlock(&rm->m);
     return;
   }
 
@@ -310,4 +302,16 @@ ak_resman_acquire_img(ak_resman* rm,
     return &ri->img;
   }
   return 0;
+}
+
+ak_res_img*
+ak_resman_acquire_img_wait(ak_resman* rm,
+                           ak_resid id)
+{
+  ak_resman_load(rm, id);
+  while (ak_resman_status(rm, id) !=
+         ak_res_loaded) {
+    ak_cpu_yield();
+  }
+  return ak_resman_acquire_img(rm, id);
 }

@@ -68,4 +68,8 @@ ak_ex ak_res_img*
 ak_resman_acquire_img(ak_resman* rm,
                       ak_resid id);
 
+ak_ex ak_res_img*
+ak_resman_acquire_img_wait(ak_resman* rm,
+                           ak_resid id);
+
 #endif

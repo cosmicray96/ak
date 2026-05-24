@@ -208,7 +208,7 @@ ak_mtrl_tex_call_begin(
     ak_gresman_status(m->grm, tex.gid);
   if (s == ak_gres_loaded) {
     GLuint gltex =
-      ak_gresman_at(m->grm, tex.gid);
+      ak_gresman_acquire(m->grm, tex.gid);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, gltex);
     glUniform1i(m->tex_loc, 0);

@@ -5,7 +5,6 @@
 #include "ak/core/mem/allocator.h"
 #include "ak/debug.h"
 #include "ak/gfx/core.h"
-#include "ak/system/idgen.h"
 #include "ak/system/resman.h"
 #include "ak_opengl/gfx/gresman_impl.h"
 
@@ -14,6 +13,7 @@
 typedef struct
 {
   ak_gres_status s;
+  uint32_t ref_count;
   ak_resid rid;
   GLuint glint;
 } gres_item;
@@ -28,7 +28,6 @@ struct ak_gresman
 
   ak_mutex m;
 
-  ak_idgen ig;
   ak_hmn map;
   ak_da loads;
   ak_da unloads;
@@ -39,7 +38,8 @@ gres_load(ak_gresman* grm, ak_gresid gid)
 {
   gres_item* gi = ak_hmn_at(&grm->map, gid);
   ak_res_img* img =
-    ak_resman_acquire_img(grm->rm, gi->rid);
+    ak_resman_acquire_img_wait(grm->rm,
+                               gi->rid);
 
   glGenTextures(1, &gi->glint);
   glBindTexture(GL_TEXTURE_2D, gi->glint);
@@ -56,23 +56,9 @@ gres_load(ak_gresman* grm, ak_gresid gid)
     GL_UNSIGNED_BYTE, // cpu data type
     img->pixels);
 
-  /*
-glTexParameteri(GL_TEXTURE_2D,
-            GL_TEXTURE_MIN_FILTER,
-            GL_NEAREST);
-glTexParameteri(GL_TEXTURE_2D,
-            GL_TEXTURE_MAG_FILTER,
-            GL_NEAREST);
-glTexParameteri(GL_TEXTURE_2D,
-            GL_TEXTURE_WRAP_S,
-            GL_REPEAT);
-glTexParameteri(GL_TEXTURE_2D,
-            GL_TEXTURE_WRAP_T,
-            GL_REPEAT);
-  */
-
   glBindTexture(GL_TEXTURE_2D, 0);
   gi->s = ak_gres_loaded;
+  ak_resman_release(grm->rm, gi->rid);
 }
 
 static void
@@ -93,7 +79,6 @@ ak_gresman_startup(ak_resman* rm,
     ak_alct_alloc(alct, sizeof(ak_gresman));
   grm->alct = alct;
   grm->rm = rm;
-  grm->ig = ak_idgen_make(alct);
   grm->map =
     ak_hmn_make(sizeof(gres_item), alct);
   grm->loads =
@@ -124,28 +109,36 @@ ak_gresman_shutdown(ak_gresman* grm)
 
   ak_da_destroy(&grm->loads);
   ak_hmn_destroy(&grm->map);
-  ak_idgen_destroy(&grm->ig);
   ak_alct_free(grm->alct, grm);
 }
 
-ak_gresid
+void
 ak_gresman_register_img(ak_gresman* grm,
+                        ak_gresid gid,
                         ak_resid rid)
 {
-  ak_gresid gid = ak_idgen_new(&grm->ig);
+  ak_mutex_lock(&grm->m);
+  ak_assert(!ak_hmn_exist(&grm->map, gid));
+
   gres_item item = { 0 };
   item.s = ak_gres_not_loaded;
   item.rid = rid;
+  item.ref_count = 0;
   ak_hmn_insert(&grm->map, gid, &item);
-  return gid;
+
+  ak_mutex_unlock(&grm->m);
 }
 
 ak_gres_status
 ak_gresman_status(ak_gresman* grm,
                   ak_gresid gid)
 {
+
+  ak_mutex_lock(&grm->m);
   gres_item* gi = ak_hmn_at(&grm->map, gid);
-  return gi->s;
+  ak_gres_status s = gi->s;
+  ak_mutex_unlock(&grm->m);
+  return s;
 }
 
 void
@@ -160,6 +153,7 @@ ak_gresman_load(ak_gresman* grm,
 
   if (gs == ak_gres_loaded ||
       gs == ak_gres_loading) {
+    ak_mutex_unlock(&grm->m);
     return;
   }
   ak_resman_load(grm->rm, gi->rid);
@@ -170,14 +164,18 @@ ak_gresman_load(ak_gresman* grm,
 }
 
 void
-ak_gresman_unload(ak_gresman* grm,
-                  ak_gresid gid)
+ak_gresman_release(ak_gresman* grm,
+                   ak_gresid gid)
 {
   ak_mutex_lock(&grm->m);
 
   gres_item* gi = ak_hmn_at(&grm->map, gid);
+  ak_gres_status s = gi->s;
   if (gi->s == ak_gres_loaded) {
-    ak_da_pushback(&grm->unloads, &gid);
+    gi->ref_count--;
+    if (gi->ref_count == 0) {
+      ak_da_pushback(&grm->unloads, &gid);
+    }
   }
   ak_mutex_unlock(&grm->m);
 }
@@ -192,7 +190,11 @@ ak_gresman_update(ak_gresman* grm)
     for (uint32_t i = 0; i < count; i++) {
       ak_gresid gid = *(ak_gresid*)ak_da_at(
         &grm->unloads, i);
-      gres_unload(grm, gid);
+      gres_item* gi =
+        ak_hmn_at(&grm->map, gid);
+      if (gi->ref_count == 0) {
+        gres_unload(grm, gid);
+      }
     }
     ak_da_clear(&grm->unloads);
   }
@@ -225,9 +227,14 @@ ak_gresman_update(ak_gresman* grm)
 
 //--- impl ---//
 GLuint
-ak_gresman_at(ak_gresman* grm, ak_gresid gid)
+ak_gresman_acquire(ak_gresman* grm,
+                   ak_gresid gid)
 {
+  ak_mutex_lock(&grm->m);
   gres_item* gi = ak_hmn_at(&grm->map, gid);
   ak_assert(gi->s == ak_gres_loaded);
-  return gi->glint;
+  gi->ref_count++;
+  GLuint i = gi->glint;
+  ak_mutex_unlock(&grm->m);
+  return i;
 }
