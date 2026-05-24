@@ -100,12 +100,13 @@ job_fn(void* ctx)
   res_load(ri);
 }
 
-static ak_resid
+static void
 res_register(ak_resman* rm,
              ak_restype type,
+             ak_resid id,
              const char* path)
 {
-  ak_resid id = fnv1a_hash(path);
+  ak_mutex_lock(&rm->m);
 
   ak_assert(!ak_hmn_exist(&rm->map, id));
 
@@ -117,7 +118,8 @@ res_register(ak_resman* rm,
   item.path = path;
   item.ref_count = 0;
   ak_hmn_insert(&rm->map, id, &item);
-  return id;
+
+  ak_mutex_unlock(&rm->m);
 }
 
 //--- internal ---//
@@ -196,22 +198,21 @@ ak_resman_update(ak_resman* rm)
 
 //--- export ---//
 
-ak_resid
+void
 ak_resman_register_file(ak_resman* rm,
+                        ak_resid id,
                         const char* path)
 {
-  ak_resid id =
-    res_register(rm, ak_restype_file, path);
-  return id;
+  res_register(
+    rm, ak_restype_file, id, path);
 }
 
-ak_resid
+void
 ak_resman_register_img(ak_resman* rm,
+                       ak_resid id,
                        const char* path)
 {
-  ak_resid id =
-    res_register(rm, ak_restype_img, path);
-  return id;
+  res_register(rm, ak_restype_img, id, path);
 }
 
 void
@@ -233,26 +234,14 @@ ak_resman_load(ak_resman* rm, ak_resid id)
   ak_mutex_unlock(&rm->m);
 }
 
-void
-ak_resman_unload(ak_resman* rm, ak_resid id)
+ak_res_status
+ak_resman_status(ak_resman* rm, ak_resid id)
 {
   ak_mutex_lock(&rm->m);
   res_item* ri = ak_hmn_at(&rm->map, id);
   ak_res_status s =
     ak_atomicint_load(&ri->status);
-  if (s != ak_res_loaded) {
-    return;
-  }
-  res_unload(ri);
   ak_mutex_unlock(&rm->m);
-}
-
-ak_res_status
-ak_resman_status(ak_resman* rm, ak_resid id)
-{
-  res_item* ri = ak_hmn_at(&rm->map, id);
-  ak_res_status s =
-    ak_atomicint_load(&ri->status);
   return s;
 }
 
@@ -260,8 +249,11 @@ ak_restype
 ak_resman_res_type(ak_resman* rm,
                    ak_resid rid)
 {
+  ak_mutex_lock(&rm->m);
   res_item* ri = ak_hmn_at(&rm->map, rid);
-  return ri->type;
+  ak_restype type = ri->type;
+  ak_mutex_unlock(&rm->m);
+  return type;
 }
 
 void
@@ -281,7 +273,8 @@ ak_resman_release(ak_resman* rm, ak_resid id)
 }
 
 ak_res_file*
-ak_resman_at_file(ak_resman* rm, ak_resid id)
+ak_resman_acquire_file(ak_resman* rm,
+                       ak_resid id)
 {
   ak_mutex_lock(&rm->m);
   ak_assert(ak_resman_res_type(rm, id) ==
@@ -300,7 +293,8 @@ ak_resman_at_file(ak_resman* rm, ak_resid id)
 }
 
 ak_res_img*
-ak_resman_at_img(ak_resman* rm, ak_resid id)
+ak_resman_acquire_img(ak_resman* rm,
+                      ak_resid id)
 {
   ak_assert(ak_resman_res_type(rm, id) ==
             ak_restype_img);

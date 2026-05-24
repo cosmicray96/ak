@@ -41,17 +41,20 @@ typedef enum
   ak_res_loaded
 } ak_res_status;
 
-ak_ex ak_resid
+ak_ex void
 ak_resman_register_file(ak_resman* rm,
+                        ak_resid id,
                         const char* path);
-ak_ex ak_resid
+ak_ex void
 ak_resman_register_img(ak_resman* rm,
+                       ak_resid id,
                        const char* path);
 
 ak_ex void
 ak_resman_load(ak_resman* rm, ak_resid id);
 ak_ex void
-ak_resman_unload(ak_resman* rm, ak_resid id);
+ak_resman_release(ak_resman* rm,
+                  ak_resid id);
 ak_ex ak_res_status
 ak_resman_status(ak_resman* rm, ak_resid id);
 ak_ex ak_restype
@@ -59,9 +62,10 @@ ak_resman_res_type(ak_resman* rm,
                    ak_resid rid);
 
 ak_ex ak_res_file*
-ak_resman_at_file(ak_resman* rm,
-                  ak_resid id);
+ak_resman_acquire_file(ak_resman* rm,
+                       ak_resid id);
 ak_ex ak_res_img*
-ak_resman_at_img(ak_resman* rm, ak_resid id);
+ak_resman_acquire_img(ak_resman* rm,
+                      ak_resid id);
 
 #endif

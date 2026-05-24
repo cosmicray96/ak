@@ -39,7 +39,7 @@ gres_load(ak_gresman* grm, ak_gresid gid)
 {
   gres_item* gi = ak_hmn_at(&grm->map, gid);
   ak_res_img* img =
-    ak_resman_at_img(grm->rm, gi->rid);
+    ak_resman_acquire_img(grm->rm, gi->rid);
 
   glGenTextures(1, &gi->glint);
   glBindTexture(GL_TEXTURE_2D, gi->glint);

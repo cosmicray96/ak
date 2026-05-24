@@ -218,6 +218,7 @@ ak_da_bulk_pushback(ak_da* dest,
                     uint32_t src_idx,
                     uint32_t src_count)
 {
+  ak_da_reserve(dest, src_count);
   ak_dbuff_bulk_overwrite(&dest->dbuff,
                           &src->dbuff,
                           ak_da_count(dest),

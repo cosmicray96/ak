@@ -129,14 +129,12 @@ ak_dbuff_bulk_overwrite(ak_dbuff* dest,
   ak_assert(src_idx < src->cap);
   ak_assert(src_idx + src_count <= src->cap);
   ak_assert(dest->is == src->is);
+  ak_assert(dest_idx + src_count <=
+            dest->cap);
 
   if (src_count == 0) {
     return;
   }
-
-  ak_dbuff_ensure_cap(dest,
-                      dest_idx + src_count);
-
   void* dest_ptr =
     ak_dbuff_at(dest, dest_idx);
   const void* src_ptr =
