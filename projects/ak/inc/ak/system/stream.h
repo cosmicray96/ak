@@ -1,0 +1,108 @@
+#ifndef ak_system_stream_h
+#define ak_system_stream_h
+
+#include "ak/export.h"
+#include <stdint.h>
+
+typedef enum
+{
+  ak_stmerr_ok = 0,
+  ak_stmerr_err,
+
+  ak_stmerr_invalid,
+  ak_stmerr_end,
+
+  ak_stmerr_unsupported,
+
+  ak_stmerr_file_notfound,
+} ak_stmerr;
+
+typedef enum
+{
+  ak_stmtype_none,
+  ak_stmtype_file,
+  ak_stmtype_sio
+} ak_stmtype;
+
+typedef struct
+{
+  ak_stmtype type;
+  void* ctx;
+} ak_stm;
+
+ak_ex ak_stm
+ak_stm_open_file(const char* path,
+                 const char* mode);
+
+ak_ex ak_stmerr
+ak_stm_close(ak_stm stm);
+
+ak_ex ak_stmerr
+ak_stm_write(ak_stm stm,
+             const void* data,
+             uint64_t size);
+
+ak_ex ak_stmerr
+ak_stm_read(ak_stm stm,
+            void* data,
+            uint64_t size);
+
+//--- Unsigned Ints ---//
+ak_ex ak_stmerr
+ak_stm_write_u8(ak_stm stm, uint8_t value);
+ak_ex ak_stmerr
+ak_stm_read_u8(ak_stm stm, uint8_t* o_value);
+
+ak_ex ak_stmerr
+ak_stm_write_u16(ak_stm stm, uint16_t value);
+ak_ex ak_stmerr
+ak_stm_read_u16(ak_stm stm,
+                uint16_t* o_value);
+
+ak_ex ak_stmerr
+ak_stm_write_u32(ak_stm stm, uint32_t value);
+ak_ex ak_stmerr
+ak_stm_read_u32(ak_stm stm,
+                uint32_t* o_value);
+
+ak_ex ak_stmerr
+ak_stm_write_u64(ak_stm stm, uint64_t value);
+ak_ex ak_stmerr
+ak_stm_read_u64(ak_stm stm,
+                uint64_t* o_value);
+
+//--- Signed Ints ---//
+ak_ex ak_stmerr
+ak_stm_write_i8(ak_stm stm, int8_t value);
+ak_ex ak_stmerr
+ak_stm_read_i8(ak_stm stm, int8_t* o_value);
+
+ak_ex ak_stmerr
+ak_stm_write_i16(ak_stm stm, int16_t value);
+ak_ex ak_stmerr
+ak_stm_read_i16(ak_stm stm,
+                int16_t* o_value);
+
+ak_ex ak_stmerr
+ak_stm_write_i32(ak_stm stm, int32_t value);
+ak_ex ak_stmerr
+ak_stm_read_i32(ak_stm stm,
+                int32_t* o_value);
+
+ak_ex ak_stmerr
+ak_stm_write_i64(ak_stm stm, int64_t value);
+ak_ex ak_stmerr
+ak_stm_read_i64(ak_stm stm,
+                int64_t* o_value);
+
+//--- Floats ---//
+ak_ex ak_stmerr
+ak_stm_write_f32(ak_stm stm, float value);
+ak_ex ak_stmerr
+ak_stm_read_f32(ak_stm stm, float* o_value);
+ak_ex ak_stmerr
+ak_stm_write_f64(ak_stm stm, double value);
+ak_ex ak_stmerr
+ak_stm_read_f64(ak_stm stm, double* o_value);
+
+#endif

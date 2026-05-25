@@ -101,12 +101,13 @@ ak_lworld_destroy(ak_lworld* l)
 static void
 set_root(ak_lworld* l)
 {
-
-  ak_ett root = ak_wv_ett_root(&l->wv);
+  ak_ett root = ak_wcb_ett_new(&l->wcb, 0);
   ak_tf2d_t tf = ak_tf2d_identity();
   ak_wcb_comp_tf2d_add(&l->wcb, root, tf);
   ak_mat3 mat = ak_mat3_identity();
   ak_wcb_comp_gmat3_add(&l->wcb, root, mat);
+
+  ak_world_cb_flush(&l->w, &l->wcb, &l->ig);
 
   ak_screen_t screen = { .w = 800,
                          .h = 600 };
@@ -130,6 +131,8 @@ set_root(ak_lworld* l)
                 ak_filter_linear };
   ak_wcb_comp_mtrl_base_add(
     &l->wcb, l->e_mtrl_base, base);
+
+  ak_world_cb_flush(&l->w, &l->wcb, &l->ig);
 }
 
 static void
@@ -188,14 +191,14 @@ on_startup(void* ctx, ak_app* app)
     l->grm, l->dog_gid, l->dog_rid);
   ak_gresman_load(l->grm, l->dog_gid);
 
+  set_root(l);
+  push_child(l, 0, 0);
+  ak_world_cb_flush(&l->w, &l->wcb, &l->ig);
+
   l->sys_tf =
     ak_sys_tf_make(&l->wv, &l->wcb, l->alct);
   l->sys_ren = ak_sys_ren_make(
     &l->gcb, &l->wv, l->alct);
-
-  set_root(l);
-  push_child(l, 0, 0);
-  ak_world_cb_flush(&l->w, &l->wcb, &l->ig);
 }
 
 static void

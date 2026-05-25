@@ -14,6 +14,12 @@ id_from_ett(ak_world* w, ak_ett e)
   return *id;
 }
 
+static ak_ett
+ett_from_id(ak_world* w, ak_fcnstid id)
+{
+  return *(ak_ett*)ak_fcnst_at(&w->tree, id);
+}
+
 //--- public ---//
 ak_world
 ak_world_make(ak_ett root, ak_alct alct)
@@ -24,10 +30,6 @@ ak_world_make(ak_ett root, ak_alct alct)
   w.map =
     ak_hmn_make(sizeof(ak_fcnstid), alct);
   w.cs = ak_compstg_make(alct);
-
-  ak_fcnstid roott =
-    ak_fcnst_add(&w.tree, 0, &root);
-  ak_hmn_insert(&w.map, root, &roott);
 
   return w;
 }
@@ -50,7 +52,7 @@ ak_ett
 ak_world_id_to_ett(ak_world* w,
                    ak_fcnstid id)
 {
-  return *(ak_ett*)ak_fcnst_at(&w->tree, id);
+  return ett_from_id(w, id);
 }
 ak_ett
 ak_world_ett_to_id(ak_world* w, ak_ett e)
@@ -67,7 +69,8 @@ ak_world_ett_count(ak_world* w)
 ak_ett
 ak_world_ett_root(ak_world* w)
 {
-  return ak_fcnst_root(&w->tree);
+  return ett_from_id(
+    w, ak_fcnst_root(&w->tree));
 }
 
 uint32_t
@@ -101,8 +104,10 @@ ak_world_ett_new(ak_world* w,
                  ak_ett e,
                  ak_ett pt)
 {
-  ak_fcnstid id = ak_fcnst_add(
-    &w->tree, id_from_ett(w, pt), &e);
+  ak_fcnstid ptid =
+    pt ? id_from_ett(w, pt) : 0;
+  ak_fcnstid id =
+    ak_fcnst_add(&w->tree, ptid, &e);
   ak_hmn_insert(&w->map, e, &id);
 }
 
@@ -133,27 +138,31 @@ ak_world_ett_remove_cb(
 ak_ett
 ak_world_ett_parent(ak_world* w, ak_ett e)
 {
-  return ak_fcnst_pt(&w->tree,
-                     id_from_ett(w, e));
+  ak_fcnstid id =
+    ak_fcnst_pt(&w->tree, id_from_ett(w, e));
+  return ett_from_id(w, id);
 }
 ak_ett
 ak_world_ett_firstchild(ak_world* w,
                         ak_ett e)
 {
-  return ak_fcnst_fc(&w->tree,
-                     id_from_ett(w, e));
+  ak_fcnstid id =
+    ak_fcnst_fc(&w->tree, id_from_ett(w, e));
+  return ett_from_id(w, id);
 }
 ak_ett
 ak_world_ett_nextsib(ak_world* w, ak_ett e)
 {
-  return ak_fcnst_ns(&w->tree,
-                     id_from_ett(w, e));
+  ak_fcnstid id =
+    ak_fcnst_ns(&w->tree, id_from_ett(w, e));
+  return ett_from_id(w, id);
 }
 ak_ett
 ak_world_ett_leftmost(ak_world* w, ak_ett e)
 {
-  return ak_fcnst_leftmost(
+  ak_fcnstid id = ak_fcnst_leftmost(
     &w->tree, id_from_ett(w, e));
+  return ett_from_id(w, id);
 }
 
 bool
