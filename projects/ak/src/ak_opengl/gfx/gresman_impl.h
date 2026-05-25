@@ -6,7 +6,7 @@
 #include <glad/glad.h>
 
 GLuint
-ak_gresman_acquire(ak_gresman* grm,
-                   ak_gresid gid);
+ak_gresman_acquire_tex(ak_gresman* grm,
+                       ak_gresid gid);
 
 #endif

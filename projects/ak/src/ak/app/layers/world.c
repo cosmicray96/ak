@@ -184,7 +184,7 @@ on_startup(void* ctx, ak_app* app)
   ak_resman_register_img(
     &l->rm, l->dog_rid, "./dog.png");
   l->dog_gid = 11;
-  ak_gresman_register_img(
+  ak_gresman_register_tex_from_rid(
     l->grm, l->dog_gid, l->dog_rid);
   ak_gresman_load(l->grm, l->dog_gid);
 

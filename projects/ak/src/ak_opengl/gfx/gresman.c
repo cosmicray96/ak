@@ -12,10 +12,18 @@
 //--- private ---//
 typedef struct
 {
+  ak_grestype type;
   ak_gres_status s;
   uint32_t ref_count;
-  ak_resid rid;
-  GLuint glint;
+  struct
+  {
+    ak_resid rid;
+    GLuint glint;
+  } img;
+  struct
+  {
+    GLuint glint;
+  } fb;
 } gres_item;
 
 //===== ak_gresman =====//
@@ -69,6 +77,34 @@ gres_unload(ak_gresman* grm, ak_gresid gid)
   gi->s = ak_gres_not_loaded;
 }
 
+static void
+gres_register(ak_gresman* grm,
+              ak_grestype type,
+              ak_gresid gid)
+{
+  ak_assert(!ak_hmn_exist(&grm->map, gid));
+
+  gres_item item = { 0 };
+  item.type = type;
+  item.s = ak_gres_not_loaded;
+  item.ref_count = 0;
+  ak_hmn_insert(&grm->map, gid, &item);
+}
+
+//--- impl ---//
+GLuint
+ak_gresman_acquire_tex(ak_gresman* grm,
+                       ak_gresid gid)
+{
+  ak_mutex_lock(&grm->m);
+  gres_item* gi = ak_hmn_at(&grm->map, gid);
+  ak_assert(gi->s == ak_gres_loaded);
+  gi->ref_count++;
+  GLuint i = gi->glint;
+  ak_mutex_unlock(&grm->m);
+  return i;
+}
+
 //--- internal ---//
 ak_gresman*
 ak_gresman_startup(ak_resman* rm,
@@ -110,74 +146,6 @@ ak_gresman_shutdown(ak_gresman* grm)
   ak_da_destroy(&grm->loads);
   ak_hmn_destroy(&grm->map);
   ak_alct_free(grm->alct, grm);
-}
-
-void
-ak_gresman_register_img(ak_gresman* grm,
-                        ak_gresid gid,
-                        ak_resid rid)
-{
-  ak_mutex_lock(&grm->m);
-  ak_assert(!ak_hmn_exist(&grm->map, gid));
-
-  gres_item item = { 0 };
-  item.s = ak_gres_not_loaded;
-  item.rid = rid;
-  item.ref_count = 0;
-  ak_hmn_insert(&grm->map, gid, &item);
-
-  ak_mutex_unlock(&grm->m);
-}
-
-ak_gres_status
-ak_gresman_status(ak_gresman* grm,
-                  ak_gresid gid)
-{
-
-  ak_mutex_lock(&grm->m);
-  gres_item* gi = ak_hmn_at(&grm->map, gid);
-  ak_gres_status s = gi->s;
-  ak_mutex_unlock(&grm->m);
-  return s;
-}
-
-void
-ak_gresman_load(ak_gresman* grm,
-                ak_gresid gid)
-{
-
-  ak_mutex_lock(&grm->m);
-
-  gres_item* gi = ak_hmn_at(&grm->map, gid);
-  ak_gres_status gs = gi->s;
-
-  if (gs == ak_gres_loaded ||
-      gs == ak_gres_loading) {
-    ak_mutex_unlock(&grm->m);
-    return;
-  }
-  ak_resman_load(grm->rm, gi->rid);
-  ak_da_pushback(&grm->loads, &gid);
-  gi->s = ak_gres_loading;
-
-  ak_mutex_unlock(&grm->m);
-}
-
-void
-ak_gresman_release(ak_gresman* grm,
-                   ak_gresid gid)
-{
-  ak_mutex_lock(&grm->m);
-
-  gres_item* gi = ak_hmn_at(&grm->map, gid);
-  ak_gres_status s = gi->s;
-  if (gi->s == ak_gres_loaded) {
-    gi->ref_count--;
-    if (gi->ref_count == 0) {
-      ak_da_pushback(&grm->unloads, &gid);
-    }
-  }
-  ak_mutex_unlock(&grm->m);
 }
 
 void
@@ -225,16 +193,79 @@ ak_gresman_update(ak_gresman* grm)
   ak_mutex_unlock(&grm->m);
 }
 
-//--- impl ---//
-GLuint
-ak_gresman_acquire(ak_gresman* grm,
+//--- export ---//
+ak_gres_status
+ak_gresman_status(ak_gresman* grm,
+                  ak_gresid gid)
+{
+
+  ak_mutex_lock(&grm->m);
+  gres_item* gi = ak_hmn_at(&grm->map, gid);
+  ak_gres_status s = gi->s;
+  ak_mutex_unlock(&grm->m);
+  return s;
+}
+
+void
+ak_gresman_register_tex_from_rid(
+  ak_gresman* grm,
+  ak_gresid gid,
+  ak_resid rid)
+{
+  ak_mutex_lock(&grm->m);
+  gres_register(grm, ak_grestype_tex, gid);
+
+  ak_assert(!ak_hmn_exist(&grm->map, gid));
+
+  gres_item item = { 0 };
+  item.s = ak_gres_not_loaded;
+  item.rid = rid;
+  item.ref_count = 0;
+  ak_hmn_insert(&grm->map, gid, &item);
+
+  ak_mutex_unlock(&grm->m);
+}
+
+void
+ak_gresman_register_framebuffer(
+  ak_gresman* grm,
+  ak_gresid gid);
+
+void
+ak_gresman_load(ak_gresman* grm,
+                ak_gresid gid)
+{
+
+  ak_mutex_lock(&grm->m);
+
+  gres_item* gi = ak_hmn_at(&grm->map, gid);
+  ak_gres_status gs = gi->s;
+
+  if (gs == ak_gres_loaded ||
+      gs == ak_gres_loading) {
+    ak_mutex_unlock(&grm->m);
+    return;
+  }
+  ak_resman_load(grm->rm, gi->rid);
+  ak_da_pushback(&grm->loads, &gid);
+  gi->s = ak_gres_loading;
+
+  ak_mutex_unlock(&grm->m);
+}
+
+void
+ak_gresman_release(ak_gresman* grm,
                    ak_gresid gid)
 {
   ak_mutex_lock(&grm->m);
+
   gres_item* gi = ak_hmn_at(&grm->map, gid);
-  ak_assert(gi->s == ak_gres_loaded);
-  gi->ref_count++;
-  GLuint i = gi->glint;
+  ak_gres_status s = gi->s;
+  if (gi->s == ak_gres_loaded) {
+    gi->ref_count--;
+    if (gi->ref_count == 0) {
+      ak_da_pushback(&grm->unloads, &gid);
+    }
+  }
   ak_mutex_unlock(&grm->m);
-  return i;
 }
