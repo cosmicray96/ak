@@ -41,6 +41,9 @@ ak_gresman_register_framebuffer(
 ak_gres_status
 ak_gresman_status(ak_gresman* grm,
                   ak_gresid gid);
+ak_grestype
+ak_gresman_type(ak_gresman* grm,
+                ak_gresid gid);
 
 void
 ak_gresman_load(ak_gresman* grm,

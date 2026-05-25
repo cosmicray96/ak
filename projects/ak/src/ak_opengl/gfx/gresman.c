@@ -15,15 +15,18 @@ typedef struct
   ak_grestype type;
   ak_gres_status s;
   uint32_t ref_count;
-  struct
+  union
   {
-    ak_resid rid;
-    GLuint glint;
-  } img;
-  struct
-  {
-    GLuint glint;
-  } fb;
+    struct
+    {
+      ak_resid rid;
+      GLuint glint;
+    } img;
+    struct
+    {
+      GLuint glint;
+    } fb;
+  };
 } gres_item;
 
 //===== ak_gresman =====//
@@ -45,36 +48,54 @@ static void
 gres_load(ak_gresman* grm, ak_gresid gid)
 {
   gres_item* gi = ak_hmn_at(&grm->map, gid);
-  ak_res_img* img =
-    ak_resman_acquire_img_wait(grm->rm,
-                               gi->rid);
+  switch (gi->type) {
+    case ak_grestype_tex: {
+      ak_resman_load(grm->rm, gi->img.rid);
+      ak_res_img* img =
+        ak_resman_acquire_img_wait(
+          grm->rm, gi->img.rid);
 
-  glGenTextures(1, &gi->glint);
-  glBindTexture(GL_TEXTURE_2D, gi->glint);
+      glGenTextures(1, &gi->img.glint);
+      glBindTexture(GL_TEXTURE_2D,
+                    gi->img.glint);
 
-  // upload pixel data
-  glTexImage2D(
-    GL_TEXTURE_2D,
-    0,        // mip level
-    GL_RGBA8, // gpu internal format
-    img->w,
-    img->h,
-    0,                // border (must be 0)
-    GL_RGBA,          // cpu data format
-    GL_UNSIGNED_BYTE, // cpu data type
-    img->pixels);
+      glTexImage2D(GL_TEXTURE_2D,
+                   0,
+                   GL_RGBA8,
+                   img->w,
+                   img->h,
+                   0,
+                   GL_RGBA,
+                   GL_UNSIGNED_BYTE,
+                   img->pixels);
 
-  glBindTexture(GL_TEXTURE_2D, 0);
-  gi->s = ak_gres_loaded;
-  ak_resman_release(grm->rm, gi->rid);
+      glBindTexture(GL_TEXTURE_2D, 0);
+      gi->s = ak_gres_loaded;
+      ak_resman_release(grm->rm,
+                        gi->img.rid);
+      break;
+    }
+    default: {
+      ak_assert(false);
+    }
+  }
 }
 
 static void
 gres_unload(ak_gresman* grm, ak_gresid gid)
 {
   gres_item* gi = ak_hmn_at(&grm->map, gid);
-  glDeleteTextures(1, &gi->glint);
-  gi->s = ak_gres_not_loaded;
+  ak_assert(gi->s == ak_gres_loaded);
+  switch (gi->type) {
+    case ak_grestype_tex: {
+      glDeleteTextures(1, &gi->img.glint);
+      gi->s = ak_gres_not_loaded;
+      break;
+    }
+    default: {
+      ak_assert(false);
+    }
+  }
 }
 
 static void
@@ -96,11 +117,13 @@ GLuint
 ak_gresman_acquire_tex(ak_gresman* grm,
                        ak_gresid gid)
 {
+  ak_assert(ak_gresman_type(grm, gid) ==
+            ak_grestype_tex);
   ak_mutex_lock(&grm->m);
   gres_item* gi = ak_hmn_at(&grm->map, gid);
   ak_assert(gi->s == ak_gres_loaded);
   gi->ref_count++;
-  GLuint i = gi->glint;
+  GLuint i = gi->img.glint;
   ak_mutex_unlock(&grm->m);
   return i;
 }
@@ -177,15 +200,24 @@ ak_gresman_update(ak_gresman* grm)
         &grm->loads, i);
       gres_item* gi =
         ak_hmn_at(&grm->map, gid);
-      ak_res_status rs =
-        ak_resman_status(grm->rm, gi->rid);
-      if (rs == ak_res_loaded) {
-        gres_load(grm, gid);
-        ak_da_remove_swaplast(&grm->loads,
-                              i);
-        count--;
-      } else {
-        i++;
+      switch (gi->type) {
+        case ak_grestype_tex: {
+          ak_res_status rs =
+            ak_resman_status(grm->rm,
+                             gi->img.rid);
+          if (rs == ak_res_loaded) {
+            gres_load(grm, gid);
+            ak_da_remove_swaplast(
+              &grm->loads, i);
+            count--;
+          } else {
+            i++;
+          }
+          break;
+        }
+        default: {
+          ak_assert(false);
+        }
       }
     }
   }
@@ -206,6 +238,17 @@ ak_gresman_status(ak_gresman* grm,
   return s;
 }
 
+ak_grestype
+ak_gresman_type(ak_gresman* grm,
+                ak_gresid gid)
+{
+  ak_mutex_lock(&grm->m);
+  gres_item* gi = ak_hmn_at(&grm->map, gid);
+  ak_grestype type = gi->type;
+  ak_mutex_unlock(&grm->m);
+  return type;
+}
+
 void
 ak_gresman_register_tex_from_rid(
   ak_gresman* grm,
@@ -215,13 +258,9 @@ ak_gresman_register_tex_from_rid(
   ak_mutex_lock(&grm->m);
   gres_register(grm, ak_grestype_tex, gid);
 
-  ak_assert(!ak_hmn_exist(&grm->map, gid));
-
-  gres_item item = { 0 };
-  item.s = ak_gres_not_loaded;
-  item.rid = rid;
-  item.ref_count = 0;
-  ak_hmn_insert(&grm->map, gid, &item);
+  gres_item* item =
+    ak_hmn_at(&grm->map, gid);
+  item->img.rid = rid;
 
   ak_mutex_unlock(&grm->m);
 }
@@ -246,7 +285,7 @@ ak_gresman_load(ak_gresman* grm,
     ak_mutex_unlock(&grm->m);
     return;
   }
-  ak_resman_load(grm->rm, gi->rid);
+  ak_resman_load(grm->rm, gi->img.rid);
   ak_da_pushback(&grm->loads, &gid);
   gi->s = ak_gres_loading;
 
