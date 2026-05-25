@@ -85,6 +85,7 @@ struct ak_mtrl_tex
   GLuint vp_loc;
   GLuint tex_loc;
   GLuint t_loc;
+
   bool call_begin;
 };
 
@@ -204,47 +205,49 @@ ak_mtrl_tex_call_begin(
   glUniform1f(m->t_loc, ak_fx_to_f(time));
 
   ak_tex tex = bd->tex;
-  ak_gres_status s =
-    ak_gresman_status(m->grm, tex.gid);
-  if (s == ak_gres_loaded) {
-    GLuint gltex = ak_gresman_acquire_tex(
-      m->grm, tex.gid);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, gltex);
-    glUniform1i(m->tex_loc, 0);
+  if (ak_gresman_status(m->grm, tex.gid) !=
+      ak_gres_loaded) {
+    glBindVertexArray(m->vao);
+    ak_gfx_call_begin(m->g, sizeof(quad));
+    m->call_begin = true;
+    return;
+  }
+  GLuint gltex =
+    ak_gresman_acquire_tex(m->grm, tex.gid);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, gltex);
+  glUniform1i(m->tex_loc, 0);
 
-    if (tex.filter_type ==
-        ak_filter_linear) {
-      glTexParameteri(GL_TEXTURE_2D,
-                      GL_TEXTURE_MIN_FILTER,
-                      GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D,
-                      GL_TEXTURE_MAG_FILTER,
-                      GL_LINEAR);
-    } else {
-      glTexParameteri(GL_TEXTURE_2D,
-                      GL_TEXTURE_MIN_FILTER,
-                      GL_NEAREST);
-      glTexParameteri(GL_TEXTURE_2D,
-                      GL_TEXTURE_MAG_FILTER,
-                      GL_NEAREST);
-    }
-    if (tex.uv_type == ak_uv_clamp) {
-      glTexParameteri(GL_TEXTURE_2D,
-                      GL_TEXTURE_WRAP_S,
-                      GL_CLAMP_TO_EDGE);
-      glTexParameteri(GL_TEXTURE_2D,
-                      GL_TEXTURE_WRAP_T,
-                      GL_CLAMP_TO_EDGE);
+  if (tex.filter_type == ak_filter_linear) {
+    glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_MIN_FILTER,
+                    GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_MAG_FILTER,
+                    GL_LINEAR);
+  } else {
+    glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_MIN_FILTER,
+                    GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_MAG_FILTER,
+                    GL_NEAREST);
+  }
+  if (tex.uv_type == ak_uv_clamp) {
+    glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_WRAP_S,
+                    GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_WRAP_T,
+                    GL_CLAMP_TO_EDGE);
 
-    } else {
-      glTexParameteri(GL_TEXTURE_2D,
-                      GL_TEXTURE_WRAP_S,
-                      GL_REPEAT);
-      glTexParameteri(GL_TEXTURE_2D,
-                      GL_TEXTURE_WRAP_T,
-                      GL_REPEAT);
-    }
+  } else {
+    glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_WRAP_S,
+                    GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_WRAP_T,
+                    GL_REPEAT);
   }
 
   glBindVertexArray(m->vao);

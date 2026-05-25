@@ -189,6 +189,7 @@ on_startup(void* ctx, ak_app* app)
   l->dog_gid = 11;
   ak_gresman_register_tex_from_rid(
     l->grm, l->dog_gid, l->dog_rid);
+  ak_resman_load(&l->rm, l->dog_rid);
   ak_gresman_load(l->grm, l->dog_gid);
 
   set_root(l);

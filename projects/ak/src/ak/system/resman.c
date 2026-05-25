@@ -1,6 +1,5 @@
 #include "ak/system/resman.h"
 #include "ak/coll/da.h"
-#include "ak/coll/dq.h"
 #include "ak/coll/hmn.h"
 #include "ak/core/async/atomic.h"
 #include "ak/core/async/mutex.h"
@@ -14,8 +13,7 @@
 #include "ak/system/resman_itn.h"
 
 #include <stdint.h>
-
-//--- private ---//
+#include <stdio.h>
 
 //===== res_item =====//
 //--- private ---//
@@ -24,7 +22,8 @@ typedef struct
   ak_atomicint status;
   ak_restype type;
   ak_alct alct;
-  uint32_t ref_count;
+  uint32_t load_count;
+  uint32_t access_count;
   const char* path;
   union
   {
@@ -107,7 +106,8 @@ res_register(ak_resman* rm,
   item.type = type;
   item.alct = ak_heap_to_alct(&rm->heap);
   item.path = path;
-  item.ref_count = 0;
+  item.load_count = 0;
+  item.access_count = 0;
   ak_hmn_insert(&rm->map, id, &item);
 
   ak_mutex_unlock(&rm->m);
@@ -126,7 +126,7 @@ ak_resman_make(ak_thpool* jp, ak_alct alct)
   rm.jids =
     ak_da_make(sizeof(ak_jobid), alct);
   rm.unloads =
-    ak_dq_make(sizeof(ak_resid), alct);
+    ak_da_make(sizeof(ak_resid), alct);
   return rm;
 }
 
@@ -143,7 +143,25 @@ ak_resman_destroy(ak_resman* rm)
     ak_thpool_job_remove(rm->jp, jid);
   }
 
-  ak_dq_destroy(&rm->unloads);
+  ak_hmn_iter it =
+    ak_hmn_iter_make(&rm->map);
+  uint64_t key = 0;
+  void* value = 0;
+  while (
+    ak_hmn_iter_next(&it, &key, &value)) {
+    ak_resid id = key;
+    res_item* ri = value;
+    while (ak_atomicint_load(&ri->status) ==
+           ak_res_loading) {
+      ak_cpu_yield();
+    }
+    if (ak_atomicint_load(&ri->status) ==
+        ak_res_loaded) {
+      res_unload(ri);
+    }
+  }
+
+  ak_da_destroy(&rm->unloads);
   ak_da_destroy(&rm->jids);
   ak_hmn_destroy(&rm->map);
   ak_heap_destroy(&rm->heap);
@@ -156,16 +174,25 @@ ak_resman_update(ak_resman* rm)
   ak_mutex_lock(&rm->m);
 
   {
-    ak_resid id = 0;
-    while (ak_dq_pop(&rm->unloads, &id)) {
+    uint32_t count =
+      ak_da_count(&rm->unloads);
+    uint32_t i = 0;
+    while (i < count) {
+      ak_resid id = *(ak_resid*)ak_da_at(
+        &rm->unloads, i);
       res_item* ri = ak_hmn_at(&rm->map, id);
-      if (ri->ref_count != 0) {
-        continue;
+      ak_res_status s =
+        ak_atomicint_load(&ri->status);
+      if (ri->load_count == 0 &&
+          ri->access_count == 0 &&
+          s == ak_res_loaded) {
+        res_unload(ri);
+        ak_da_remove_swaplast(&rm->unloads,
+                              i);
+        count--;
+      } else {
+        i++;
       }
-      ak_assert(
-        ak_atomicint_load(&ri->status) ==
-        ak_res_loaded);
-      res_unload(ri);
     }
   }
 
@@ -211,18 +238,27 @@ ak_resman_load(ak_resman* rm, ak_resid id)
 {
   ak_mutex_lock(&rm->m);
   res_item* ri = ak_hmn_at(&rm->map, id);
-  ak_res_status s =
-    ak_atomicint_load(&ri->status);
 
-  if (s == ak_res_loaded ||
-      s == ak_res_loading) {
-    ak_mutex_unlock(&rm->m);
-    return;
+  if (ri->load_count == 0) {
+    ak_jobid jid =
+      ak_thpool_submit(rm->jp, &job_fn, ri);
+    ak_da_pushback(&rm->jids, &jid);
   }
+  ri->load_count++;
+  ak_mutex_unlock(&rm->m);
+}
 
-  ak_jobid jid =
-    ak_thpool_submit(rm->jp, &job_fn, ri);
-  ak_da_pushback(&rm->jids, &jid);
+void
+ak_resman_unload(ak_resman* rm, ak_resid id)
+{
+  ak_mutex_lock(&rm->m);
+  res_item* ri = ak_hmn_at(&rm->map, id);
+
+  ak_assert(ri->load_count != 0);
+  ri->load_count--;
+  if (ri->load_count == 0) {
+    ak_da_pushback(&rm->unloads, &id);
+  }
   ak_mutex_unlock(&rm->m);
 }
 
@@ -255,12 +291,8 @@ ak_resman_release(ak_resman* rm, ak_resid id)
   res_item* ri = ak_hmn_at(&rm->map, id);
   ak_res_status s =
     ak_atomicint_load(&ri->status);
-  if (s == ak_res_loaded) {
-    ri->ref_count--;
-    if (ri->ref_count == 0) {
-      ak_dq_push(&rm->unloads, &id);
-    }
-  }
+  ak_assert(s == ak_res_loaded);
+  ri->access_count--;
   ak_mutex_unlock(&rm->m);
 }
 
@@ -268,20 +300,22 @@ ak_res_file*
 ak_resman_acquire_file(ak_resman* rm,
                        ak_resid id)
 {
-  ak_mutex_lock(&rm->m);
   ak_assert(ak_resman_res_type(rm, id) ==
             ak_restype_file);
+
+  ak_res_file* file = 0;
+  ak_mutex_lock(&rm->m);
+
   res_item* ri = ak_hmn_at(&rm->map, id);
   ak_res_status s =
     ak_atomicint_load(&ri->status);
   if (s == ak_res_loaded) {
-    ri->ref_count++;
+    ri->access_count++;
+    file = &ri->file;
   }
+
   ak_mutex_unlock(&rm->m);
-  if (s == ak_res_loaded) {
-    return &ri->file;
-  }
-  return 0;
+  return file;
 }
 
 ak_res_img*
@@ -290,28 +324,18 @@ ak_resman_acquire_img(ak_resman* rm,
 {
   ak_assert(ak_resman_res_type(rm, id) ==
             ak_restype_img);
+
+  ak_res_img* img = 0;
   ak_mutex_lock(&rm->m);
+
   res_item* ri = ak_hmn_at(&rm->map, id);
   ak_res_status s =
     ak_atomicint_load(&ri->status);
   if (s == ak_res_loaded) {
-    ri->ref_count++;
+    ri->access_count++;
+    img = &ri->img;
   }
-  ak_mutex_unlock(&rm->m);
-  if (s == ak_res_loaded) {
-    return &ri->img;
-  }
-  return 0;
-}
 
-ak_res_img*
-ak_resman_acquire_img_wait(ak_resman* rm,
-                           ak_resid id)
-{
-  ak_resman_load(rm, id);
-  while (ak_resman_status(rm, id) !=
-         ak_res_loaded) {
-    ak_cpu_yield();
-  }
-  return ak_resman_acquire_img(rm, id);
+  ak_mutex_unlock(&rm->m);
+  return img;
 }

@@ -49,6 +49,9 @@ void
 ak_gresman_load(ak_gresman* grm,
                 ak_gresid gid);
 void
+ak_gresman_unload(ak_gresman* grm,
+                  ak_gresid gid);
+void
 ak_gresman_release(ak_gresman* grm,
                    ak_gresid gid);
 void

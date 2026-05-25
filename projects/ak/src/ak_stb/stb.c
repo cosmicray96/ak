@@ -1,3 +1,4 @@
+#include "ak/debug.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
@@ -17,6 +18,8 @@ ak_img_load(const char* path)
     path, &width, &height, &channels, 4);
   img.w = width;
   img.h = height;
+
+  ak_assert(img.pixels);
 
   return img;
 }
