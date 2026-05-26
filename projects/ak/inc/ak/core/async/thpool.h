@@ -8,13 +8,14 @@
 
 //===== ak_job =====//
 typedef uint32_t ak_jobid;
-typedef void (*ak_job_fn)(void* ctx);
+typedef void (*ak_job_fn)(void* input);
 typedef enum
 {
-  ak_job_none,
-  ak_job_not_started,
-  ak_job_working,
-  ak_job_done
+  ak_job_none = 0,
+  ak_job_not_started = 1,
+  ak_job_working = 1 << 1,
+  ak_job_done = 1 << 2,
+  ak_job_acquired = 1 << 3
 } ak_job_status;
 
 //===== ak_jobpool =====//
@@ -23,17 +24,18 @@ typedef struct ak_thpool ak_thpool;
 ak_jobid
 ak_thpool_submit(ak_thpool* jp,
                  ak_job_fn jfunc,
-                 void* jctx);
-
+                 uint32_t inputsize,
+                 const void* input);
 ak_job_status
 ak_thpool_job_status(ak_thpool* jp,
                      ak_jobid jid);
+void
+ak_thpool_job_output(ak_thpool* jp,
+                     ak_jobid jid,
+                     void* o_output);
 
 void
 ak_thpool_job_remove(ak_thpool* jp,
                      ak_jobid jid);
-
-bool
-ak_thpool_try_run_one(ak_thpool* tp);
 
 #endif

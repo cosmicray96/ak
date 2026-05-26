@@ -6,6 +6,7 @@
 #include "ak/core/async/thpool.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/core/mem/heap.h"
+#include "ak/core/mem/ptr.h"
 #include "ak/debug.h"
 #include "ak/gfx/img.h"
 #include "ak/os/cpu.h"
@@ -13,17 +14,16 @@
 #include "ak/system/resman_itn.h"
 
 #include <stdint.h>
-#include <stdio.h>
 
 //===== res_item =====//
 //--- private ---//
 typedef struct
 {
-  ak_atomicint status;
   ak_restype type;
-  ak_alct alct;
+  ak_res_status status;
   uint32_t load_count;
   uint32_t access_count;
+  ak_alct alct;
   const char* path;
   union
   {
@@ -32,20 +32,81 @@ typedef struct
   };
 } res_item;
 
-static void
-res_load(res_item* ri)
+static ak_res_status
+status_get_unsafe(ak_resman* rm, ak_resid id)
 {
-  ak_atomicint_store(&ri->status,
-                     ak_res_loading);
-  ak_restype type = ri->type;
-  switch (type) {
+  res_item* ri = ak_hmn_at(&rm->map, id);
+  return ri->status;
+}
+
+static void
+status_set_unsafe(ak_resman* rm,
+                  ak_resid id,
+                  ak_res_status s)
+{
+  res_item* ri = ak_hmn_at(&rm->map, id);
+  ri->status = s;
+}
+
+static res_item
+item_get_unsafe(ak_resman* rm, ak_resid id)
+{
+  res_item ri = { 0 };
+  ri = *(res_item*)ak_hmn_at(&rm->map, id);
+  return ri;
+}
+
+static void
+item_set_payload_unsafe(ak_resman* rm,
+                        ak_resid id,
+                        const void* payload)
+{
+  res_item* ri = ak_hmn_at(&rm->map, id);
+  switch (ri->type) {
     case ak_restype_file: {
-      ri->file.size = ak_file_open_read_all(
-        ri->path, &ri->file.data, ri->alct);
+      ak_p_cpy(&ri->file,
+               payload,
+               sizeof(ak_res_file));
       break;
     }
     case ak_restype_img: {
-      ri->img = ak_img_load(ri->path);
+      ak_p_cpy(&ri->img,
+               payload,
+               sizeof(ak_res_img));
+      break;
+    }
+    default: {
+      ak_assert(false);
+    }
+  }
+}
+
+static void
+res_load(ak_resman* rm, ak_resid id)
+{
+  ak_mutex_lock(&rm->m);
+  res_item ri = item_get_unsafe(rm, id);
+  ak_mutex_unlock(&rm->m);
+
+  ak_restype type = ri.type;
+  switch (type) {
+    case ak_restype_file: {
+      ri.file.size = ak_file_open_read_all(
+        ri.path, &ri.file.data, ri.alct);
+
+      ak_mutex_lock(&rm->m);
+      item_set_payload_unsafe(
+        rm, id, &ri.file);
+      ak_mutex_unlock(&rm->m);
+      break;
+    }
+    case ak_restype_img: {
+      ri.img = ak_img_load(ri.path);
+
+      ak_mutex_lock(&rm->m);
+      item_set_payload_unsafe(
+        rm, id, &ri.img);
+      ak_mutex_unlock(&rm->m);
       break;
     }
     default: {
@@ -53,20 +114,25 @@ res_load(res_item* ri)
       break;
     }
   }
-  ak_atomicint_store(&ri->status,
-                     ak_res_loaded);
+
+  ak_mutex_lock(&rm->m);
+  status_set_unsafe(rm, id, ak_res_loaded);
+  ak_mutex_unlock(&rm->m);
 }
 
 static void
-res_unload(res_item* ri)
+res_unload_unsafe(ak_resman* rm, ak_resid id)
 {
+  res_item* ri = ak_hmn_at(&rm->map, id);
   switch (ri->type) {
     case ak_restype_file: {
       ak_alct_free(ri->alct, ri->file.data);
+      ri->file = (ak_res_file){ 0 };
       break;
     }
     case ak_restype_img: {
       ak_img_unload(&ri->img);
+      ri->img = (ak_res_img){ 0 };
       break;
     }
     default: {
@@ -74,20 +140,22 @@ res_unload(res_item* ri)
       break;
     }
   }
-  ak_atomicint_store(&ri->status,
-                     ak_res_not_loaded);
+  ri->status = ak_res_not_loaded;
 }
 
 //===== ak_resman =====//
 //--- private ---//
-static void
-job_fn(void* ctx)
+typedef struct
 {
-  res_item* ri = ctx;
-  ak_assert(ak_atomicint_load(&ri->status) ==
-            ak_res_not_loaded);
+  ak_resman* rm;
+  ak_resid id;
+} job_in;
 
-  res_load(ri);
+static void
+job_fn(void* input)
+{
+  job_in* in = input;
+  res_load(in->rm, in->id);
 }
 
 static void
@@ -101,8 +169,7 @@ res_register(ak_resman* rm,
   ak_assert(!ak_hmn_exist(&rm->map, id));
 
   res_item item = { 0 };
-  ak_atomicint_store(&item.status,
-                     ak_res_not_loaded);
+  item.status = ak_res_not_loaded;
   item.type = type;
   item.alct = ak_heap_to_alct(&rm->heap);
   item.path = path;
@@ -133,33 +200,7 @@ ak_resman_make(ak_thpool* jp, ak_alct alct)
 void
 ak_resman_destroy(ak_resman* rm)
 {
-  uint32_t count = ak_da_count(&rm->jids);
-  for (uint32_t i = 0; i < count; i++) {
-    ak_jobid jid =
-      *(ak_jobid*)ak_da_at(&rm->jids, i);
-    while (ak_thpool_job_status(
-             rm->jp, jid) != ak_job_done)
-      ;
-    ak_thpool_job_remove(rm->jp, jid);
-  }
-
-  ak_hmn_iter it =
-    ak_hmn_iter_make(&rm->map);
-  uint64_t key = 0;
-  void* value = 0;
-  while (
-    ak_hmn_iter_next(&it, &key, &value)) {
-    ak_resid id = key;
-    res_item* ri = value;
-    while (ak_atomicint_load(&ri->status) ==
-           ak_res_loading) {
-      ak_cpu_yield();
-    }
-    if (ak_atomicint_load(&ri->status) ==
-        ak_res_loaded) {
-      res_unload(ri);
-    }
-  }
+  ak_assert(false); // todo
 
   ak_da_destroy(&rm->unloads);
   ak_da_destroy(&rm->jids);
@@ -181,12 +222,10 @@ ak_resman_update(ak_resman* rm)
       ak_resid id = *(ak_resid*)ak_da_at(
         &rm->unloads, i);
       res_item* ri = ak_hmn_at(&rm->map, id);
-      ak_res_status s =
-        ak_atomicint_load(&ri->status);
       if (ri->load_count == 0 &&
           ri->access_count == 0 &&
-          s == ak_res_loaded) {
-        res_unload(ri);
+          ri->status == ak_res_loaded) {
+        res_unload_unsafe(rm, id);
         ak_da_remove_swaplast(&rm->unloads,
                               i);
         count--;
@@ -239,9 +278,12 @@ ak_resman_load(ak_resman* rm, ak_resid id)
   ak_mutex_lock(&rm->m);
   res_item* ri = ak_hmn_at(&rm->map, id);
 
-  if (ri->load_count == 0) {
-    ak_jobid jid =
-      ak_thpool_submit(rm->jp, &job_fn, ri);
+  if (ri->load_count == 0 &&
+      ri->status == ak_res_not_loaded) {
+    ri->status = ak_res_loading;
+    job_in in = { .rm = rm, .id = id };
+    ak_jobid jid = ak_thpool_submit(
+      rm->jp, &job_fn, sizeof(job_in), &in);
     ak_da_pushback(&rm->jids, &jid);
   }
   ri->load_count++;
@@ -266,9 +308,8 @@ ak_res_status
 ak_resman_status(ak_resman* rm, ak_resid id)
 {
   ak_mutex_lock(&rm->m);
-  res_item* ri = ak_hmn_at(&rm->map, id);
   ak_res_status s =
-    ak_atomicint_load(&ri->status);
+    status_get_unsafe(rm, id);
   ak_mutex_unlock(&rm->m);
   return s;
 }
@@ -289,9 +330,6 @@ ak_resman_release(ak_resman* rm, ak_resid id)
 {
   ak_mutex_lock(&rm->m);
   res_item* ri = ak_hmn_at(&rm->map, id);
-  ak_res_status s =
-    ak_atomicint_load(&ri->status);
-  ak_assert(s == ak_res_loaded);
   ri->access_count--;
   ak_mutex_unlock(&rm->m);
 }
@@ -304,17 +342,15 @@ ak_resman_acquire_file(ak_resman* rm,
             ak_restype_file);
 
   ak_res_file* file = 0;
-  ak_mutex_lock(&rm->m);
 
+  ak_mutex_lock(&rm->m);
   res_item* ri = ak_hmn_at(&rm->map, id);
-  ak_res_status s =
-    ak_atomicint_load(&ri->status);
-  if (s == ak_res_loaded) {
+  if (ri->status == ak_res_loaded) {
     ri->access_count++;
     file = &ri->file;
   }
-
   ak_mutex_unlock(&rm->m);
+
   return file;
 }
 
@@ -326,16 +362,49 @@ ak_resman_acquire_img(ak_resman* rm,
             ak_restype_img);
 
   ak_res_img* img = 0;
-  ak_mutex_lock(&rm->m);
 
+  ak_mutex_lock(&rm->m);
   res_item* ri = ak_hmn_at(&rm->map, id);
-  ak_res_status s =
-    ak_atomicint_load(&ri->status);
-  if (s == ak_res_loaded) {
+  if (ri->status == ak_res_loaded) {
     ri->access_count++;
     img = &ri->img;
   }
-
   ak_mutex_unlock(&rm->m);
+
   return img;
 }
+
+/*
+ak_mutex_lock(&rm->m);
+uint32_t count = ak_da_count(&rm->jids);
+for (uint32_t i = 0; i < count; i++) {
+ak_jobid jid =
+*(ak_jobid*)ak_da_at(&rm->jids, i);
+while (ak_thpool_job_status(
+     rm->jp, jid) != ak_job_done)
+;
+ak_thpool_job_remove(rm->jp, jid);
+}
+
+ak_hmn_iter it =
+ak_hmn_iter_make(&rm->map);
+uint64_t key = 0;
+void* value = 0;
+while (
+ak_hmn_iter_next(&it, &key, &value)) {
+ak_resid id = key;
+res_item* ri = value;
+
+ak_atomicint* ai =
+ak_hmn_at(&rm->statuses, id);
+while (ak_atomicint_load(ai) ==
+   ak_res_loading) {
+ak_cpu_yield();
+}
+if (ak_atomicint_load(ai) ==
+ak_res_loaded) {
+res_unload(ri);
+}
+}
+ak_mutex_unlock(&rm->m);
+*/

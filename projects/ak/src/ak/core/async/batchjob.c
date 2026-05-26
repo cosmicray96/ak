@@ -42,33 +42,37 @@ ak_batchjob_submit(ak_batchjob* bj,
 void
 ak_batchjob_begin(ak_batchjob* bj)
 {
-  uint32_t count = ak_da_count(&bj->jobs);
-  for (uint32_t i = 0; i < count; i++) {
-    job_item* ji = ak_da_at(&bj->jobs, i);
-    ji->jid = ak_thpool_submit(
-      bj->tp, ji->jfunc, ji->jctx);
-  }
-  uint32_t done = 0;
-  while (true) {
-    done = 0;
+  ak_assert(false);
 
-    for (uint32_t i = 0; i < count; i++) {
-      job_item* ji = ak_da_at(&bj->jobs, i);
-      ak_jobid jid = ji->jid;
-      if (ak_thpool_job_status(
-            bj->tp, jid) == ak_job_done) {
-        done++;
-      }
-    }
+  /*
+uint32_t count = ak_da_count(&bj->jobs);
+for (uint32_t i = 0; i < count; i++) {
+job_item* ji = ak_da_at(&bj->jobs, i);
+ji->jid = ak_thpool_submit(
+bj->tp, ji->jfunc, ji->jctx);
+}
+uint32_t done = 0;
+while (true) {
+done = 0;
 
-    if (done >= count) {
-      break;
-    }
+for (uint32_t i = 0; i < count; i++) {
+job_item* ji = ak_da_at(&bj->jobs, i);
+ak_jobid jid = ji->jid;
+if (ak_thpool_job_status(
+      bj->tp, jid) == ak_job_done) {
+  done++;
+}
+}
 
-    if (!ak_thpool_try_run_one(bj->tp)) {
-      ak_cpu_yield();
-    }
-  }
+if (done >= count) {
+break;
+}
 
-  ak_da_clear(&bj->jobs);
+if (!ak_thpool_try_run_one(bj->tp)) {
+ak_cpu_yield();
+}
+}
+
+ak_da_clear(&bj->jobs);
+  */
 }

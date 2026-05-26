@@ -18,7 +18,6 @@ struct ak_resman
   ak_hmn map;
   ak_thpool* jp;
   ak_da jids;
-
   ak_da unloads;
 };
 
