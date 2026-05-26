@@ -212,8 +212,11 @@ ak_mtrl_tex_call_begin(
     m->call_begin = true;
     return;
   }
-  GLuint gltex =
-    ak_gresman_acquire_tex(m->grm, tex.gid);
+  GLuint gltex = 0;
+  bool success = ak_gresman_acquire_tex(
+    m->grm, tex.gid, &gltex);
+  ak_assert(success);
+
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, gltex);
   glUniform1i(m->tex_loc, 0);

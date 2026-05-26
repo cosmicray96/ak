@@ -67,6 +67,12 @@ ak_gcb_destroy(ak_gcb* gcb)
 }
 
 void
+ak_gcb_clear(ak_gcb* gcb)
+{
+  ak_da_clear(&gcb->cmds);
+}
+
+void
 ak_gcb_flush(ak_gcb* gcb,
              ak_gfx* gfx,
              ak_mtrlstg* ms)

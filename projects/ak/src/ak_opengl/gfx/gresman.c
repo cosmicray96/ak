@@ -46,7 +46,8 @@ struct ak_gresman
 };
 
 static void
-gres_load(ak_gresman* grm, ak_gresid gid)
+gres_load_unsafe(ak_gresman* grm,
+                 ak_gresid gid)
 {
   gres_item* gi = ak_hmn_at(&grm->map, gid);
   switch (gi->type) {
@@ -82,7 +83,8 @@ gres_load(ak_gresman* grm, ak_gresid gid)
 }
 
 static void
-gres_unload(ak_gresman* grm, ak_gresid gid)
+gres_unload_unsafe(ak_gresman* grm,
+                   ak_gresid gid)
 {
   gres_item* gi = ak_hmn_at(&grm->map, gid);
   ak_assert(gi->s == ak_gres_loaded);
@@ -114,19 +116,21 @@ gres_register(ak_gresman* grm,
 }
 
 //--- impl ---//
-GLuint
+bool
 ak_gresman_acquire_tex(ak_gresman* grm,
-                       ak_gresid gid)
+                       ak_gresid gid,
+                       GLuint* o_glint)
 {
-  ak_assert(ak_gresman_type(grm, gid) ==
-            ak_grestype_tex);
   ak_mutex_lock(&grm->m);
   gres_item* gi = ak_hmn_at(&grm->map, gid);
-  ak_assert(gi->s == ak_gres_loaded);
-  gi->access_count++;
-  GLuint i = gi->img.glint;
+  if (gi->s == ak_gres_loaded) {
+    gi->access_count++;
+    *o_glint = gi->img.glint;
+    ak_mutex_unlock(&grm->m);
+    return true;
+  }
   ak_mutex_unlock(&grm->m);
-  return i;
+  return false;
 }
 
 //--- internal ---//
@@ -163,7 +167,7 @@ ak_gresman_shutdown(ak_gresman* grm)
   while (ak_hmn_iter_next(
     &it, (&gid), (void**)(&gi))) {
     if (gi->s == ak_gres_loaded) {
-      gres_unload(grm, gid);
+      gres_unload_unsafe(grm, gid);
     }
   }
 
@@ -188,7 +192,7 @@ ak_gresman_update(ak_gresman* grm)
       if (gi->load_count == 0 &&
           gi->access_count == 0 &&
           gi->s == ak_gres_loaded) {
-        gres_unload(grm, gid);
+        gres_unload_unsafe(grm, gid);
       }
     }
     ak_da_clear(&grm->unloads);
@@ -210,7 +214,7 @@ ak_gresman_update(ak_gresman* grm)
             ak_resman_status(grm->rm,
                              gi->img.rid);
           if (rs == ak_res_loaded) {
-            gres_load(grm, gid);
+            gres_load_unsafe(grm, gid);
             ak_da_remove_swaplast(
               &grm->loads, i);
             count--;
@@ -281,8 +285,8 @@ ak_gresman_load(ak_gresman* grm,
   ak_mutex_lock(&grm->m);
 
   gres_item* gi = ak_hmn_at(&grm->map, gid);
-  ak_resman_load(grm->rm, gi->img.rid);
-  if (gi->load_count == 0) {
+  if (gi->load_count == 0 &&
+      gi->s == ak_gres_not_loaded) {
     gi->s = ak_gres_loading;
     ak_da_pushback(&grm->loads, &gid);
   }
@@ -315,11 +319,9 @@ ak_gresman_release(ak_gresman* grm,
 
   gres_item* gi = ak_hmn_at(&grm->map, gid);
   ak_gres_status s = gi->s;
-  if (gi->s == ak_gres_loaded) {
-    gi->access_count--;
-    if (gi->access_count == 0) {
-      ak_da_pushback(&grm->unloads, &gid);
-    }
+  gi->access_count--;
+  if (gi->access_count == 0) {
+    ak_da_pushback(&grm->unloads, &gid);
   }
   ak_mutex_unlock(&grm->m);
 }

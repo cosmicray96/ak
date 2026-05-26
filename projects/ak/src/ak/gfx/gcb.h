@@ -17,6 +17,8 @@ ak_gcb
 ak_gcb_make(ak_alct alct);
 void
 ak_gcb_destroy(ak_gcb* gcb);
+void
+ak_gcb_clear(ak_gcb* gcb);
 
 void
 ak_gcb_flush(ak_gcb* gcb,

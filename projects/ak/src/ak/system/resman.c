@@ -1,7 +1,6 @@
 #include "ak/system/resman.h"
 #include "ak/coll/da.h"
 #include "ak/coll/hmn.h"
-#include "ak/core/async/atomic.h"
 #include "ak/core/async/mutex.h"
 #include "ak/core/async/thpool.h"
 #include "ak/core/mem/allocator.h"
@@ -9,7 +8,6 @@
 #include "ak/core/mem/ptr.h"
 #include "ak/debug.h"
 #include "ak/gfx/img.h"
-#include "ak/os/cpu.h"
 #include "ak/os/file.h"
 #include "ak/system/resman_itn.h"
 
