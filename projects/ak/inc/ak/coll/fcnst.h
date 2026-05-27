@@ -120,6 +120,8 @@ typedef struct
   ak_ds s;
 } ak_fcnst_itdfspre;
 ak_fcnst_itdfspre
+ak_fcnst_itdfspre_make_empty(ak_alct alct);
+ak_fcnst_itdfspre
 ak_fcnst_itdfspre_make(ak_fcnst* t,
                        ak_fcnstid root,
                        ak_alct alct);
@@ -129,6 +131,7 @@ ak_fcnst_itdfspre_destroy(
 void
 ak_fcnst_itdfspre_reset(
   ak_fcnst_itdfspre* it,
+  ak_fcnst* t,
   ak_fcnstid root);
 ak_fcnstid
 ak_fcnst_itdfspre_next(

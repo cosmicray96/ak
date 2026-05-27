@@ -177,6 +177,14 @@ ak_wv_itdfspost_next(ak_wv_itdfspost* it)
 
 //===== ak_wv_itdfspre =====//
 ak_wv_itdfspre
+ak_wv_itdfspre_make_empty(ak_alct alct)
+{
+  return (ak_wv_itdfspre){
+    .it = ak_fcnst_itdfspre_make_empty(alct),
+    .wv = 0
+  };
+}
+ak_wv_itdfspre
 ak_wv_itdfspre_make(ak_wv* wv,
                     ak_ett root,
                     ak_alct alct)
@@ -198,10 +206,13 @@ ak_wv_itdfspre_destroy(ak_wv_itdfspre* it)
 
 void
 ak_wv_itdfspre_reset(ak_wv_itdfspre* it,
+                     ak_wv* wv,
                      ak_ett root)
 {
+  it->wv = wv;
   ak_fcnst_itdfspre_reset(
     &it->it,
+    ak_world_tree(it->wv->w),
     ak_world_ett_to_id(it->wv->w, root));
 }
 

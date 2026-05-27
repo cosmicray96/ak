@@ -165,8 +165,7 @@ on_startup(void* ctx, ak_app* app)
   ak_lworld* l = ctx;
   l->app = app;
   l->ig = ak_idgen_make(l->alct);
-  l->w = ak_world_make(ak_idgen_new(&l->ig),
-                       l->alct);
+  l->w = ak_world_make(l->alct);
   l->wv = ak_wv_make(&l->w);
   l->wcb = ak_wcb_make(&l->ig, l->alct);
 
@@ -177,11 +176,11 @@ on_startup(void* ctx, ak_app* app)
 
   l->renderer = ak_renderer_startup(
     ak_lcore_plat_base(l->lcore),
-    &l->wv,
     &l->rm,
     l->alct);
 
-  l->grm = ak_renderer_gresman(l->renderer);
+  l->grm =
+    ak_renderer_gresman_get(l->renderer);
 
   l->dog_rid = 10;
   ak_resman_register_img(
@@ -189,17 +188,14 @@ on_startup(void* ctx, ak_app* app)
   l->dog_gid = 11;
   ak_gresman_register_tex_from_rid(
     l->grm, l->dog_gid, l->dog_rid);
-  ak_resman_load(&l->rm, l->dog_rid);
   ak_gresman_load(l->grm, l->dog_gid);
 
   set_root(l);
   push_child(l, 0, 0);
   ak_world_cb_flush(&l->w, &l->wcb, &l->ig);
 
-  l->sys_tf =
-    ak_sys_tf_make(&l->wv, &l->wcb, l->alct);
-  l->sys_ren = ak_sys_ren_make(
-    &l->gcb, &l->wv, l->alct);
+  l->sys_tf = ak_sys_tf_make(l->alct);
+  l->sys_ren = ak_sys_ren_make(l->alct);
 }
 
 static void
@@ -267,21 +263,17 @@ on_update(void* ctx, ak_dur delta)
   ak_lworld* l = ctx;
   ak_resman_update(&l->rm);
 
-  ak_sys_tf_update(&l->sys_tf);
-  // other world wide system
-  // script system
-  // physic system
-  // ai/path system
-
+  ak_sys_tf_update(
+    &l->sys_tf, &l->wv, &l->wcb);
   ak_world_cb_flush(&l->w, &l->wcb, &l->ig);
 
   if (ak_gresman_status(l->grm,
                         l->dog_gid) ==
       ak_gres_loaded) {
-    ak_sys_ren_render(&l->sys_ren, delta);
+    ak_sys_ren_render(
+      &l->sys_ren, &l->wv, &l->gcb, delta);
   }
-  ak_renderer_gcb(l->renderer, &l->gcb);
-  ak_renderer_render(l->renderer);
+  ak_renderer_render(l->renderer, &l->gcb);
 }
 
 static void

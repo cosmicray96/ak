@@ -77,6 +77,8 @@ typedef struct
   ak_wv* wv;
 } ak_wv_itdfspre;
 ak_wv_itdfspre
+ak_wv_itdfspre_make_empty(ak_alct alct);
+ak_wv_itdfspre
 ak_wv_itdfspre_make(ak_wv* wv,
                     ak_ett root,
                     ak_alct alct);
@@ -84,6 +86,7 @@ void
 ak_wv_itdfspre_destroy(ak_wv_itdfspre* it);
 void
 ak_wv_itdfspre_reset(ak_wv_itdfspre* it,
+                     ak_wv* wv,
                      ak_ett root);
 ak_ett
 ak_wv_itdfspre_next(ak_wv_itdfspre* it);

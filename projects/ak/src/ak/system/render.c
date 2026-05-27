@@ -1,5 +1,6 @@
 #include "ak/system/render.h"
 #include "ak/core/async/atomic.h"
+#include "ak/core/async/mutex.h"
 #include "ak/core/async/thread.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/game/sys/ren.h"
@@ -8,6 +9,7 @@
 #include "ak/gfx/gfx.h"
 #include "ak/gfx/gresman.h"
 #include "ak/gfx/mtrl/stg.h"
+#include "ak/os/cpu.h"
 #include "ak/os/time.h"
 #include "ak/platform/plat_base.h"
 #include <stdbool.h>
@@ -21,7 +23,6 @@ struct ak_renderer
 
   ak_plat_base* pb;
   ak_gfx* gf;
-  ak_wv* wv;
   ak_resman* rm;
   ak_gresman* grm;
   ak_mtrlstg* ms;
@@ -29,10 +30,10 @@ struct ak_renderer
   ak_gcb gcb;
 
   ak_dur time;
+  ak_atomicint status;
   ak_atomicint shouldclose;
-  ak_atomicint rendering;
 
-  ak_atomicint inited;
+  ak_mutex m;
 };
 
 void
@@ -45,25 +46,22 @@ thread_fn(void* ctx)
     r->rm, r->gf, r->alct);
   r->ms =
     ak_mtrlstg_make(r->gf, r->grm, r->alct);
-  r->gcb = ak_gcb_make(r->alct);
-
-  ak_atomicint_store(&r->inited, 1);
 
   while (
     !ak_atomicint_load(&r->shouldclose)) {
 
+    ak_atomicint_store(&r->status,
+                       ak_renderer_idle);
     ak_thread_sleep(r->th);
 
-    ak_atomicint_store(&r->rendering, 1);
-
+    ak_mutex_lock(&r->m);
+    ak_atomicint_store(
+      &r->status, ak_renderer_rendering);
     ak_gresman_update(r->grm);
-
     ak_gcb_flush(&r->gcb, r->gf, r->ms);
-
-    ak_atomicint_store(&r->rendering, 0);
+    ak_mutex_unlock(&r->m);
   }
 
-  ak_gcb_destroy(&r->gcb);
   ak_mtrlstg_destroy(r->ms);
   ak_gfx_shutdown(r->gf);
 }
@@ -71,7 +69,6 @@ thread_fn(void* ctx)
 //--- internal ---//
 ak_renderer*
 ak_renderer_startup(ak_plat_base* pb,
-                    ak_wv* wv,
                     ak_resman* rm,
                     ak_alct alct)
 {
@@ -79,12 +76,13 @@ ak_renderer_startup(ak_plat_base* pb,
     ak_alct_alloc(alct, sizeof(ak_renderer));
   r->alct = alct;
   r->pb = pb;
-  r->wv = wv;
   r->rm = rm;
+  r->gcb = ak_gcb_make(r->alct);
+  r->m = ak_mutex_make();
 
   ak_atomicint_store(&r->shouldclose, 0);
-  ak_atomicint_store(&r->rendering, 0);
-  ak_atomicint_store(&r->inited, 0);
+  ak_atomicint_store(&r->status,
+                     ak_renderer_initing);
 
   r->th = ak_thread_make(&thread_fn, r);
   return r;
@@ -94,36 +92,36 @@ void
 ak_renderer_shutdown(ak_renderer* r)
 {
   ak_atomicint_store(&r->shouldclose, 1);
+  ak_thread_wake(r->th);
   ak_thread_join(r->th);
+
+  ak_gcb_destroy(&r->gcb);
+  ak_mutex_destroy(&r->m);
   ak_alct_free(r->alct, r);
 }
 
 void
-ak_renderer_render(ak_renderer* r)
+ak_renderer_render(ak_renderer* r,
+                   ak_gcb* gcb)
 {
+  ak_mutex_lock(&r->m);
+  ak_gcb_joinback(&r->gcb, gcb);
+  ak_mutex_unlock(&r->m);
   ak_thread_wake(r->th);
 }
 
-void
-ak_renderer_gcb(ak_renderer* r, ak_gcb* gcb)
-{
-  ak_renderer_stallwait(r);
-  ak_gcb_joinback(&r->gcb, gcb);
-}
-
-void
-ak_renderer_stallwait(ak_renderer* r)
-{
-  while (!ak_atomicint_load(&r->inited))
-    ;
-  while (ak_atomicint_load(&r->rendering))
-    ;
-}
-
 ak_gresman*
-ak_renderer_gresman(ak_renderer* r)
+ak_renderer_gresman_get(ak_renderer* r)
 {
-
-  ak_renderer_stallwait(r);
+  while (ak_atomicint_load(&r->status) ==
+         ak_renderer_initing) {
+    ak_cpu_yield();
+  }
   return r->grm;
+}
+
+ak_renderer_status
+ak_renderer_status_get(ak_renderer* r)
+{
+  return ak_atomicint_load(&r->status);
 }

@@ -400,6 +400,16 @@ ak_fcnst_itdfspost_next(
 //===== ak_fcnst_itdfspre =====//
 //--- export ---//
 ak_fcnst_itdfspre
+ak_fcnst_itdfspre_make_empty(ak_alct alct)
+{
+  ak_fcnst_itdfspre it = { 0 };
+  it.t = 0;
+  it.s =
+    ak_ds_make(sizeof(ak_fcnstid), alct);
+  return it;
+}
+
+ak_fcnst_itdfspre
 ak_fcnst_itdfspre_make(ak_fcnst* t,
                        ak_fcnstid root,
                        ak_alct alct)
@@ -423,8 +433,10 @@ ak_fcnst_itdfspre_destroy(
 void
 ak_fcnst_itdfspre_reset(
   ak_fcnst_itdfspre* it,
+  ak_fcnst* t,
   ak_fcnstid root)
 {
+  it->t = t;
   ak_ds_clear(&it->s);
   ak_ds_push(&it->s, &root);
 }

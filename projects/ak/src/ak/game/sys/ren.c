@@ -22,19 +22,15 @@ typedef struct
 
 //--- internal ---//
 ak_sys_ren
-ak_sys_ren_make(ak_gcb* gcb,
-                ak_wv* wv,
-                ak_alct alct)
+ak_sys_ren_make(ak_alct alct)
 {
   ak_sys_ren r = { 0 };
   r.alct = alct;
-  r.wv = wv;
   r.mtrls =
     ak_hmn_make(sizeof(map_item), alct);
   r.free_mtrls =
     ak_da_make(sizeof(ak_ett), alct);
   r.time = ak_fx_f(0);
-  r.gcb = gcb;
 
   return r;
 }
@@ -55,33 +51,34 @@ ak_sys_ren_destroy(ak_sys_ren* r)
   ak_hmn_destroy(&r->mtrls);
 
   ak_alct_invalidate(&r->alct);
-  r->wv = 0;
 }
 
 void
 ak_sys_ren_render(ak_sys_ren* r,
+                  ak_wv* wv,
+                  ak_gcb* gcb,
                   ak_dur delta)
 {
   r->time = ak_fxadd(
     r->time, ak_dur_as_secs_fx(delta));
-  ak_ett root = ak_wv_ett_root(r->wv);
+  ak_ett root = ak_wv_ett_root(wv);
 
   ak_mat3_f vp = { 0 };
   {
     ak_screen_t screen =
-      ak_wv_comp_screen(r->wv, root);
+      ak_wv_comp_screen(wv, root);
     ak_ett e_cam = 0;
     {
       ak_camera_t cam = { 0 };
-      ak_wv_itcomp it = ak_wv_itcomp_make(
-        r->wv, ak_camera_e);
+      ak_wv_itcomp it =
+        ak_wv_itcomp_make(wv, ak_camera_e);
       e_cam = ak_wv_itcomp_next(&it, &cam);
       if (!e_cam) {
         return;
       }
     }
     ak_mat3 cmat =
-      ak_wv_comp_gmat3(r->wv, e_cam);
+      ak_wv_comp_gmat3(wv, e_cam);
     vp = ak_gfx_vp_make(&cmat,
                         screen.w,
                         screen.h,
@@ -101,7 +98,7 @@ ak_sys_ren_render(ak_sys_ren* r,
 
   {
     ak_wv_itcomp it =
-      ak_wv_itcomp_make(r->wv, ak_mtrl_e);
+      ak_wv_itcomp_make(wv, ak_mtrl_e);
     ak_mtrl_t mat = { 0 };
     ak_ett e = 0;
     while (1) {
@@ -138,12 +135,12 @@ ak_sys_ren_render(ak_sys_ren* r,
       base_id = key;
 
       ak_assert(ak_wv_comp_mtrl_base_exist(
-        r->wv, base_id));
+        wv, base_id));
       ak_mtrl_base_t base_t =
-        ak_wv_comp_mtrl_base(r->wv, base_id);
+        ak_wv_comp_mtrl_base(wv, base_id);
 
       ak_gcb_push_mtrl(
-        r->gcb, &base_t.data, &vp, r->time);
+        gcb, &base_t.data, &vp, r->time);
 
       uint32_t count = ak_da_count(&mi->da);
       for (uint32_t i = 0; i < count; i++) {
@@ -151,12 +148,12 @@ ak_sys_ren_render(ak_sys_ren* r,
           *(ak_ett*)ak_da_at(&mi->da, i);
 
         ak_mat3 gmat3x3 =
-          ak_wv_comp_gmat3(r->wv, e);
+          ak_wv_comp_gmat3(wv, e);
         ak_mtrl_t mat =
-          ak_wv_comp_mtrl(r->wv, e);
+          ak_wv_comp_mtrl(wv, e);
 
         ak_gcb_push_quad(
-          r->gcb, &mat.data, &gmat3x3);
+          gcb, &mat.data, &gmat3x3);
       }
     }
   }

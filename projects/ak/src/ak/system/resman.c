@@ -9,6 +9,7 @@
 #include "ak/debug.h"
 #include "ak/gfx/img.h"
 #include "ak/os/file.h"
+#include "ak/os/time.h"
 #include "ak/system/resman_itn.h"
 
 #include <stdint.h>
@@ -101,10 +102,8 @@ res_load(ak_resman* rm, ak_resid id)
       break;
     }
     case ak_restype_img: {
-      ri.img = ak_img_load(ri.path);
 
-      ak_this_thread_sleep(
-        ak_dur_from_secs(2));
+      ri.img = ak_img_load(ri.path);
 
       ak_mutex_lock(&rm->m);
       item_set_payload_unsafe(

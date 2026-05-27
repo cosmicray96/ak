@@ -19,7 +19,7 @@ typedef struct
 } ak_world;
 
 ak_world
-ak_world_make(ak_ett root, ak_alct alct);
+ak_world_make(ak_alct alct);
 void
 ak_world_destroy(ak_world* w);
 

@@ -22,7 +22,7 @@ ett_from_id(ak_world* w, ak_fcnstid id)
 
 //--- public ---//
 ak_world
-ak_world_make(ak_ett root, ak_alct alct)
+ak_world_make(ak_alct alct)
 {
   ak_world w = { 0 };
   w.tree =

@@ -10,9 +10,15 @@
 
 typedef struct ak_renderer ak_renderer;
 
+typedef enum
+{
+  ak_renderer_initing,
+  ak_renderer_rendering,
+  ak_renderer_idle,
+} ak_renderer_status;
+
 ak_renderer*
 ak_renderer_startup(ak_plat_base* pb,
-                    ak_wv* wv,
                     ak_resman* rm,
                     ak_alct alct);
 
@@ -20,15 +26,13 @@ void
 ak_renderer_shutdown(ak_renderer* r);
 
 ak_gresman*
-ak_renderer_gresman(ak_renderer* r);
+ak_renderer_gresman_get(ak_renderer* r);
 
 void
-ak_renderer_gcb(ak_renderer* r, ak_gcb* gcb);
+ak_renderer_render(ak_renderer* r,
+                   ak_gcb* gcb);
 
-void
-ak_renderer_render(ak_renderer* r);
-
-void
-ak_renderer_stallwait(ak_renderer* r);
+ak_renderer_status
+ak_renderer_status_get(ak_renderer* r);
 
 #endif
