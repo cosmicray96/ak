@@ -3,6 +3,7 @@
 
 #include "ak/core/io.h"
 #include "ak/export.h"
+#include "ak/system/stream.h"
 #include <stdint.h>
 
 typedef int32_t ak_fx;
@@ -119,9 +120,10 @@ ak_fx_sqrt(ak_fx fx);
 ak_ex void
 ak_iostream_print_fx(ak_iostream io,
                      ak_fx fx);
-ak_ex void
-ak_write_fx(ak_iostream io, ak_fx fx);
-ak_ex ak_fx
-ak_read_fx(ak_iostream io);
+
+ak_ex ak_stmerr
+ak_stm_write_fx(ak_stm stm, ak_fx fx);
+ak_ex ak_stmerr
+ak_stm_read_fx(ak_stm stm, ak_fx* o_fx);
 
 #endif

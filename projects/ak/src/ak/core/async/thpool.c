@@ -107,7 +107,7 @@ thread_fn(void* ctx)
       ak_dur_subtract(end, start);
     ak_dur sleep_time =
       ak_dur_subtract(t, diff);
-    ak_mainthread_sleep(sleep_time);
+    ak_this_thread_sleep(sleep_time);
   }
 }
 

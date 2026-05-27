@@ -3,6 +3,7 @@
 
 #include "ak/export.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 
 typedef struct
@@ -61,12 +62,14 @@ ak_resman_load(ak_resman* rm, ak_resid id);
 ak_ex void
 ak_resman_unload(ak_resman* rm, ak_resid id);
 
-ak_ex ak_res_file*
+ak_ex bool
 ak_resman_acquire_file(ak_resman* rm,
-                       ak_resid id);
-ak_ex ak_res_img*
+                       ak_resid id,
+                       ak_res_file* o_file);
+ak_ex bool
 ak_resman_acquire_img(ak_resman* rm,
-                      ak_resid id);
+                      ak_resid id,
+                      ak_res_img* o_img);
 ak_ex void
 ak_resman_release(ak_resman* rm,
                   ak_resid id);

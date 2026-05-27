@@ -2,6 +2,7 @@
 #define ak_system_stream_h
 
 #include "ak/export.h"
+#include <stdbool.h>
 #include <stdint.h>
 
 typedef enum
@@ -46,6 +47,19 @@ ak_ex ak_stmerr
 ak_stm_read(ak_stm stm,
             void* data,
             uint64_t size);
+
+#define ak_stm_try(x)                       \
+  do {                                      \
+    ak_stmerr ak_stmerr_ev = x;             \
+    if (ak_stmerr_ev) {                     \
+      return ak_stmerr_ev;                  \
+    }                                       \
+  } while (0)
+
+ak_ex ak_stmerr
+ak_stm_write_bool(ak_stm stm, bool value);
+ak_ex ak_stmerr
+ak_stm_read_bool(ak_stm stm, bool* o_value);
 
 //--- Unsigned Ints ---//
 ak_ex ak_stmerr

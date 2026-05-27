@@ -52,9 +52,9 @@ gres_load_unsafe(ak_gresman* grm,
   gres_item* gi = ak_hmn_at(&grm->map, gid);
   switch (gi->type) {
     case ak_grestype_tex: {
-      ak_res_img* img =
-        ak_resman_acquire_img(grm->rm,
-                              gi->img.rid);
+      ak_res_img img = { 0 };
+      bool success = ak_resman_acquire_img(
+        grm->rm, gi->img.rid, &img);
 
       glGenTextures(1, &gi->img.glint);
       glBindTexture(GL_TEXTURE_2D,
@@ -63,17 +63,18 @@ gres_load_unsafe(ak_gresman* grm,
       glTexImage2D(GL_TEXTURE_2D,
                    0,
                    GL_RGBA8,
-                   img->w,
-                   img->h,
+                   img.w,
+                   img.h,
                    0,
                    GL_RGBA,
                    GL_UNSIGNED_BYTE,
-                   img->pixels);
+                   img.pixels);
 
       glBindTexture(GL_TEXTURE_2D, 0);
       gi->s = ak_gres_loaded;
       ak_resman_release(grm->rm,
                         gi->img.rid);
+      ak_resman_unload(grm->rm, gi->img.rid);
       break;
     }
     default: {
@@ -288,6 +289,17 @@ ak_gresman_load(ak_gresman* grm,
   if (gi->load_count == 0 &&
       gi->s == ak_gres_not_loaded) {
     gi->s = ak_gres_loading;
+
+    switch (gi->type) {
+      case ak_grestype_tex: {
+        ak_resman_load(grm->rm, gi->img.rid);
+        break;
+      }
+      default: {
+        ak_assert(false);
+      }
+    }
+
     ak_da_pushback(&grm->loads, &gid);
   }
   gi->load_count++;

@@ -275,13 +275,12 @@ on_update(void* ctx, ak_dur delta)
 
   ak_world_cb_flush(&l->w, &l->wcb, &l->ig);
 
-  ak_sys_ren_render(&l->sys_ren, delta);
-
   if (ak_gresman_status(l->grm,
                         l->dog_gid) ==
       ak_gres_loaded) {
-    ak_renderer_gcb(l->renderer, &l->gcb);
+    ak_sys_ren_render(&l->sys_ren, delta);
   }
+  ak_renderer_gcb(l->renderer, &l->gcb);
   ak_renderer_render(l->renderer);
 }
 

@@ -95,15 +95,22 @@ res_load(ak_resman* rm, ak_resid id)
       ak_mutex_lock(&rm->m);
       item_set_payload_unsafe(
         rm, id, &ri.file);
+      status_set_unsafe(
+        rm, id, ak_res_loaded);
       ak_mutex_unlock(&rm->m);
       break;
     }
     case ak_restype_img: {
       ri.img = ak_img_load(ri.path);
 
+      ak_this_thread_sleep(
+        ak_dur_from_secs(2));
+
       ak_mutex_lock(&rm->m);
       item_set_payload_unsafe(
         rm, id, &ri.img);
+      status_set_unsafe(
+        rm, id, ak_res_loaded);
       ak_mutex_unlock(&rm->m);
       break;
     }
@@ -112,10 +119,6 @@ res_load(ak_resman* rm, ak_resid id)
       break;
     }
   }
-
-  ak_mutex_lock(&rm->m);
-  status_set_unsafe(rm, id, ak_res_loaded);
-  ak_mutex_unlock(&rm->m);
 }
 
 static void
@@ -332,44 +335,48 @@ ak_resman_release(ak_resman* rm, ak_resid id)
   ak_mutex_unlock(&rm->m);
 }
 
-ak_res_file*
+bool
 ak_resman_acquire_file(ak_resman* rm,
-                       ak_resid id)
+                       ak_resid id,
+                       ak_res_file* o_file)
 {
   ak_assert(ak_resman_res_type(rm, id) ==
             ak_restype_file);
 
-  ak_res_file* file = 0;
+  bool success = false;
 
   ak_mutex_lock(&rm->m);
   res_item* ri = ak_hmn_at(&rm->map, id);
   if (ri->status == ak_res_loaded) {
     ri->access_count++;
-    file = &ri->file;
+    *o_file = ri->file;
+    success = true;
   }
   ak_mutex_unlock(&rm->m);
 
-  return file;
+  return success;
 }
 
-ak_res_img*
+bool
 ak_resman_acquire_img(ak_resman* rm,
-                      ak_resid id)
+                      ak_resid id,
+                      ak_res_img* o_img)
 {
   ak_assert(ak_resman_res_type(rm, id) ==
             ak_restype_img);
 
-  ak_res_img* img = 0;
+  bool success = false;
 
   ak_mutex_lock(&rm->m);
   res_item* ri = ak_hmn_at(&rm->map, id);
   if (ri->status == ak_res_loaded) {
     ri->access_count++;
-    img = &ri->img;
+    *o_img = ri->img;
+    success = true;
   }
   ak_mutex_unlock(&rm->m);
 
-  return img;
+  return success;
 }
 
 /*

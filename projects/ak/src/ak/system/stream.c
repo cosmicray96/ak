@@ -47,6 +47,18 @@ ak_stm_read(ak_stm stm,
   }
 }
 
+ak_stmerr
+ak_stm_write_bool(ak_stm stm, bool value)
+{
+  return ak_stm_write_i8(stm, value);
+}
+ak_stmerr
+ak_stm_read_bool(ak_stm stm, bool* o_value)
+{
+  return ak_stm_read_i8(stm,
+                        (int8_t*)o_value);
+}
+
 //--- unsigned int ---//
 ak_stmerr
 ak_stm_write_u8(ak_stm stm, uint8_t value)

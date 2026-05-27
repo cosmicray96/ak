@@ -2,28 +2,70 @@
 #include "ak/coll/da.h"
 #include "ak/coll/dq.h"
 #include "ak/coll/hmn.h"
-#include "ak/core/io.h"
 #include "ak/game/comp.h"
 #include "ak/game/world/view.h"
 #include "ak/game/world/view_itn.h"
 #include "ak/system/idgen.h"
+#include "ak/system/stream.h"
 
-void
-ak_write_to_cmd(ak_world* w,
-                ak_wcb* wcb,
-                ak_ett root,
-                ak_alct alct);
+#define try(x)                              \
+  do {                                      \
+    exiterr = x;                            \
+    if (exiterr)                            \
+      goto crash;                           \
+  } while (0)
+
 ak_stmerr
 ak_stream_write_world(ak_stm stm,
                       ak_world* w,
                       ak_ett root,
-                      ak_alct alct);
+                      ak_alct alct)
+{
+  ak_stmerr exiterr = ak_stmerr_ok;
+
+  ak_stm_try(ak_stm_write_u32(stm, 10));
+  ak_stm_try(ak_stm_write_u32(
+    stm, ak_world_ett_count(w)));
+
+  ak_wv wv = ak_wv_make(w);
+  ak_wv_itbfs it =
+    ak_wv_itbfs_make(&wv, root, alct);
+  ak_ett e = 0;
+  while (1) {
+    e = ak_wv_itbfs_next(&it);
+    if (!e) {
+      break;
+    }
+
+    try(ak_stm_write_u32(stm, e));
+    try(ak_stm_write_u32(
+      stm, ak_world_ett_parent(w, e)));
+    try(ak_stm_write_u32(
+      stm, ak_world_ett_compcount(w, e)));
+
+    ak_comp_tu ctu = { 0 };
+    ak_wv_itettcomp itc =
+      ak_wv_itettcomp_make(&wv, e);
+    while (
+      ak_wv_itettcomp_next(&itc, &ctu)) {
+      try(ak_stm_write_comp_tu(stm, ctu));
+    }
+  }
+
+crash:
+  ak_wv_itbfs_destroy(&it);
+  ak_wv_destroy(&wv);
+  return exiterr;
+}
 
 ak_stmerr
 ak_stream_read_world(ak_stm stm,
                      ak_world* o_w,
                      ak_idgen* ig,
-                     ak_alct alct);
+                     ak_alct alct)
+{
+  return ak_stmerr_err;
+}
 
 //--- private ---//
 typedef struct

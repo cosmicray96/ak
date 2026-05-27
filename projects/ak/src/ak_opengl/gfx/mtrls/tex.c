@@ -86,6 +86,8 @@ struct ak_mtrl_tex
   GLuint tex_loc;
   GLuint t_loc;
 
+  ak_gresid gid;
+
   bool call_begin;
 };
 
@@ -212,6 +214,7 @@ ak_mtrl_tex_call_begin(
     m->call_begin = true;
     return;
   }
+  m->gid = tex.gid;
   GLuint gltex = 0;
   bool success = ak_gresman_acquire_tex(
     m->grm, tex.gid, &gltex);
@@ -268,6 +271,9 @@ ak_mtrl_tex_call_end(void* mtrl)
   ak_gfx_call_end(m->g);
   glUseProgram(0);
   glBindVertexArray(0);
+
+  ak_gresman_release(m->grm, m->gid);
+
   m->call_begin = false;
 }
 

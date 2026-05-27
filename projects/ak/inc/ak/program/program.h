@@ -19,6 +19,6 @@ ak_ex void
 ak_program_crash();
 
 ak_ex void
-ak_mainthread_sleep(ak_dur t);
+ak_this_thread_sleep(ak_dur t);
 
 #endif
