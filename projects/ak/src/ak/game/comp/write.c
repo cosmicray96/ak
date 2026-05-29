@@ -1,5 +1,4 @@
 #include "ak/core/math/fixed.h"
-#include "ak/debug.h"
 #include "ak/game/comp.h"
 #include "ak/game/comp_t.h"
 #include <ak/core/math/vec3.h>
@@ -66,12 +65,36 @@ ak_stm_read_vec3(ak_stm stm, ak_vec3* o_vec3)
 {
   ak_stm_try(
     ak_stm_read_fx(stm, &o_vec3->x));
-
   ak_stm_try(
     ak_stm_read_fx(stm, &o_vec3->y));
-
   ak_stm_try(
     ak_stm_read_fx(stm, &o_vec3->z));
+
+  return ak_stmerr_ok;
+}
+
+ak_stmerr
+ak_stm_write_vec4(ak_stm stm, ak_vec4 vec4)
+{
+  ak_stm_try(ak_stm_read_fx(stm, &vec4.x));
+  ak_stm_try(ak_stm_read_fx(stm, &vec4.y));
+  ak_stm_try(ak_stm_read_fx(stm, &vec4.z));
+  ak_stm_try(ak_stm_read_fx(stm, &vec4.w));
+
+  return ak_stmerr_ok;
+}
+
+ak_stmerr
+ak_stm_read_vec4(ak_stm stm, ak_vec4* o_vec4)
+{
+  ak_stm_try(
+    ak_stm_read_fx(stm, &o_vec4->x));
+  ak_stm_try(
+    ak_stm_read_fx(stm, &o_vec4->y));
+  ak_stm_try(
+    ak_stm_read_fx(stm, &o_vec4->z));
+  ak_stm_try(
+    ak_stm_read_fx(stm, &o_vec4->w));
 
   return ak_stmerr_ok;
 }
@@ -94,6 +117,58 @@ ak_stm_read_mat3(ak_stm stm, ak_mat3* o_mat3)
     ak_stm_try(
       ak_stm_read_fx(stm, &o_mat3->v[i]));
   }
+
+  return ak_stmerr_ok;
+}
+
+ak_stmerr
+ak_stm_write_tex(ak_stm stm, ak_tex tex)
+{
+  ak_stm_try(ak_stm_write_u32(stm, tex.gid));
+  ak_stm_try(
+    ak_stm_write_u32(stm, tex.filter_type));
+  ak_stm_try(
+    ak_stm_write_u32(stm, tex.uv_type));
+
+  return ak_stmerr_ok;
+}
+
+ak_stmerr
+ak_stm_read_tex(ak_stm stm, ak_tex* o_tex)
+{
+  ak_stm_try(
+    ak_stm_read_u32(stm, &o_tex->gid));
+  ak_stm_try(ak_stm_read_u32(
+    stm, &o_tex->filter_type));
+  ak_stm_try(
+    ak_stm_read_u32(stm, &o_tex->uv_type));
+
+  return ak_stmerr_ok;
+}
+
+ak_stmerr
+ak_stm_write_qd(ak_stm stm,
+                ak_mtrl_quaddata qd)
+{
+  ak_stm_try(ak_stm_read_vec4(stm, &qd.col));
+  ak_stm_try(
+    ak_stm_read_vec2(stm, &qd.uv_min));
+  ak_stm_try(
+    ak_stm_read_vec2(stm, &qd.uv_max));
+
+  return ak_stmerr_ok;
+}
+
+ak_stmerr
+ak_stm_read_qd(ak_stm stm,
+               ak_mtrl_quaddata* o_qd)
+{
+  ak_stm_try(
+    ak_stm_read_vec4(stm, &o_qd->col));
+  ak_stm_try(
+    ak_stm_read_vec2(stm, &o_qd->uv_min));
+  ak_stm_try(
+    ak_stm_read_vec2(stm, &o_qd->uv_max));
 
   return ak_stmerr_ok;
 }
@@ -231,19 +306,24 @@ ak_stm_read_screen(ak_stm stm,
 ak_stmerr
 ak_stm_write_mtrl(ak_stm stm, ak_mtrl_t mtrl)
 {
-  ak_assert(false);
+  ak_stm_try(
+    ak_stm_write_u32(stm, mtrl.base_id));
+  ak_stm_try(
+    ak_stm_write_qd(stm, mtrl.data));
 
-  return ak_stm_write_u32(stm, mtrl.base_id);
+  return ak_stmerr_ok;
 }
 
 ak_stmerr
 ak_stm_read_mtrl(ak_stm stm,
                  ak_mtrl_t* o_mtrl)
 {
-  ak_assert(false);
+  ak_stm_try(
+    ak_stm_read_u32(stm, &o_mtrl->base_id));
+  ak_stm_try(
+    ak_stm_read_qd(stm, &o_mtrl->data));
 
-  return ak_stm_read_u32(stm,
-                         &o_mtrl->base_id);
+  return ak_stmerr_ok;
 }
 
 ak_stmerr
@@ -251,10 +331,12 @@ ak_stm_write_mtrl_base(
   ak_stm stm,
   ak_mtrl_base_t mtrl_base)
 {
-  ak_assert(false);
+  ak_stm_try(ak_stm_write_u32(
+    stm, mtrl_base.data.me));
+  ak_stm_try(ak_stm_write_tex(
+    stm, mtrl_base.data.tex));
 
-  return ak_stm_write_u32(stm,
-                          mtrl_base.data.me);
+  return ak_stmerr_ok;
 }
 
 ak_stmerr
@@ -262,10 +344,12 @@ ak_stm_read_mtrl_base(
   ak_stm stm,
   ak_mtrl_base_t* o_mtrl_base)
 {
-  ak_assert(false);
+  ak_stm_try(ak_stm_read_u32(
+    stm, &o_mtrl_base->data.me));
+  ak_stm_try(ak_stm_read_tex(
+    stm, &o_mtrl_base->data.tex));
 
-  return ak_stm_read_u32(
-    stm, &o_mtrl_base->data.me);
+  return ak_stmerr_ok;
 }
 
 ak_stmerr

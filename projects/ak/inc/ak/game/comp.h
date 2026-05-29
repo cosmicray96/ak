@@ -3,6 +3,7 @@
 
 #include "ak/debug.h"
 #include "ak/def.h"
+#include "ak/export.h"
 #include "ak/game/comp_t.h"
 #include "ak/system/stream.h"
 
@@ -26,9 +27,12 @@ static const uint32_t
 #include "ak/game/comp.inc"
 #undef ak_d_comp_x
   };
-
 const char*
 ak_comp_to_str(ak_comp_enum ce);
+
+ak_ex uint32_t
+ak_comp_enum_offsets(ak_comp_enum ce,
+                     uint32_t o_offsets[16]);
 
 typedef struct
 {
@@ -71,31 +75,5 @@ ak_stm_write_comp_tu(ak_stm stm,
 ak_stmerr
 ak_stm_read_comp_tu(ak_stm stm,
                     ak_comp_tu* o_ctu);
-
-#define ak_d_comp_x(name)                   \
-  uint32_t ak_comp_ett_offsets_##name(      \
-    uint32_t o_offsets[16]);
-
-#include "ak/game/comp.inc"
-#undef ak_d_comp_x
-static uint32_t
-ak_comp_enum_offsets(ak_comp_enum ce,
-                     uint32_t o_offsets[16])
-{
-  switch (ce) {
-#define ak_d_comp_x(name)                   \
-  case ak_as_comp_e(name): {                \
-    return ak_comp_ett_offsets_##name(      \
-      o_offsets);                           \
-  }
-#include "ak/game/comp.inc"
-#undef ak_d_comp_x
-
-    default: {
-      ak_assert(false);
-    }
-  }
-  return 0;
-}
 
 #endif
