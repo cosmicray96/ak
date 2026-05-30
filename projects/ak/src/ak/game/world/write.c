@@ -79,7 +79,7 @@ ak_stream_read_world(ak_stm stm,
                      ak_world* o_w,
                      ak_alct alct)
 {
-  ak_stmerr exiterr = ak_stmerr_ok;
+  ak_stmerr exiterr = ak_stmerr_err;
   *o_w = ak_world_make(alct);
 
   uint32_t version = 0;

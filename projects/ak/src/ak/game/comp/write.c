@@ -76,10 +76,10 @@ ak_stm_read_vec3(ak_stm stm, ak_vec3* o_vec3)
 ak_stmerr
 ak_stm_write_vec4(ak_stm stm, ak_vec4 vec4)
 {
-  ak_stm_try(ak_stm_read_fx(stm, &vec4.x));
-  ak_stm_try(ak_stm_read_fx(stm, &vec4.y));
-  ak_stm_try(ak_stm_read_fx(stm, &vec4.z));
-  ak_stm_try(ak_stm_read_fx(stm, &vec4.w));
+  ak_stm_try(ak_stm_write_fx(stm, vec4.x));
+  ak_stm_try(ak_stm_write_fx(stm, vec4.y));
+  ak_stm_try(ak_stm_write_fx(stm, vec4.z));
+  ak_stm_try(ak_stm_write_fx(stm, vec4.w));
 
   return ak_stmerr_ok;
 }
@@ -150,11 +150,11 @@ ak_stmerr
 ak_stm_write_qd(ak_stm stm,
                 ak_mtrl_quaddata qd)
 {
-  ak_stm_try(ak_stm_read_vec4(stm, &qd.col));
+  ak_stm_try(ak_stm_write_vec4(stm, qd.col));
   ak_stm_try(
-    ak_stm_read_vec2(stm, &qd.uv_min));
+    ak_stm_write_vec2(stm, qd.uv_min));
   ak_stm_try(
-    ak_stm_read_vec2(stm, &qd.uv_max));
+    ak_stm_write_vec2(stm, qd.uv_max));
 
   return ak_stmerr_ok;
 }

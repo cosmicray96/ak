@@ -252,7 +252,7 @@ on_startup(void* ctx, ak_app* app)
   l->grm =
     ak_renderer_gresman_get(l->renderer);
 
-  l->load = false;
+  l->load = true;
   l->world_added = false;
 
   l->wid = 5;

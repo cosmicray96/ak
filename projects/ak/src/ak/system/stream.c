@@ -54,6 +54,7 @@ ak_stm_read(ak_stm stm,
     case ak_stmtype_file: {
       err = ak_stm_file_read(
         stm.ctx, data, size);
+      break;
     }
     default: {
       return ak_stmerr_unsupported;
