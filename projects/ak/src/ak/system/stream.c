@@ -1,6 +1,8 @@
 #include "ak/system/stream.h"
 #include "ak/core/mem/ptr.h"
+#include "ak/debug.h"
 #include "ak/system/stream_itn.h"
+#include <stdio.h>
 
 ak_stmerr
 ak_stm_close(ak_stm stm)
@@ -14,12 +16,23 @@ ak_stm_close(ak_stm stm)
     }
   }
 }
+void
+print_hex(const uint8_t* data, size_t len)
+{
+  for (size_t i = 0; i < len; i++) {
+    printf("%02X ",
+           data[i]); // 2-digit uppercase hex
+  }
+  printf("\n");
+}
 
 ak_stmerr
 ak_stm_write(ak_stm stm,
              const void* data,
              uint64_t size)
 {
+  ak_log("WRITE: %d", size);
+  print_hex(data, size);
   switch (stm.type) {
     case ak_stmtype_file: {
       return ak_stm_file_write(
@@ -36,15 +49,19 @@ ak_stm_read(ak_stm stm,
             void* data,
             uint64_t size)
 {
+  ak_stmerr err = ak_stmerr_err;
   switch (stm.type) {
     case ak_stmtype_file: {
-      return ak_stm_file_read(
+      err = ak_stm_file_read(
         stm.ctx, data, size);
     }
     default: {
       return ak_stmerr_unsupported;
     }
   }
+  ak_log("READ: %d", size);
+  print_hex(data, size);
+  return err;
 }
 
 ak_stmerr

@@ -82,8 +82,7 @@ ak_resman_acquire_img(ak_resman* rm,
 ak_ex void
 ak_resman_register_world(ak_resman* rm,
                          ak_resid id,
-                         const char* path,
-                         ak_idgen* ig);
+                         const char* path);
 ak_ex bool
 ak_resman_acquire_world(ak_resman* rm,
                         ak_resid id,

@@ -5,14 +5,11 @@
 #include "ak/core/async/thpool.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/core/mem/heap.h"
-#include "ak/core/mem/ptr.h"
 #include "ak/debug.h"
 #include "ak/game/stg/world.h"
 #include "ak/game/world/write.h"
 #include "ak/gfx/img.h"
 #include "ak/os/file.h"
-#include "ak/os/time.h"
-#include "ak/system/idgen.h"
 #include "ak/system/resman_itn.h"
 #include "ak/system/stream.h"
 
@@ -24,7 +21,6 @@
 typedef struct
 {
   ak_world world;
-  ak_idgen* ig;
   ak_stmerr err;
 } res_item_world;
 
@@ -107,11 +103,8 @@ res_load(ak_resman* rm, ak_resid id)
 
       ak_stm stm =
         ak_stm_open_file(ri.path, "rb");
-      ri.wi.err =
-        ak_stream_read_world(stm,
-                             &ri.wi.world,
-                             ri.wi.ig,
-                             ri.alct);
+      ri.wi.err = ak_stream_read_world(
+        stm, &ri.wi.world, ri.alct);
       ak_stm_close(stm);
 
       ak_mutex_lock(&rm->m);
@@ -393,8 +386,7 @@ ak_resman_acquire_img(ak_resman* rm,
 void
 ak_resman_register_world(ak_resman* rm,
                          ak_resid id,
-                         const char* path,
-                         ak_idgen* ig)
+                         const char* path)
 {
   res_register(
     rm, ak_restype_world, id, path);

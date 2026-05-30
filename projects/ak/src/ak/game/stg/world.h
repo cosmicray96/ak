@@ -26,9 +26,10 @@ ak_world_destroy(ak_world* w);
 
 void
 ak_world_graft(ak_world* dest,
-               const ak_world* src,
+               ak_world* src,
                ak_ett dest_pt,
-               ak_idgen* ig);
+               ak_idgen* ig,
+               ak_alct alct);
 
 ak_fcnst*
 ak_world_tree(ak_world* w);

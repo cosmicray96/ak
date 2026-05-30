@@ -36,6 +36,8 @@ ak_stream_write_world(ak_stm stm,
     stm,
     ak_world_ett_count_subtree(w, root)));
 
+  bool first = true;
+
   ak_wv wv = ak_wv_make(w);
   ak_wv_itbfs it =
     ak_wv_itbfs_make(&wv, root, alct);
@@ -47,8 +49,13 @@ ak_stream_write_world(ak_stm stm,
     }
 
     try(ak_stm_write_u32(stm, e));
-    try(ak_stm_write_u32(
-      stm, ak_world_ett_parent(w, e)));
+    if (first) {
+      try(ak_stm_write_u32(stm, 0));
+      first = false;
+    } else {
+      try(ak_stm_write_u32(
+        stm, ak_world_ett_parent(w, e)));
+    }
     try(ak_stm_write_u32(
       stm, ak_world_ett_compcount(w, e)));
 
@@ -70,13 +77,10 @@ crash:
 ak_stmerr
 ak_stream_read_world(ak_stm stm,
                      ak_world* o_w,
-                     ak_idgen* ig,
                      ak_alct alct)
 {
   ak_stmerr exiterr = ak_stmerr_ok;
   *o_w = ak_world_make(alct);
-  ak_hmn map =
-    ak_hmn_make(sizeof(ak_ett), alct);
 
   uint32_t version = 0;
   try(ak_stm_read_u32(stm, &version));
@@ -90,17 +94,8 @@ ak_stream_read_world(ak_stm stm,
     try(ak_stm_read_u32(stm, &e));
     ak_ett pt = 0;
     try(ak_stm_read_u32(stm, &pt));
-    if (i == 0) {
-      ak_hmn_insert(
-        &map, pt, &(ak_ett){ 0 });
-    }
 
-    ak_ett new_e = ak_idgen_new(ig);
-    ak_ett new_pt =
-      *(ak_ett*)ak_hmn_at(&map, pt);
-
-    ak_hmn_insert(&map, e, &new_e);
-    ak_world_ett_new(o_w, new_e, new_pt);
+    ak_world_ett_new(o_w, e, pt);
 
     uint32_t comp_count = 0;
     try(ak_stm_read_u32(stm, &comp_count));
@@ -108,12 +103,11 @@ ak_stream_read_world(ak_stm stm,
          j++) {
       ak_comp_tu ctu = { 0 };
       try(ak_stm_read_comp_tu(stm, &ctu));
-      ak_world_comp_add_tu(o_w, new_e, &ctu);
+      ak_world_comp_add_tu(o_w, e, &ctu);
     }
   }
 
 exit:
-  ak_hmn_destroy(&map);
   return exiterr;
 crash:
   ak_world_destroy(o_w);

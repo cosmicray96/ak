@@ -16,7 +16,6 @@ ak_stream_write_world(ak_stm stm,
 ak_stmerr
 ak_stream_read_world(ak_stm stm,
                      ak_world* o_w,
-                     ak_idgen* ig,
                      ak_alct alct);
 
 #endif

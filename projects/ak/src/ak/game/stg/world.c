@@ -1,8 +1,10 @@
 #include "ak/game/stg/world.h"
 #include "ak/coll/fcnst.h"
 #include "ak/coll/hmn.h"
+#include "ak/core/mem/allocator.h"
 #include "ak/game/core.h"
 #include "ak/game/stg/comp.h"
+#include "ak/game/world/view_itn.h"
 #include <threads.h>
 
 //===== ak_world =====//
@@ -44,13 +46,49 @@ ak_world_destroy(ak_world* w)
 
 void
 ak_world_graft(ak_world* dest,
-               const ak_world* src,
+               ak_world* src,
                ak_ett dest_pt,
-               ak_idgen* ig)
+               ak_idgen* ig,
+               ak_alct alct)
 {
-  ak_hmn map = ak_hmn_make(
-    sizeof(ak_ett), ak_hmn_alct(&dest->map));
+  ak_hmn map =
+    ak_hmn_make(sizeof(ak_ett), alct);
 
+  ak_wv wv = ak_wv_make(src);
+  ak_wv_itdfspre it = ak_wv_itdfspre_make(
+    &wv, ak_wv_ett_root(&wv), alct);
+
+  bool first = true;
+
+  while (true) {
+    ak_ett e = ak_wv_itdfspre_next(&it);
+    if (!e) {
+      break;
+    }
+    ak_ett pt = ak_wv_ett_parent(&wv, e);
+    if (first) {
+      ak_hmn_insert(&map, pt, &dest_pt);
+      first = false;
+    }
+
+    ak_ett new_e = ak_idgen_new(ig);
+    ak_hmn_insert(&map, e, &new_e);
+
+    ak_ett new_pt =
+      *(ak_ett*)ak_hmn_at(&map, pt);
+
+    ak_world_ett_new(dest, new_e, new_pt);
+
+    ak_wv_itcomp itc =
+      ak_wv_itcomp_make(&wv, e);
+    ak_comp_tu ctu = { 0 };
+    while (ak_wv_itcomp_next(&itc, &ctu)) {
+      ak_world_comp_add_tu(
+        dest, new_e, &ctu);
+    }
+  }
+
+  ak_wv_itdfspre_destroy(&it);
   ak_hmn_destroy(&map);
 }
 

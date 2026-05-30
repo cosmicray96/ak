@@ -19,13 +19,16 @@
 #include "ak/game/world/cbflush.h"
 #include "ak/game/world/view.h"
 #include "ak/game/world/view_itn.h"
+#include "ak/game/world/write.h"
 #include "ak/gfx/core.h"
 #include "ak/gfx/gcb.h"
 #include "ak/gfx/gfx.h"
 #include "ak/gfx/gresman.h"
+#include "ak/system/idgen.h"
 #include "ak/system/render.h"
 #include "ak/system/resman.h"
 #include "ak/system/resman_itn.h"
+#include <stdbool.h>
 
 //===== ak_lworld =====//
 //--- private ---//
@@ -57,6 +60,11 @@ struct ak_lworld
   ak_gresid dog_gid;
 
   ak_ett e_mtrl_base;
+
+  bool load;
+  bool world_added;
+  ak_resid wid;
+  ak_world w_store;
 };
 
 bool
@@ -99,15 +107,77 @@ ak_lworld_destroy(ak_lworld* l)
 //===== ak_applayer =====//
 //--- private ---//
 static void
+push_child2(ak_wv* wv,
+            ak_wcb* wcb,
+            ak_ett mtrl_id,
+            float x,
+            float y)
+{
+  ak_ett root = ak_wv_ett_root(wv);
+  ak_ett e = ak_wcb_ett_new(wcb, root);
+
+  ak_fx scale_x = ak_fx_i(10);
+  ak_fx scale_y = ak_fx_i(10);
+  ak_tf2d_t tf = { 0 };
+  tf = ak_tf2d_make(
+    ak_vec2_make(ak_fx_f(x), ak_fx_f(y)),
+    ak_angle_deg(ak_fx_f(0)),
+    ak_vec2_make(scale_x, scale_y));
+  ak_wcb_comp_tf2d_add(wcb, e, tf);
+
+  ak_mtrl_t mat = { 0 };
+  mat.base_id = mtrl_id;
+  mat.data.uv_min =
+    ak_vec2_make(ak_fx_f(0), ak_fx_f(0));
+  mat.data.uv_max = ak_vec2_make(
+    ak_fx_f(1.0f), ak_fx_f(1.0f));
+  ak_wcb_comp_mtrl_add(wcb, e, mat);
+}
+
+static void
+store(ak_lworld* l)
+{
+  l->w_store = ak_world_make(l->alct);
+  ak_idgen ig = ak_idgen_make(l->alct);
+  ak_wv wv = ak_wv_make(&l->w_store);
+  ak_wcb wcb = ak_wcb_make(&ig, l->alct);
+
+  ak_wcb_ett_new(&wcb, 0);
+  ak_world_cb_flush(&l->w_store, &wcb, &ig);
+
+  float space = 25;
+
+  for (uint32_t y = 0; y < 10; y++) {
+    for (uint32_t x = 0; x < 10; x++) {
+      push_child2(&wv,
+                  &wcb,
+                  l->e_mtrl_base,
+                  x * space,
+                  y * space);
+    }
+  }
+  ak_world_cb_flush(&l->w_store, &wcb, &ig);
+
+  ak_stm stm =
+    ak_stm_open_file("./world.bin", "wb");
+  ak_stmerr err = ak_stream_write_world(
+    stm,
+    &l->w_store,
+    ak_world_ett_root(&l->w_store),
+    l->alct);
+  ak_assert(err == ak_stmerr_ok);
+  ak_stm_close(stm);
+
+  ak_wcb_destroy(&wcb);
+  ak_wv_destroy(&wv);
+  ak_idgen_destroy(&ig);
+  ak_world_destroy(&l->w_store);
+}
+
+static void
 set_root(ak_lworld* l)
 {
   ak_ett root = ak_wcb_ett_new(&l->wcb, 0);
-  ak_tf2d_t tf = ak_tf2d_identity();
-  ak_wcb_comp_tf2d_add(&l->wcb, root, tf);
-  ak_mat3 mat = ak_mat3_identity();
-  ak_wcb_comp_gmat3_add(&l->wcb, root, mat);
-
-  ak_world_cb_flush(&l->w, &l->wcb, &l->ig);
 
   ak_screen_t screen = { .w = 800,
                          .h = 600 };
@@ -141,8 +211,8 @@ push_child(ak_lworld* l, float x, float y)
   ak_ett root = ak_wv_ett_root(&l->wv);
   ak_ett e = ak_wcb_ett_new(&l->wcb, root);
 
-  ak_fx scale_x = ak_fx_i(800);
-  ak_fx scale_y = ak_fx_i(600);
+  ak_fx scale_x = ak_fx_i(20);
+  ak_fx scale_y = ak_fx_i(20);
   ak_tf2d_t tf = { 0 };
   tf = ak_tf2d_make(
     ak_vec2_make(ak_fx_f(x), ak_fx_f(y)),
@@ -182,6 +252,13 @@ on_startup(void* ctx, ak_app* app)
   l->grm =
     ak_renderer_gresman_get(l->renderer);
 
+  l->load = false;
+  l->world_added = false;
+
+  l->wid = 5;
+  ak_resman_register_world(
+    &l->rm, l->wid, "./world.bin");
+
   l->dog_rid = 10;
   ak_resman_register_img(
     &l->rm, l->dog_rid, "./dog.png");
@@ -190,12 +267,19 @@ on_startup(void* ctx, ak_app* app)
     l->grm, l->dog_gid, l->dog_rid);
   ak_gresman_load(l->grm, l->dog_gid);
 
-  set_root(l);
-  push_child(l, 0, 0);
-  ak_world_cb_flush(&l->w, &l->wcb, &l->ig);
-
   l->sys_tf = ak_sys_tf_make(l->alct);
   l->sys_ren = ak_sys_ren_make(l->alct);
+
+  set_root(l);
+
+  if (l->load) {
+    ak_resman_load(&l->rm, l->wid);
+  } else {
+    store(l);
+  }
+
+  push_child(l, 0, 0);
+  ak_world_cb_flush(&l->w, &l->wcb, &l->ig);
 }
 
 static void
@@ -263,16 +347,36 @@ on_update(void* ctx, ak_dur delta)
   ak_lworld* l = ctx;
   ak_resman_update(&l->rm);
 
-  ak_sys_tf_update(
-    &l->sys_tf, &l->wv, &l->wcb);
-  ak_world_cb_flush(&l->w, &l->wcb, &l->ig);
-
-  if (ak_gresman_status(l->grm,
-                        l->dog_gid) ==
-      ak_gres_loaded) {
-    ak_sys_ren_render(
-      &l->sys_ren, &l->wv, &l->gcb, delta);
+  if (l->load && !l->world_added &&
+      ak_resman_status(&l->rm, l->wid) ==
+        ak_res_loaded) {
+    ak_world w = { 0 };
+    ak_stmerr err = { 0 };
+    bool success = ak_resman_acquire_world(
+      &l->rm, l->wid, &w, &err);
+    ak_assert(success);
+    ak_assert(err == ak_stmerr_ok);
+    ak_world_graft(&l->w,
+                   &w,
+                   ak_world_ett_root(&l->w),
+                   &l->ig,
+                   l->alct);
+    l->world_added = true;
   }
+
+  if (l->load && l->world_added) {
+    ak_sys_tf_update(
+      &l->sys_tf, &l->wv, &l->wcb);
+    ak_world_cb_flush(
+      &l->w, &l->wcb, &l->ig);
+    if (ak_gresman_status(l->grm,
+                          l->dog_gid) ==
+        ak_gres_loaded) {
+      ak_sys_ren_render(
+        &l->sys_ren, &l->wv, &l->gcb, delta);
+    }
+  }
+
   ak_renderer_render(l->renderer, &l->gcb);
 }
 
