@@ -42,6 +42,18 @@ ak_world_destroy(ak_world* w)
   ak_compstg_destroy(w->cs);
 }
 
+void
+ak_world_graft(ak_world* dest,
+               const ak_world* src,
+               ak_ett dest_pt,
+               ak_idgen* ig)
+{
+  ak_hmn map = ak_hmn_make(
+    sizeof(ak_ett), ak_hmn_alct(&dest->map));
+
+  ak_hmn_destroy(&map);
+}
+
 ak_fcnst*
 ak_world_tree(ak_world* w)
 {
@@ -64,6 +76,23 @@ uint32_t
 ak_world_ett_count(ak_world* w)
 {
   return ak_fcnst_count(&w->tree);
+}
+
+uint32_t
+ak_world_ett_count_subtree(ak_world* w,
+                           ak_ett root)
+{
+  uint32_t count = 0;
+  ak_fcnst_itdfspost it =
+    ak_fcnst_itdfspost_make(&w->tree, root);
+  ak_fcnstid id = 0;
+  while (1) {
+    id = ak_fcnst_itdfspost_next(&it);
+    if (!id) {
+      return count;
+    }
+    count++;
+  }
 }
 
 ak_ett

@@ -7,15 +7,27 @@
 #include "ak/core/mem/heap.h"
 #include "ak/core/mem/ptr.h"
 #include "ak/debug.h"
+#include "ak/game/stg/world.h"
+#include "ak/game/world/write.h"
 #include "ak/gfx/img.h"
 #include "ak/os/file.h"
 #include "ak/os/time.h"
+#include "ak/system/idgen.h"
 #include "ak/system/resman_itn.h"
+#include "ak/system/stream.h"
 
 #include <stdint.h>
 
 //===== res_item =====//
 //--- private ---//
+
+typedef struct
+{
+  ak_world world;
+  ak_idgen* ig;
+  ak_stmerr err;
+} res_item_world;
+
 typedef struct
 {
   ak_restype type;
@@ -28,6 +40,7 @@ typedef struct
   {
     ak_res_file file;
     ak_res_img img;
+    res_item_world wi;
   };
 } res_item;
 
@@ -56,31 +69,6 @@ item_get_unsafe(ak_resman* rm, ak_resid id)
 }
 
 static void
-item_set_payload_unsafe(ak_resman* rm,
-                        ak_resid id,
-                        const void* payload)
-{
-  res_item* ri = ak_hmn_at(&rm->map, id);
-  switch (ri->type) {
-    case ak_restype_file: {
-      ak_p_cpy(&ri->file,
-               payload,
-               sizeof(ak_res_file));
-      break;
-    }
-    case ak_restype_img: {
-      ak_p_cpy(&ri->img,
-               payload,
-               sizeof(ak_res_img));
-      break;
-    }
-    default: {
-      ak_assert(false);
-    }
-  }
-}
-
-static void
 res_load(ak_resman* rm, ak_resid id)
 {
   ak_mutex_lock(&rm->m);
@@ -94,8 +82,9 @@ res_load(ak_resman* rm, ak_resid id)
         ri.path, &ri.file.data, ri.alct);
 
       ak_mutex_lock(&rm->m);
-      item_set_payload_unsafe(
-        rm, id, &ri.file);
+      res_item* rip =
+        ak_hmn_at(&rm->map, id);
+      rip->file = ri.file;
       status_set_unsafe(
         rm, id, ak_res_loaded);
       ak_mutex_unlock(&rm->m);
@@ -106,13 +95,36 @@ res_load(ak_resman* rm, ak_resid id)
       ri.img = ak_img_load(ri.path);
 
       ak_mutex_lock(&rm->m);
-      item_set_payload_unsafe(
-        rm, id, &ri.img);
+      res_item* rip =
+        ak_hmn_at(&rm->map, id);
+      rip->img = ri.img;
       status_set_unsafe(
         rm, id, ak_res_loaded);
       ak_mutex_unlock(&rm->m);
       break;
     }
+    case ak_restype_world: {
+
+      ak_stm stm =
+        ak_stm_open_file(ri.path, "rb");
+      ri.wi.err =
+        ak_stream_read_world(stm,
+                             &ri.wi.world,
+                             ri.wi.ig,
+                             ri.alct);
+      ak_stm_close(stm);
+
+      ak_mutex_lock(&rm->m);
+      res_item* rip =
+        ak_hmn_at(&rm->map, id);
+      rip->wi.world = ri.wi.world;
+      rip->wi.err = ri.wi.err;
+      status_set_unsafe(
+        rm, id, ak_res_loaded);
+      ak_mutex_unlock(&rm->m);
+      break;
+    }
+
     default: {
       ak_assert(false);
       break;
@@ -256,23 +268,6 @@ ak_resman_update(ak_resman* rm)
 //--- export ---//
 
 void
-ak_resman_register_file(ak_resman* rm,
-                        ak_resid id,
-                        const char* path)
-{
-  res_register(
-    rm, ak_restype_file, id, path);
-}
-
-void
-ak_resman_register_img(ak_resman* rm,
-                       ak_resid id,
-                       const char* path)
-{
-  res_register(rm, ak_restype_img, id, path);
-}
-
-void
 ak_resman_load(ak_resman* rm, ak_resid id)
 {
   ak_mutex_lock(&rm->m);
@@ -334,6 +329,15 @@ ak_resman_release(ak_resman* rm, ak_resid id)
   ak_mutex_unlock(&rm->m);
 }
 
+void
+ak_resman_register_file(ak_resman* rm,
+                        ak_resid id,
+                        const char* path)
+{
+  res_register(
+    rm, ak_restype_file, id, path);
+}
+
 bool
 ak_resman_acquire_file(ak_resman* rm,
                        ak_resid id,
@@ -356,6 +360,14 @@ ak_resman_acquire_file(ak_resman* rm,
   return success;
 }
 
+void
+ak_resman_register_img(ak_resman* rm,
+                       ak_resid id,
+                       const char* path)
+{
+  res_register(rm, ak_restype_img, id, path);
+}
+
 bool
 ak_resman_acquire_img(ak_resman* rm,
                       ak_resid id,
@@ -371,6 +383,40 @@ ak_resman_acquire_img(ak_resman* rm,
   if (ri->status == ak_res_loaded) {
     ri->access_count++;
     *o_img = ri->img;
+    success = true;
+  }
+  ak_mutex_unlock(&rm->m);
+
+  return success;
+}
+
+void
+ak_resman_register_world(ak_resman* rm,
+                         ak_resid id,
+                         const char* path,
+                         ak_idgen* ig)
+{
+  res_register(
+    rm, ak_restype_world, id, path);
+}
+
+bool
+ak_resman_acquire_world(ak_resman* rm,
+                        ak_resid id,
+                        ak_world* o_world,
+                        ak_stmerr* o_err)
+{
+  ak_assert(ak_resman_res_type(rm, id) ==
+            ak_restype_world);
+
+  bool success = false;
+
+  ak_mutex_lock(&rm->m);
+  res_item* ri = ak_hmn_at(&rm->map, id);
+  if (ri->status == ak_res_loaded) {
+    ri->access_count++;
+    *o_world = ri->wi.world;
+    *o_err = ri->wi.err;
     success = true;
   }
   ak_mutex_unlock(&rm->m);

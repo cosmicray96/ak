@@ -3,6 +3,8 @@
 #include "ak/coll/dq.h"
 #include "ak/coll/hmn.h"
 #include "ak/game/comp.h"
+#include "ak/game/core.h"
+#include "ak/game/stg/world.h"
 #include "ak/game/world/view.h"
 #include "ak/game/world/view_itn.h"
 #include "ak/system/idgen.h"
@@ -15,6 +17,12 @@
       goto crash;                           \
   } while (0)
 
+#define check(expr)                         \
+  if (!(expr)) {                            \
+    exiterr = ak_stmerr_invalid;            \
+    goto crash;                             \
+  }
+
 ak_stmerr
 ak_stream_write_world(ak_stm stm,
                       ak_world* w,
@@ -25,7 +33,8 @@ ak_stream_write_world(ak_stm stm,
 
   ak_stm_try(ak_stm_write_u32(stm, 10));
   ak_stm_try(ak_stm_write_u32(
-    stm, ak_world_ett_count(w)));
+    stm,
+    ak_world_ett_count_subtree(w, root)));
 
   ak_wv wv = ak_wv_make(w);
   ak_wv_itbfs it =
@@ -64,7 +73,51 @@ ak_stream_read_world(ak_stm stm,
                      ak_idgen* ig,
                      ak_alct alct)
 {
-  return ak_stmerr_err;
+  ak_stmerr exiterr = ak_stmerr_ok;
+  *o_w = ak_world_make(alct);
+  ak_hmn map =
+    ak_hmn_make(sizeof(ak_ett), alct);
+
+  uint32_t version = 0;
+  try(ak_stm_read_u32(stm, &version));
+  check(version == 10);
+
+  uint32_t ett_count = 0;
+  try(ak_stm_read_u32(stm, &ett_count));
+
+  for (uint32_t i = 0; i < ett_count; i++) {
+    ak_ett e = 0;
+    try(ak_stm_read_u32(stm, &e));
+    ak_ett pt = 0;
+    try(ak_stm_read_u32(stm, &pt));
+    if (i == 0) {
+      ak_hmn_insert(
+        &map, pt, &(ak_ett){ 0 });
+    }
+
+    ak_ett new_e = ak_idgen_new(ig);
+    ak_ett new_pt =
+      *(ak_ett*)ak_hmn_at(&map, pt);
+
+    ak_hmn_insert(&map, e, &new_e);
+    ak_world_ett_new(o_w, new_e, new_pt);
+
+    uint32_t comp_count = 0;
+    try(ak_stm_read_u32(stm, &comp_count));
+    for (uint32_t j = 0; j < comp_count;
+         j++) {
+      ak_comp_tu ctu = { 0 };
+      try(ak_stm_read_comp_tu(stm, &ctu));
+      ak_world_comp_add_tu(o_w, new_e, &ctu);
+    }
+  }
+
+exit:
+  ak_hmn_destroy(&map);
+  return exiterr;
+crash:
+  ak_world_destroy(o_w);
+  goto exit;
 }
 
 //--- private ---//
@@ -89,98 +142,4 @@ remap_ett(ak_comp_tu* ctu, ak_hmn* map)
       *e = new_e;
     }
   }
-}
-
-//--- internal ---//
-void
-ak_write_world(ak_iostream io,
-               ak_world* w,
-               ak_ett root,
-               ak_alct alct)
-{
-  /*
-ak_write_u32(io, 10);
-ak_write_u32(io, ak_world_ett_count(w));
-
-ak_wv wv = ak_wv_make(w);
-ak_wv_itbfs it =
-ak_wv_itbfs_make(&wv, root, alct);
-ak_ett e = 0;
-while (1) {
-e = ak_wv_itbfs_next(&it);
-if (!e) {
-break;
-}
-
-ak_write_u32(io, e);
-ak_write_u32(io,
-           ak_world_ett_parent(w, e));
-ak_write_u32(
-io, ak_world_ett_compcount(w, e));
-
-ak_comp_tu ctu = { 0 };
-ak_wv_itettcomp itc =
-ak_wv_itettcomp_make(&wv, e);
-while (
-ak_wv_itettcomp_next(&itc, &ctu)) {
-ak_write_comp_tu(io, ctu);
-}
-}
-
-ak_wv_itbfs_destroy(&it);
-ak_wv_destroy(&wv);
-  */
-}
-
-void
-ak_read_into_world(ak_iostream io,
-                   ak_world* w,
-                   ak_ett parent,
-                   ak_idgen* ig,
-                   ak_alct alct)
-{
-  /*
-ak_hmn map =
-ak_hmn_make(sizeof(ak_ett), alct);
-ak_dq comps =
-ak_dq_make(sizeof(ett_comp_tu), alct);
-
-uint32_t version = ak_read_u32(io);
-uint32_t ett_count = ak_read_u32(io);
-for (uint32_t i = 0; i < ett_count; i++) {
-ak_ett e = ak_read_u32(io);
-ak_ett pt = ak_read_u32(io);
-uint32_t compcount = ak_read_u32(io);
-
-if (i == 0) {
-ak_hmn_insert(&map, pt, &parent);
-}
-
-ak_ett new_e = ak_idgen_new(ig);
-ak_hmn_insert(&map, e, &new_e);
-
-ak_ett new_pt =
-*(ak_ett*)ak_hmn_at(&map, pt);
-
-ak_world_ett_new_last(w, new_e, new_pt);
-
-for (uint32_t j = 0; j < compcount;
-   j++) {
-ett_comp_tu ectu = { 0 };
-ectu.e = new_e;
-ectu.ctu = ak_read_comp_tu(io);
-ak_dq_push(&comps, &ectu);
-}
-}
-
-ett_comp_tu ectu = { 0 };
-while (ak_dq_pop(&comps, &ectu)) {
-remap_ett(&ectu.ctu, &map);
-ak_world_comp_add_tu(
-w, ectu.e, &ectu.ctu);
-}
-
-ak_dq_destroy(&comps);
-ak_hmn_destroy(&map);
-  */
 }

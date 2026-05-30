@@ -2,6 +2,8 @@
 #define ak_system_resman_h
 
 #include "ak/export.h"
+#include "ak/game/stg/world.h"
+#include "ak/system/idgen.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -16,6 +18,7 @@ typedef enum
 {
   ak_img_rgba8
 } ak_imgtype;
+
 typedef struct
 {
   ak_imgtype type;
@@ -33,6 +36,7 @@ typedef enum
   ak_restype_none = 0,
   ak_restype_file,
   ak_restype_img,
+  ak_restype_world,
 } ak_restype;
 
 typedef enum
@@ -41,15 +45,6 @@ typedef enum
   ak_res_loading,
   ak_res_loaded
 } ak_res_status;
-
-ak_ex void
-ak_resman_register_file(ak_resman* rm,
-                        ak_resid id,
-                        const char* path);
-ak_ex void
-ak_resman_register_img(ak_resman* rm,
-                       ak_resid id,
-                       const char* path);
 
 ak_ex ak_res_status
 ak_resman_status(ak_resman* rm, ak_resid id);
@@ -62,16 +57,37 @@ ak_resman_load(ak_resman* rm, ak_resid id);
 ak_ex void
 ak_resman_unload(ak_resman* rm, ak_resid id);
 
+ak_ex void
+ak_resman_release(ak_resman* rm,
+                  ak_resid id);
+
+ak_ex void
+ak_resman_register_file(ak_resman* rm,
+                        ak_resid id,
+                        const char* path);
 ak_ex bool
 ak_resman_acquire_file(ak_resman* rm,
                        ak_resid id,
                        ak_res_file* o_file);
+
+ak_ex void
+ak_resman_register_img(ak_resman* rm,
+                       ak_resid id,
+                       const char* path);
 ak_ex bool
 ak_resman_acquire_img(ak_resman* rm,
                       ak_resid id,
                       ak_res_img* o_img);
+
 ak_ex void
-ak_resman_release(ak_resman* rm,
-                  ak_resid id);
+ak_resman_register_world(ak_resman* rm,
+                         ak_resid id,
+                         const char* path,
+                         ak_idgen* ig);
+ak_ex bool
+ak_resman_acquire_world(ak_resman* rm,
+                        ak_resid id,
+                        ak_world* o_world,
+                        ak_stmerr* o_err);
 
 #endif

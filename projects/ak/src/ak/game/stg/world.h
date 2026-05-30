@@ -7,6 +7,7 @@
 #include "ak/game/comp.h"
 #include "ak/game/core.h"
 #include "ak/game/stg/comp.h"
+#include "ak/system/idgen.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -23,6 +24,12 @@ ak_world_make(ak_alct alct);
 void
 ak_world_destroy(ak_world* w);
 
+void
+ak_world_graft(ak_world* dest,
+               const ak_world* src,
+               ak_ett dest_pt,
+               ak_idgen* ig);
+
 ak_fcnst*
 ak_world_tree(ak_world* w);
 
@@ -34,6 +41,9 @@ ak_world_ett_to_id(ak_world* w, ak_ett e);
 
 uint32_t
 ak_world_ett_count(ak_world* w);
+uint32_t
+ak_world_ett_count_subtree(ak_world* w,
+                           ak_ett root);
 
 ak_ett
 ak_world_ett_root(ak_world* w);
