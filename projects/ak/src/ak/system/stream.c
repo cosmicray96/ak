@@ -31,8 +31,6 @@ ak_stm_write(ak_stm stm,
              const void* data,
              uint64_t size)
 {
-  ak_log("WRITE: %d", size);
-  print_hex(data, size);
   switch (stm.type) {
     case ak_stmtype_file: {
       return ak_stm_file_write(
@@ -60,21 +58,19 @@ ak_stm_read(ak_stm stm,
       return ak_stmerr_unsupported;
     }
   }
-  ak_log("READ: %d", size);
-  print_hex(data, size);
   return err;
 }
 
 ak_stmerr
 ak_stm_write_bool(ak_stm stm, bool value)
 {
-  return ak_stm_write_i8(stm, value);
+  return ak_stm_write_u8(stm, value);
 }
 ak_stmerr
 ak_stm_read_bool(ak_stm stm, bool* o_value)
 {
-  return ak_stm_read_i8(stm,
-                        (int8_t*)o_value);
+  return ak_stm_read_u8(stm,
+                        (uint8_t*)o_value);
 }
 
 //--- unsigned int ---//

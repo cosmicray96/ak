@@ -4,7 +4,6 @@
 #include <ak/core/math/vec3.h>
 
 //--- private ---//
-
 ak_stmerr
 ak_stm_write_angle(ak_stm stm,
                    ak_angle angle)

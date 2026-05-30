@@ -79,10 +79,11 @@ ak_world_graft(ak_world* dest,
 
     ak_world_ett_new(dest, new_e, new_pt);
 
-    ak_wv_itcomp itc =
-      ak_wv_itcomp_make(&wv, e);
+    ak_wv_itettcomp itec =
+      ak_wv_itettcomp_make(&wv, e);
     ak_comp_tu ctu = { 0 };
-    while (ak_wv_itcomp_next(&itc, &ctu)) {
+    while (
+      ak_wv_itettcomp_next(&itec, &ctu)) {
       ak_world_comp_add_tu(
         dest, new_e, &ctu);
     }

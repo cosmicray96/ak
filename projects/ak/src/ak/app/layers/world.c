@@ -9,6 +9,7 @@
 #include "ak/core/math/tf2d.h"
 #include "ak/core/math/trig.h"
 #include "ak/core/math/vec2.h"
+#include "ak/debug.h"
 #include "ak/game/comp_t.h"
 #include "ak/game/core.h"
 #include "ak/game/stg/world.h"
@@ -113,16 +114,19 @@ push_child2(ak_wv* wv,
             float x,
             float y)
 {
+  float size = 50;
+  float space = size + 5;
+
   ak_ett root = ak_wv_ett_root(wv);
   ak_ett e = ak_wcb_ett_new(wcb, root);
 
-  ak_fx scale_x = ak_fx_i(10);
-  ak_fx scale_y = ak_fx_i(10);
   ak_tf2d_t tf = { 0 };
   tf = ak_tf2d_make(
-    ak_vec2_make(ak_fx_f(x), ak_fx_f(y)),
+    ak_vec2_make(ak_fx_f(x * space),
+                 ak_fx_f(y * space)),
     ak_angle_deg(ak_fx_f(0)),
-    ak_vec2_make(scale_x, scale_y));
+    ak_vec2_make(ak_fx_f(size),
+                 ak_fx_f(size)));
   ak_wcb_comp_tf2d_add(wcb, e, tf);
 
   ak_mtrl_t mat = { 0 };
@@ -145,15 +149,10 @@ store(ak_lworld* l)
   ak_wcb_ett_new(&wcb, 0);
   ak_world_cb_flush(&l->w_store, &wcb, &ig);
 
-  float space = 25;
-
-  for (uint32_t y = 0; y < 10; y++) {
-    for (uint32_t x = 0; x < 10; x++) {
-      push_child2(&wv,
-                  &wcb,
-                  l->e_mtrl_base,
-                  x * space,
-                  y * space);
+  for (int32_t y = -5; y < 6; y++) {
+    for (int32_t x = -5; x < 6; x++) {
+      push_child2(
+        &wv, &wcb, l->e_mtrl_base, x, y);
     }
   }
   ak_world_cb_flush(&l->w_store, &wcb, &ig);
@@ -172,6 +171,9 @@ store(ak_lworld* l)
   ak_wv_destroy(&wv);
   ak_idgen_destroy(&ig);
   ak_world_destroy(&l->w_store);
+
+  ak_log("Done!");
+  ak_app_close(l->app);
 }
 
 static void
@@ -362,6 +364,8 @@ on_update(void* ctx, ak_dur delta)
                    &l->ig,
                    l->alct);
     l->world_added = true;
+    ak_resman_release(&l->rm, l->wid);
+    ak_log("Loaded");
   }
 
   if (l->load && l->world_added) {
