@@ -147,6 +147,8 @@ typedef struct
   ak_dq q;
 } ak_fcnst_itbfs;
 ak_fcnst_itbfs
+ak_fcnst_itbfs_make_empty(ak_alct alct);
+ak_fcnst_itbfs
 ak_fcnst_itbfs_make(ak_fcnst* t,
                     ak_fcnstid root,
                     ak_alct alct);
@@ -154,6 +156,7 @@ void
 ak_fcnst_itbfs_destroy(ak_fcnst_itbfs* it);
 void
 ak_fcnst_itbfs_reset(ak_fcnst_itbfs* it,
+                     ak_fcnst* tree,
                      ak_fcnstid root);
 ak_fcnstid
 ak_fcnst_itbfs_next(ak_fcnst_itbfs* it);

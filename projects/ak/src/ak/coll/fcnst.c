@@ -483,6 +483,15 @@ ak_fcnst_itbfs_make(ak_fcnst* t,
   return it;
 }
 
+ak_fcnst_itbfs
+ak_fcnst_itbfs_make_empty(ak_alct alct)
+{
+  ak_fcnst_itbfs it = { 0 };
+  it.q =
+    ak_dq_make(sizeof(ak_fcnstid), alct);
+  return it;
+}
+
 void
 ak_fcnst_itbfs_destroy(ak_fcnst_itbfs* it)
 {
@@ -492,8 +501,10 @@ ak_fcnst_itbfs_destroy(ak_fcnst_itbfs* it)
 
 void
 ak_fcnst_itbfs_reset(ak_fcnst_itbfs* it,
+                     ak_fcnst* tree,
                      ak_fcnstid root)
 {
+  it->t = tree;
   ak_dq_clear(&it->q);
   ak_dq_push(&it->q, &root);
 }
