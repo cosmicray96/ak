@@ -20,6 +20,9 @@ ak_sla_make(uint32_t itemsize, ak_alct alct);
 ak_ex void
 ak_sla_destroy(ak_sla* s);
 
+ak_ex void
+ak_sla_clear(ak_sla* s);
+
 ak_ex void*
 ak_sla_at(ak_sla* s, uint32_t idx);
 ak_ex bool

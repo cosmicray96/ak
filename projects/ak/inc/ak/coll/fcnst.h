@@ -22,6 +22,9 @@ ak_fcnst_make(uint32_t itemsize,
 void
 ak_fcnst_destroy(ak_fcnst* t);
 
+void
+ak_fcnst_clear(ak_fcnst* t);
+
 static uint32_t
 ak_fcnst_count(ak_fcnst* t)
 {

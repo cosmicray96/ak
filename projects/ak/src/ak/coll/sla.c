@@ -109,6 +109,12 @@ ak_sla_destroy(ak_sla* s)
   s->count = 0;
 }
 
+void
+ak_sla_clear(ak_sla* s)
+{
+  init_slots(s, 0);
+}
+
 void*
 ak_sla_at(ak_sla* s, uint32_t idx)
 {

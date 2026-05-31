@@ -108,6 +108,12 @@ ak_fcnst_destroy(ak_fcnst* t)
   t->root = 0;
 }
 
+void
+ak_fcnst_clear(ak_fcnst* t)
+{
+  ak_sla_clear(&t->slots);
+}
+
 ak_fcnstid
 ak_fcnst_add(ak_fcnst* t,
              ak_fcnstid ptid,

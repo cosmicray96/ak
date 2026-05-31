@@ -14,10 +14,31 @@ typedef enum
 typedef struct
 {
   ak_cnsttype type;
-  float v;
+  union
+  {
+    struct
+    {
+      float min, max;
+    } v;
+    float vs[2];
+  };
 } ak_cnst;
 
+typedef struct
+{
+  union
+  {
+    struct
+    {
+      uint32_t min, max;
+    } v;
+    uint32_t vs[2];
+  };
+} ak_uibound;
+
 ak_cnst
-ak_cnst_make(ak_cnsttype type, float v);
+ak_cnst_make(ak_cnsttype type,
+             float min,
+             float max);
 
 #endif
