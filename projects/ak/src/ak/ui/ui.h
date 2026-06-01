@@ -5,11 +5,19 @@
 #include "ak/core/mem/allocator.h"
 
 #include "ak/gfx/gcb.h"
+#include "ak/gfx/mtrl.h"
 #include "ak/ui/core.h"
 
 typedef struct
 {
+  ak_mtrl_basedata mtrl_b;
+  ak_dq scissors;
+} ak_uirstg;
+
+typedef struct
+{
   ak_fcnst tree;
+  ak_uirstg rstg;
 } ak_ui;
 
 ak_ui

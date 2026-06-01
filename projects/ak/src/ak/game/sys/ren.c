@@ -84,6 +84,13 @@ ak_sys_ren_render(ak_sys_ren* r,
                         screen.h,
                         ak_fx_f(1.0));
   }
+
+  ak_mtrl_indata mid = {
+
+    .vp = vp, .time = r->time
+  };
+  ak_gcb_push_mtrlin(gcb, &mid);
+
   {
     ak_hmn_iter it =
       ak_hmn_iter_make(&r->mtrls);
@@ -138,22 +145,26 @@ ak_sys_ren_render(ak_sys_ren* r,
         wv, base_id));
       ak_mtrl_base_t base_t =
         ak_wv_comp_mtrl_base(wv, base_id);
+      ak_mtrl_basedata bd = base_t.data;
 
-      ak_gcb_push_mtrl(
-        gcb, &base_t.data, &vp, r->time);
+      ak_gcb_push_mtrl(gcb, &base_t.data);
 
       uint32_t count = ak_da_count(&mi->da);
       for (uint32_t i = 0; i < count; i++) {
         ak_ett e =
           *(ak_ett*)ak_da_at(&mi->da, i);
 
-        ak_mat3 gmat3x3 =
+        ak_mat3 gmat3 =
           ak_wv_comp_gmat3(wv, e);
         ak_mtrl_t mat =
           ak_wv_comp_mtrl(wv, e);
+        ak_mtrl_quaddata qd = mat.data;
+
+        ak_mat3_f gmat3f = { 0 };
+        ak_mat3_to_f(&gmat3, &gmat3f);
 
         ak_gcb_push_quad(
-          gcb, &mat.data, &gmat3x3);
+          gcb, &mat.data, &gmat3f);
       }
     }
   }

@@ -1,6 +1,8 @@
 #ifndef ak_gfx_mtrl_h
 #define ak_gfx_mtrl_h
 
+#include "ak/core/math/fixed.h"
+#include "ak/core/math/mat3x3.h"
 #include "ak/core/math/vec2.h"
 #include "ak/core/math/vec4.h"
 #include "ak/gfx/core.h"
@@ -33,15 +35,47 @@ typedef struct
 
 typedef struct
 {
-  ak_vec4 col;
-  ak_vec2 uv_min;
-  ak_vec2 uv_max;
+  ak_mtrl_enum me;
+  union
+  {
+    struct
+    {
+      ak_vec4f col;
+    } ui;
+    struct
+    {
+      ak_vec4f col;
+    } col;
+    struct
+    {
+      ak_vec2 uv_min;
+      ak_vec2 uv_max;
+    } tex;
+  };
 } ak_mtrl_quaddata;
 
 typedef struct
 {
   ak_mtrl_enum me;
-  ak_tex tex;
+  union
+  {
+    struct
+    {
+    } col;
+    struct
+    {
+      ak_tex tex;
+    } tex;
+    struct
+    {
+    } ui;
+  };
 } ak_mtrl_basedata;
+
+typedef struct
+{
+  ak_mat3_f vp;
+  ak_fx time;
+} ak_mtrl_indata;
 
 #endif

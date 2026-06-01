@@ -1,14 +1,13 @@
 #include "ak/game/world/write.h"
-#include "ak/coll/da.h"
-#include "ak/coll/dq.h"
 #include "ak/coll/hmn.h"
 #include "ak/game/comp.h"
 #include "ak/game/core.h"
 #include "ak/game/stg/world.h"
 #include "ak/game/world/view.h"
 #include "ak/game/world/view_itn.h"
-#include "ak/system/idgen.h"
 #include "ak/system/stream.h"
+
+#define s_version 11
 
 #define try(x)                              \
   do {                                      \
@@ -31,7 +30,8 @@ ak_stream_write_world(ak_stm stm,
 {
   ak_stmerr exiterr = ak_stmerr_ok;
 
-  ak_stm_try(ak_stm_write_u32(stm, 10));
+  ak_stm_try(
+    ak_stm_write_u32(stm, s_version));
   ak_stm_try(ak_stm_write_u32(
     stm,
     ak_world_ett_count_subtree(w, root)));
@@ -84,7 +84,7 @@ ak_stream_read_world(ak_stm stm,
 
   uint32_t version = 0;
   try(ak_stm_read_u32(stm, &version));
-  check(version == 10);
+  check(version == s_version);
 
   uint32_t ett_count = 0;
   try(ak_stm_read_u32(stm, &ett_count));

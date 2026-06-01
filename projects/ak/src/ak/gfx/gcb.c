@@ -7,17 +7,21 @@
 
 //===== ak_gcb =====//
 //--- private ---//
+
+typedef struct
+{
+  ak_mtrl_indata id;
+} mtrlin_item;
+
 typedef struct
 {
   ak_mtrl_basedata bd;
-  ak_mat3_f vp;
-  ak_fx time;
 } mtrl_item;
 
 typedef struct
 {
   ak_mtrl_quaddata qd;
-  ak_mat3 gmat;
+  ak_mat3_f gmat;
 } quad_item;
 typedef struct
 {
@@ -30,6 +34,7 @@ typedef enum
 {
   cmdtype_quad,
   cmdtype_mtrl,
+  cmdtype_mtrlin,
   cmdtype_scissor,
   cmdtype_scissor_reset,
   cmdtype_resize,
@@ -39,6 +44,7 @@ typedef struct
   cmdtype type;
   union
   {
+    mtrlin_item mii;
     mtrl_item mi;
     quad_item qi;
     scissor_item si;
@@ -80,21 +86,29 @@ ak_gcb_flush(ak_gcb* gcb,
 
   ak_gfx_frame_begin(gfx);
   uint32_t count = ak_da_count(&gcb->cmds);
+  ak_mtrl_indata id = { 0 };
+  bool has_mtrlin = false;
+
   ak_mtrl m = { 0 };
   bool has_mtrl = false;
   for (uint32_t i = 0; i < count; i++) {
     cmd_item* ci = ak_da_at(&gcb->cmds, i);
 
     switch (ci->type) {
+      case cmdtype_mtrlin: {
+        id = ci->mii.id;
+        if (!has_mtrlin) {
+          has_mtrlin = true;
+        }
+        break;
+      }
       case cmdtype_mtrl: {
+        ak_assert(has_mtrlin);
         if (has_mtrl) {
           m.call_end(m.ctx);
         }
         m = ak_mtrlstg_at(ms, ci->mi.bd.me);
-        m.call_begin(m.ctx,
-                     &ci->mi.bd,
-                     &(ci->mi.vp),
-                     ci->mi.time);
+        m.call_begin(m.ctx, &ci->mi.bd, &id);
         has_mtrl = true;
         break;
       }
@@ -162,23 +176,30 @@ ak_gcb_push_resize(ak_gcb* gcb,
 }
 
 void
+ak_gcb_push_mtrlin(ak_gcb* gcb,
+                   const ak_mtrl_indata* id)
+{
+  cmd_item ci = { .type = cmdtype_mtrlin,
+                  .mii = { .id = *id } };
+  ak_da_pushback(&gcb->cmds, &ci);
+}
+
+void
 ak_gcb_push_mtrl(ak_gcb* gcb,
-                 const ak_mtrl_basedata* bd,
-                 const ak_mat3_f* vp,
-                 ak_fx time)
+                 const ak_mtrl_basedata* bd)
 {
 
   cmd_item ci = { .type = cmdtype_mtrl,
-                  .mi = { .bd = *bd,
-                          .vp = *vp,
-                          .time = time } };
+                  .mi = {
+                    .bd = *bd,
+                  } };
   ak_da_pushback(&gcb->cmds, &ci);
 }
 
 void
 ak_gcb_push_quad(ak_gcb* gcb,
                  const ak_mtrl_quaddata* qd,
-                 const ak_mat3* gmat)
+                 const ak_mat3_f* gmat)
 {
   cmd_item ci = { .type = cmdtype_quad,
                   .qi = { .qd = *qd,

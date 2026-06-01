@@ -2,6 +2,7 @@
 #define ak_ui_ui_dir_h
 
 #include "ak/coll/da.h"
+#include "ak/core/math/vec4.h"
 #include "ak/ui/core.h"
 #include "ak/ui/ui.h"
 
@@ -14,6 +15,7 @@ typedef enum
 typedef struct
 {
   ak_uiaxistype axistype;
+  bool overflowed;
   union
   {
     struct
@@ -23,6 +25,8 @@ typedef struct
     } cnst;
     ak_cnst cnsts[2];
   };
+
+  ak_vec4f color;
   union
   {
     struct
@@ -41,6 +45,7 @@ typedef struct
     } size;
     float sizes[2];
   };
+
 } ak_uielm;
 
 ak_uiaxistype
@@ -51,9 +56,6 @@ ak_uielm_axis_cross(ak_uielm* elm);
 ak_cnst*
 ak_cnst_axis(ak_cnst cnst[2],
              ak_uiaxistype uia);
-ak_uibound*
-ak_uibound_axis(ak_uibound bound[2],
-                ak_uiaxistype uia);
 float*
 ak_uipos_axis(float pos[2],
               ak_uiaxistype uia);
@@ -66,14 +68,14 @@ ak_ui_tree(ak_ui* ui);
 
 typedef struct
 {
-  ak_fcnst_itbfs it;
-  ak_da bounds;
 } ak_uilstg;
 
 void
 ak_ui_layout(ak_ui* ui,
              ak_uilstg* lstg,
-             uint32_t width,
-             uint32_t height);
+             float x,
+             float y,
+             float w,
+             float h);
 
 #endif

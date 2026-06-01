@@ -38,4 +38,7 @@ ak_gfx_vp_make(const ak_mat3* cam,
                uint32_t h,
                ak_fx pixelsize);
 
+ak_mat3_f
+ak_gfx_vp_ui_make(uint32_t w, uint32_t h);
+
 #endif

@@ -78,13 +78,6 @@ ak_mat3_mul_dir(const ak_mat3* m, ak_vec2 d)
              ak_fxmul(m->m[1][1], d.y)));
 }
 
-static void
-ak_mat3_to_f(const ak_mat3* m, float o_f[9])
-{
-  for (int i = 0; i < 9; i++)
-    o_f[i] = ak_fx_to_f(m->v[i]);
-}
-
 static ak_vec2
 ak_mat3_get_pos(const ak_mat3* m)
 {
@@ -157,5 +150,31 @@ typedef struct
     float v[9];
   };
 } ak_mat3_f;
+
+static void
+ak_mat3_to_f(const ak_mat3* m, ak_mat3_f* mf)
+{
+  for (int i = 0; i < 9; i++)
+    mf->v[i] = ak_fx_to_f(m->v[i]);
+}
+
+static ak_mat3_f
+ak_mat3_from_rect(float x,
+                  float y,
+                  float w,
+                  float h)
+{
+  ak_mat3_f m = { 0 };
+  m.m[0][0] = w;
+  m.m[0][1] = 0.0f;
+  m.m[0][2] = 0.0f;
+  m.m[1][0] = 0.0f;
+  m.m[1][1] = h;
+  m.m[1][2] = 0.0f;
+  m.m[2][0] = x;
+  m.m[2][1] = y;
+  m.m[2][2] = 1.0f;
+  return m;
+}
 
 #endif

@@ -2,28 +2,27 @@
 #include "ak/ui/ui_dir.h"
 
 //--- private ---//
-
 static void
 set_layout(ak_uilstg* lstg,
            ak_fcnst* tree,
            ak_uiid id)
 {
-  ak_da_clear(&lstg->bounds);
-
   ak_uielm* elm = ak_fcnst_at(tree, id);
-  ak_uiaxistype a_main =
+  ak_uiaxistype axis_m =
     ak_uielm_axis_main(elm);
-  ak_uiaxistype a_cross =
+  ak_uiaxistype axis_c =
     ak_uielm_axis_cross(elm);
 
-  float p_main =
-    *ak_uipos_axis(elm->poss, a_main);
-  float p_cross =
-    *ak_uipos_axis(elm->poss, a_cross);
-  float s_main =
-    *ak_uisize_axis(elm->sizes, a_main);
-  float s_cross =
-    *ak_uisize_axis(elm->sizes, a_cross);
+  float pt_pos_m =
+    *ak_uipos_axis(elm->poss, axis_m);
+  float pt_pos_c =
+    *ak_uipos_axis(elm->poss, axis_c);
+  float pt_size_m =
+    *ak_uisize_axis(elm->sizes, axis_m);
+  float pt_size_c =
+    *ak_uisize_axis(elm->sizes, axis_c);
+
+  float cur_main = pt_pos_m;
 
   ak_fcnst_itchild it =
     ak_fcnst_itchild_make(tree, id);
@@ -32,12 +31,31 @@ set_layout(ak_uilstg* lstg,
     (cid = ak_fcnst_itchild_next(&it))) {
     ak_uielm* celm = ak_fcnst_at(tree, cid);
 
-    float* c_p_cross =
-      ak_uipos_axis(celm->poss, a_cross);
-    *c_p_cross = p_cross;
+    ak_cnst* c_cnst_m =
+      ak_cnst_axis(celm->cnsts, axis_m);
+    ak_cnst* c_cnst_c =
+      ak_cnst_axis(celm->cnsts, axis_c);
 
-    float* c_p_main =
-      ak_uipos_axis(celm->poss, a_main);
+    float* c_pos_m =
+      ak_uipos_axis(celm->poss, axis_m);
+    float* c_pos_c =
+      ak_uipos_axis(celm->poss, axis_c);
+    float* c_size_m =
+      ak_uisize_axis(celm->sizes, axis_m);
+    float* c_size_c =
+      ak_uisize_axis(celm->sizes, axis_c);
+
+    *c_size_m =
+      ak_cnst_pt(*c_cnst_m, pt_size_m);
+    *c_size_c =
+      ak_cnst_pt(*c_cnst_c, pt_size_c);
+
+    *c_pos_m = cur_main;
+    *c_pos_c = pt_pos_c;
+
+    cur_main += *c_size_m;
+
+    set_layout(lstg, tree, cid);
   }
 }
 
@@ -45,70 +63,28 @@ set_layout(ak_uilstg* lstg,
 void
 ak_ui_layout(ak_ui* ui,
              ak_uilstg* lstg,
-             uint32_t width,
-             uint32_t height)
+             float x,
+             float y,
+             float w,
+             float h)
 {
   ak_fcnst* tree = ak_ui_tree(ui);
+  ak_uiid root_id = ak_fcnst_root(tree);
+  ak_uielm* elm = ak_fcnst_at(tree, root_id);
 
-  ak_fcnst_itbfs_reset(
-    &lstg->it, tree, ak_fcnst_root(tree));
+  float* elm_x =
+    ak_uipos_axis(elm->poss, ak_uiaxis_h);
+  float* elm_y =
+    ak_uipos_axis(elm->poss, ak_uiaxis_v);
+  float* elm_w =
+    ak_uisize_axis(elm->sizes, ak_uiaxis_h);
+  float* elm_h =
+    ak_uisize_axis(elm->sizes, ak_uiaxis_v);
+
+  *elm_x = x;
+  *elm_y = y;
+  *elm_w = w;
+  *elm_h = h;
+
+  set_layout(lstg, tree, root_id);
 }
-
-/*
-
-
-static void
-bound_set(ak_fcnst* tree, ak_uiid id)
-{
-  ak_uielm* elm = ak_fcnst_at(tree, id);
-  ak_uiaxistype axis_main =
-    ak_uielm_axis_main(elm);
-  ak_uiaxistype axis_cross =
-    ak_uielm_axis_cross(elm);
-
-  ak_uibound b_main = ak_uibound_from_cnst(
-    *ak_uielm_cnst_axis(elm, axis_main));
-  ak_uibound b_cross = ak_uibound_from_cnst(
-    *ak_uielm_cnst_axis(elm, axis_cross));
-
-  ak_fcnst_itchild it =
-    ak_fcnst_itchild_make(tree, id);
-  ak_uiid cid = 0;
-  while (
-    (cid = ak_fcnst_itchild_next(&it))) {
-    ak_uielm* celm = ak_fcnst_at(tree, cid);
-
-    ak_uibound c_b_main =
-      ak_uibound_from_cnst(
-        *ak_uielm_cnst_axis(celm,
-                            axis_main));
-    ak_uibound c_b_cross =
-      ak_uibound_from_cnst(
-        *ak_uielm_cnst_axis(celm,
-                            axis_cross));
-
-    b_main.min += c_b_main.min;
-    b_main.max += c_b_main.max;
-
-    b_cross.min =
-      ak_max(b_cross.min, c_b_cross.min);
-    b_cross.max =
-      ak_max(b_cross.max, c_b_cross.max);
-  }
-}
-
-static void
-bottom_up(ak_ui* ui)
-{
-  ak_fcnst* tree = ak_ui_tree(ui);
-  ak_fcnst_itdfspost it =
-    ak_fcnst_itdfspost_make(
-      tree, ak_fcnst_root(tree));
-
-  ak_uiid id = 0;
-  while (
-    (id = ak_fcnst_itdfspost_next(&it))) {
-    ak_uielm* elm = ak_fcnst_at(tree, id);
-  }
-}
-*/
