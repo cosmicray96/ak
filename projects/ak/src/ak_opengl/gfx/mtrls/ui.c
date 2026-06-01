@@ -47,7 +47,7 @@ typedef struct
   float r, g, b, a;
 } quad;
 
-typedef struct ak_mtrl_ui ak_mtrl_col;
+typedef struct ak_mtrl_ui ak_mtrl_ui;
 struct ak_mtrl_ui
 {
   ak_alct alct;
@@ -59,13 +59,13 @@ struct ak_mtrl_ui
 };
 
 //--- internal ---//
-ak_mtrl_col*
-ak_mtrl_col_make(ak_gfx* g,
-                 ak_gresman* grm,
-                 ak_alct alct)
+ak_mtrl_ui*
+ak_mtrl_ui_make(ak_gfx* g,
+                ak_gresman* grm,
+                ak_alct alct)
 {
-  ak_mtrl_col* m =
-    ak_alct_alloc(alct, sizeof(ak_mtrl_col));
+  ak_mtrl_ui* m =
+    ak_alct_alloc(alct, sizeof(ak_mtrl_ui));
   m->alct = alct;
   m->g = g;
 
@@ -143,9 +143,9 @@ ak_mtrl_col_make(ak_gfx* g,
 }
 
 void
-ak_mtrl_col_destroy(void* mtrl)
+ak_mtrl_ui_destroy(void* mtrl)
 {
-  ak_mtrl_col* m = mtrl;
+  ak_mtrl_ui* m = mtrl;
   glDeleteVertexArrays(1, &m->vao);
   glDeleteProgram(m->program);
   ak_alct_free(m->alct, m);
@@ -153,12 +153,12 @@ ak_mtrl_col_destroy(void* mtrl)
 
 //--- export ---//
 void
-ak_mtrl_col_call_begin(
+ak_mtrl_ui_call_begin(
   void* mtrl,
   const ak_mtrl_basedata* bd,
   const ak_mtrl_indata* id)
 {
-  ak_mtrl_col* m = mtrl;
+  ak_mtrl_ui* m = mtrl;
   ak_assert(!m->call_begin);
 
   glUseProgram(m->program);
@@ -173,9 +173,9 @@ ak_mtrl_col_call_begin(
 }
 
 void
-ak_mtrl_col_call_end(void* mtrl)
+ak_mtrl_ui_call_end(void* mtrl)
 {
-  ak_mtrl_col* m = mtrl;
+  ak_mtrl_ui* m = mtrl;
   ak_assert(m->call_begin);
   ak_gfx_call_end(m->g);
   glUseProgram(0);
@@ -184,18 +184,18 @@ ak_mtrl_col_call_end(void* mtrl)
 }
 
 void
-ak_mtrl_col_pushquad(
+ak_mtrl_ui_pushquad(
   void* mtrl,
   const ak_mtrl_quaddata* qd,
   const ak_mat3_f* gmat3f)
 {
-  ak_mtrl_col* m = mtrl;
+  ak_mtrl_ui* m = mtrl;
   ak_assert(m->call_begin);
 
-  quad q = { .r = ak_fx_to_f(qd->col.col.r),
-             .g = ak_fx_to_f(qd->col.col.g),
-             .b = ak_fx_to_f(qd->col.col.b),
-             .a = ak_fx_to_f(qd->col.col.a),
+  quad q = { .r = ak_fx_to_f(qd->ui.col.r),
+             .g = ak_fx_to_f(qd->ui.col.g),
+             .b = ak_fx_to_f(qd->ui.col.b),
+             .a = ak_fx_to_f(qd->ui.col.a),
              .m = *gmat3f };
 
   ak_gfx_pushquad(m->g, &q);

@@ -70,7 +70,7 @@ static const char* fs_src =
 
 typedef struct
 {
-  float m3x3[9];
+  ak_mat3_f m;
   ak_opengl_quad_uv uv;
 } quad;
 
@@ -136,7 +136,7 @@ ak_mtrl_tex_make(ak_gfx* g,
     GL_FLOAT,
     GL_FALSE,
     sizeof(quad),
-    (void*)offsetof(quad, m3x3[0]));
+    (void*)offsetof(quad, m.v[0]));
   glEnableVertexAttribArray(1);
   glVertexAttribDivisor(1, 1);
 
@@ -146,7 +146,7 @@ ak_mtrl_tex_make(ak_gfx* g,
     GL_FLOAT,
     GL_FALSE,
     sizeof(quad),
-    (void*)offsetof(quad, m3x3[3]));
+    (void*)offsetof(quad, m.v[3]));
   glEnableVertexAttribArray(2);
   glVertexAttribDivisor(2, 1);
 
@@ -156,7 +156,7 @@ ak_mtrl_tex_make(ak_gfx* g,
     GL_FLOAT,
     GL_FALSE,
     sizeof(quad),
-    (void*)offsetof(quad, m3x3[6]));
+    (void*)offsetof(quad, m.v[6]));
   glEnableVertexAttribArray(3);
   glVertexAttribDivisor(3, 1);
 
@@ -195,18 +195,18 @@ void
 ak_mtrl_tex_call_begin(
   void* mtrl,
   const ak_mtrl_basedata* bd,
-  const ak_mat3_f* vp,
-  ak_fx time)
+  const ak_mtrl_indata* id)
 {
   ak_mtrl_tex* m = mtrl;
   ak_assert(!m->call_begin);
 
   glUseProgram(m->program);
   glUniformMatrix3fv(
-    m->vp_loc, 1, GL_FALSE, vp->v);
-  glUniform1f(m->t_loc, ak_fx_to_f(time));
+    m->vp_loc, 1, GL_FALSE, id->vp.v);
+  glUniform1f(m->t_loc,
+              ak_fx_to_f(id->time));
 
-  ak_tex tex = bd->tex;
+  ak_tex tex = bd->tex.tex;
   if (ak_gresman_status(m->grm, tex.gid) !=
       ak_gres_loaded) {
     glBindVertexArray(m->vao);
@@ -281,14 +281,15 @@ void
 ak_mtrl_tex_pushquad(
   void* mtrl,
   const ak_mtrl_quaddata* qd,
-  const ak_mat3* gmat3)
+  const ak_mat3_f* gmat3f)
 {
   ak_mtrl_tex* m = mtrl;
   ak_assert(m->call_begin);
 
   quad q = { .uv = ak_opengl_convert_uv(
-               qd->uv_min, qd->uv_max) };
+               qd->tex.uv_min,
+               qd->tex.uv_max),
+             .m = *gmat3f };
 
-  ak_mat3_to_f(gmat3, q.m3x3);
   ak_gfx_pushquad(m->g, &q);
 }

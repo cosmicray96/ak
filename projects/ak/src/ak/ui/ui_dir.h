@@ -1,15 +1,14 @@
 #ifndef ak_ui_ui_dir_h
 #define ak_ui_ui_dir_h
 
-#include "ak/coll/da.h"
 #include "ak/core/math/vec4.h"
 #include "ak/ui/core.h"
 #include "ak/ui/ui.h"
 
 typedef enum
 {
-  ak_uiaxis_h,
-  ak_uiaxis_v
+  ak_uiaxis_h = 0,
+  ak_uiaxis_v = 1
 } ak_uiaxistype;
 
 typedef struct
@@ -48,20 +47,38 @@ typedef struct
 
 } ak_uielm;
 
-ak_uiaxistype
-ak_uielm_axis_main(ak_uielm* elm);
-ak_uiaxistype
-ak_uielm_axis_cross(ak_uielm* elm);
+static ak_uiaxistype
+ak_uielm_axis_main(ak_uielm* elm)
+{
+  return elm->axistype;
+}
+static ak_uiaxistype
+ak_uielm_axis_cross(ak_uielm* elm)
+{
+  if (elm->axistype == ak_uiaxis_h) {
+    return ak_uiaxis_v;
+  }
+  return ak_uiaxis_v;
+}
 
-ak_cnst*
+static ak_cnst*
 ak_cnst_axis(ak_cnst cnst[2],
-             ak_uiaxistype uia);
-float*
+             ak_uiaxistype uia)
+{
+  return &cnst[uia];
+}
+static float*
 ak_uipos_axis(float pos[2],
-              ak_uiaxistype uia);
-float*
+              ak_uiaxistype uia)
+{
+  return &pos[uia];
+}
+static float*
 ak_uisize_axis(float size[2],
-               ak_uiaxistype uia);
+               ak_uiaxistype uia)
+{
+  return &size[uia];
+}
 
 ak_fcnst*
 ak_ui_tree(ak_ui* ui);

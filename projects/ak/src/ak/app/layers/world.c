@@ -131,9 +131,9 @@ push_child2(ak_wv* wv,
 
   ak_mtrl_t mat = { 0 };
   mat.base_id = mtrl_id;
-  mat.data.uv_min =
+  mat.data.tex.uv_min =
     ak_vec2_make(ak_fx_f(0), ak_fx_f(0));
-  mat.data.uv_max = ak_vec2_make(
+  mat.data.tex.uv_max = ak_vec2_make(
     ak_fx_f(1.0f), ak_fx_f(1.0f));
   ak_wcb_comp_mtrl_add(wcb, e, mat);
 }
@@ -196,7 +196,7 @@ set_root(ak_lworld* l)
     ak_wcb_ett_new(&l->wcb, root);
   ak_mtrl_base_t base = { 0 };
   base.data.me = ak_mtrl_tex_e;
-  base.data.tex =
+  base.data.tex.tex =
     (ak_tex){ .gid = l->dog_gid,
               .uv_type = ak_uv_repeat,
               .filter_type =
@@ -206,7 +206,7 @@ set_root(ak_lworld* l)
 
   ak_world_cb_flush(&l->w, &l->wcb, &l->ig);
 }
-
+/*
 static void
 push_child(ak_lworld* l, float x, float y)
 {
@@ -230,6 +230,7 @@ push_child(ak_lworld* l, float x, float y)
     ak_fx_f(1.0f), ak_fx_f(1.0f));
   ak_wcb_comp_mtrl_add(&l->wcb, e, mat);
 }
+*/
 
 static void
 on_startup(void* ctx, ak_app* app)
@@ -280,7 +281,6 @@ on_startup(void* ctx, ak_app* app)
     store(l);
   }
 
-  push_child(l, 0, 0);
   ak_world_cb_flush(&l->w, &l->wcb, &l->ig);
 }
 

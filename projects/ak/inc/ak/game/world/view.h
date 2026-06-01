@@ -133,6 +133,7 @@ void
 ak_wv_itbfs_destroy(ak_wv_itbfs* it);
 void
 ak_wv_itbfs_reset(ak_wv_itbfs* it,
+                  ak_wv* wv,
                   ak_ett root);
 ak_ett
 ak_wv_itbfs_next(ak_wv_itbfs* it);

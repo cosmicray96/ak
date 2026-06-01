@@ -15,13 +15,12 @@
   void ak_mtrl_##name##_call_begin(         \
     void* m,                                \
     const ak_mtrl_basedata* bd,             \
-    const ak_mat3_f* vp,                    \
-    ak_fx time);                            \
+    const ak_mtrl_indata* id);              \
   void ak_mtrl_##name##_call_end(void* m);  \
   void ak_mtrl_##name##_pushquad(           \
     void* m,                                \
     const ak_mtrl_quaddata* dq,             \
-    const ak_mat3* gmat3);
+    const ak_mat3_f* gmat3f);
 
 #include "ak/gfx/mtrl.inc"
 #undef ak_d_mtrl_x
