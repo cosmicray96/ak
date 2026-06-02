@@ -21,6 +21,7 @@ ak_scriptstg_make(ak_alct alct)
 {
   ak_scriptstg* ss = ak_alct_alloc(
     alct, sizeof(ak_scriptstg));
+  ss->alct = alct;
 
 #define ak_script_x(name)                   \
   ss->scripts[ak_as_script_e(name)] =       \

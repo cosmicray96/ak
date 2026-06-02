@@ -9,19 +9,19 @@
 
 typedef enum
 {
-  ak_world_cmd_ett_new,
-  ak_world_cmd_ett_remove,
-  ak_world_cmd_comp_add,
-  ak_world_cmd_comp_remove
-} ak_world_cmd;
+  ak_wcbtype_ett_new,
+  ak_wcbtype_ett_remove,
+  ak_wcbtype_comp_add,
+  ak_wcbtype_comp_remove
+} ak_wcbtype;
 
 typedef struct
 {
-  ak_world_cmd cmd;
+  ak_wcbtype cmd;
   ak_ett e;
   ak_ett pt;
   ak_comp_tu ctu;
-} ak_world_cmditem;
+} ak_wcbitem;
 
 struct ak_wcb
 {
@@ -40,10 +40,9 @@ ak_wcb_count(ak_wcb* wcb);
 bool
 ak_wcb_peek(ak_wcb* wcb,
             uint32_t idx,
-            ak_world_cmditem* o_item);
+            ak_wcbitem* o_item);
 bool
-ak_wcb_pop(ak_wcb* wcb,
-           ak_world_cmditem* o_item);
+ak_wcb_pop(ak_wcb* wcb, ak_wcbitem* o_item);
 
 void
 ak_wcb_joinback(ak_wcb* dest, ak_wcb* src);

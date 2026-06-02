@@ -57,11 +57,13 @@ void
 run_startup(ak_app* a)
 {
   uint32_t count = ak_da_count(&a->layers);
+  a->startuped_count = 0;
   for (uint32_t i = 0; i < count; i++) {
     ak_applayer* l = ak_da_at(&a->layers, i);
     if (l->on_startup) {
       l->on_startup(l->ctx, a);
     }
+    a->startuped_count++;
   }
 }
 

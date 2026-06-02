@@ -1,121 +1,202 @@
 #include "ak/game/sys/script.h"
-#include "ak/coll/da.h"
-#include "ak/coll/hmn.h"
-#include "ak/core/async/batchjob.h"
-#include "ak/core/async/thpool.h"
-#include "ak/debug.h"
-#include "ak/game/comp.h"
-#include "ak/game/core.h"
-#include "ak/game/script.h"
-#include "ak/game/script/stg.h"
-#include "ak/game/world/cb.h"
 #include "ak/game/world/cb_itn.h"
 #include "ak/game/world/view.h"
 
-//===== depth_item =====//
-//--- private ---//
-typedef struct
-{
-  ak_script script;
-  ak_script_ctx ctx;
-  ak_ett e;
-  uint32_t depth;
-} script_item;
-
-bool
-depth_compare(const void* a, const void* b)
-{
-  return ((const script_item*)a)->depth >
-         ((const script_item*)b)->depth;
-}
-
 //===== ak_sys_script =====//
-//--- private ---//
-static void
-update_fn(void* ctx)
-{
-  script_item* si = ctx;
-  if (si->script.update) {
-    si->script.update(si->ctx);
-  }
-}
-
-static void
-run_update(ak_sys_script* s, ak_dur delta)
-{
-  ak_batchjob bj =
-    ak_batchjob_make(s->tp, s->alct);
-  uint32_t count = ak_da_count(&s->depths);
-  for (uint32_t i = 0; i < count; i++) {
-    script_item* si =
-      ak_da_at(&s->depths, i);
-
-    si->ctx.e = si->e;
-    si->ctx.wv = s->wv;
-    si->ctx.wcb = ak_hmn_at(&s->map, si->e);
-    si->ctx.delta = delta;
-
-    ak_batchjob_submit(&bj, update_fn, &si);
-  }
-  ak_batchjob_begin(&bj);
-}
-
 //--- internal ---//
 ak_sys_script
-ak_sys_script_make(ak_wv* wv,
-                   ak_wcb* wcb,
-                   ak_idgen* ig,
-                   ak_thpool* tp,
-                   ak_alct alct)
+ak_sys_script_make(ak_alct alct)
 {
   ak_sys_script s = { 0 };
   s.alct = alct;
-  s.wv = wv;
-  s.wcb = wcb;
-  s.ig = ig;
-  s.tp = tp;
-
+  s.wv = 0;
   s.ss = ak_scriptstg_make(alct);
+  s.inits = ak_da_make(sizeof(ak_ett), alct);
+  s.deinits =
+    ak_da_make(sizeof(ak_ett), alct);
 
-  s.map = ak_hmn_make(sizeof(ak_wcb), alct);
-  s.depths =
-    ak_da_make(sizeof(script_item), alct);
   return s;
 }
 
 void
 ak_sys_script_destroy(ak_sys_script* s)
 {
-  ak_assert(false); // todo
+  ak_da_destroy(&s->deinits);
+  ak_da_destroy(&s->inits);
+  ak_scriptstg_destroy(s->ss);
+  s->wv = 0;
 }
 
 void
-ak_sys_script_update(ak_sys_script* s,
-                     ak_dur delta)
+ak_sys_script_set(ak_sys_script* s,
+                  ak_wv* wv,
+                  ak_wcb* wcb)
 {
-  ak_da_clear(&s->depths);
+  ak_da_clear(&s->inits);
+  ak_da_clear(&s->deinits);
 
-  ak_wv_itcomp it =
-    ak_wv_itcomp_make(s->wv, ak_screen_e);
-  ak_ett e;
-  ak_script_t script = { 0 };
-  while (1) {
-    e = ak_wv_itcomp_next(&it, &script);
-    if (!e) {
-      break;
+  s->wv = wv;
+  uint32_t count = ak_wcb_count(wcb);
+  for (uint32_t i = 0; i < count; i++) {
+    ak_wcbitem cmd = { 0 };
+    ak_assert(ak_wcb_peek(wcb, i, &cmd));
+
+    switch (cmd.cmd) {
+      case ak_wcbtype_comp_add: {
+        if (cmd.ctu.ce == ak_script_e) {
+          ak_da_pushback(&s->inits, &cmd.e);
+        }
+        break;
+      }
+      case ak_wcbtype_comp_remove: {
+        if (cmd.ctu.ce == ak_script_e) {
+          ak_da_pushback(&s->deinits,
+                         &cmd.e);
+        }
+        break;
+      }
+      case ak_wcbtype_ett_remove: {
+        ak_wv_itdfspost it =
+          ak_wv_itdfspost_make(wv, cmd.e);
+        ak_ett c = 0;
+        while (
+          (c = ak_wv_itdfspost_next(&it))) {
+          if (ak_wv_comp_script_exist(wv,
+                                      c)) {
+            ak_da_pushback(&s->deinits, &c);
+          }
+        }
+        break;
+      }
+      default: {
+      }
     }
-    if (!ak_hmn_exist(&s->map, e)) {
-      ak_wcb wcb =
-        ak_wcb_make(s->ig, s->alct);
-      ak_hmn_insert(&s->map, e, &wcb);
-    }
-    script_item di = { 0 };
-    di.e = e;
-    di.depth = ak_wv_ett_depth(s->wv, e);
-    di.script =
-      ak_scriptstg_at(s->ss, script.se);
-    ak_da_pushback(&s->depths, &di);
   }
+}
 
-  run_update(s, delta);
+void
+ak_sys_script_run_init(ak_sys_script* s,
+                       ak_wcb* output_wcb)
+{
+  ak_script_ctx ctx = { .wv = s->wv,
+                        .wcb = output_wcb };
+
+  uint32_t count = ak_da_count(&s->inits);
+  for (uint32_t i = 0; i < count; i++) {
+    ak_ett e =
+      *(ak_ett*)ak_da_at(&s->inits, i);
+    ak_assert(
+      ak_wv_comp_script_exist(s->wv, e));
+    ak_script_t script_t =
+      ak_wv_comp_script(s->wv, e);
+    ak_script script =
+      ak_scriptstg_at(s->ss, script_t.se);
+    ctx.e = e;
+    if (script.init) {
+      script.init(ctx);
+    }
+  }
+}
+
+void
+ak_sys_script_run_deinit(ak_sys_script* s,
+                         ak_wcb* output_wcb)
+{
+  ak_script_ctx ctx = { .wv = s->wv,
+                        .wcb = output_wcb };
+
+  uint32_t count = ak_da_count(&s->deinits);
+  for (uint32_t i = 0; i < count; i++) {
+    ak_ett e =
+      *(ak_ett*)ak_da_at(&s->deinits, i);
+    ak_assert(
+      ak_wv_comp_script_exist(s->wv, e));
+    ak_script_t script_t =
+      ak_wv_comp_script(s->wv, e);
+    ak_script script =
+      ak_scriptstg_at(s->ss, script_t.se);
+    ctx.e = e;
+    if (script.deinit) {
+      script.deinit(ctx);
+    }
+  }
+}
+
+void
+ak_sys_script_run_event(ak_sys_script* s,
+                        ak_evt evt,
+                        ak_wcb* output_wcb)
+{
+  ak_script_ctx ctx = { .wv = s->wv,
+                        .wcb = output_wcb,
+                        .evt = evt };
+  ak_wv_itdfspost it = ak_wv_itdfspost_make(
+    s->wv, ak_wv_ett_root(s->wv));
+  ak_ett ett = 0;
+  while ((ett = ak_wv_itdfspost_next(&it))) {
+    if (!ak_wv_comp_script_exist(s->wv,
+                                 ett)) {
+      continue;
+    }
+    ak_script_t script_t =
+      ak_wv_comp_script(s->wv, ett);
+    ak_script script =
+      ak_scriptstg_at(s->ss, script_t.se);
+    ctx.e = ett;
+    if (script.event) {
+      script.event(ctx);
+    }
+  }
+}
+void
+ak_sys_script_run_update(ak_sys_script* s,
+                         ak_dur delta,
+                         ak_wcb* output_wcb)
+{
+  ak_script_ctx ctx = { .wv = s->wv,
+                        .wcb = output_wcb,
+                        .delta = delta };
+  ak_wv_itdfspost it = ak_wv_itdfspost_make(
+    s->wv, ak_wv_ett_root(s->wv));
+  ak_ett ett = 0;
+  while ((ett = ak_wv_itdfspost_next(&it))) {
+    if (!ak_wv_comp_script_exist(s->wv,
+                                 ett)) {
+      continue;
+    }
+    ak_script_t script_t =
+      ak_wv_comp_script(s->wv, ett);
+    ak_script script =
+      ak_scriptstg_at(s->ss, script_t.se);
+    ctx.e = ett;
+    if (script.update) {
+      script.update(ctx);
+    }
+  }
+}
+
+void
+ak_sys_script_run_shutdown(
+  ak_sys_script* s,
+  ak_wcb* output_wcb)
+{
+  ak_script_ctx ctx = { .wv = s->wv,
+                        .wcb = output_wcb };
+  ak_wv_itdfspost it = ak_wv_itdfspost_make(
+    s->wv, ak_wv_ett_root(s->wv));
+  ak_ett ett = 0;
+  while ((ett = ak_wv_itdfspost_next(&it))) {
+    if (!ak_wv_comp_script_exist(s->wv,
+                                 ett)) {
+      continue;
+    }
+    ak_script_t script_t =
+      ak_wv_comp_script(s->wv, ett);
+    ak_script script =
+      ak_scriptstg_at(s->ss, script_t.se);
+    ctx.e = ett;
+    if (script.deinit) {
+      script.deinit(ctx);
+    }
+  }
 }

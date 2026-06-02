@@ -14,6 +14,7 @@
 #include "ak/game/core.h"
 #include "ak/game/stg/world.h"
 #include "ak/game/sys/ren.h"
+#include "ak/game/sys/script.h"
 #include "ak/game/sys/tf.h"
 #include "ak/game/world/cb.h"
 #include "ak/game/world/cb_itn.h"
@@ -46,6 +47,8 @@ struct ak_lworld
   ak_wv wv;
   ak_wcb wcb;
 
+  ak_wcb wcb_script;
+
   ak_thpool* tp;
   ak_resman rm;
 
@@ -56,6 +59,7 @@ struct ak_lworld
 
   ak_sys_tf sys_tf;
   ak_sys_ren sys_ren;
+  ak_sys_script sys_script;
 
   ak_resid dog_rid;
   ak_gresid dog_gid;
@@ -204,7 +208,12 @@ set_root(ak_lworld* l)
   ak_wcb_comp_mtrl_base_add(
     &l->wcb, l->e_mtrl_base, base);
 
-  ak_world_cb_flush(&l->w, &l->wcb, &l->ig);
+  ak_ett script_test =
+    ak_wcb_ett_new(&l->wcb, root);
+  ak_wcb_comp_script_add(
+    &l->wcb,
+    script_test,
+    (ak_script_t){ .se = ak_script_test_e });
 }
 /*
 static void
@@ -242,6 +251,9 @@ on_startup(void* ctx, ak_app* app)
   l->wv = ak_wv_make(&l->w);
   l->wcb = ak_wcb_make(&l->ig, l->alct);
 
+  l->wcb_script =
+    ak_wcb_make(&l->ig, l->alct);
+
   l->tp = ak_thpool_startup();
   l->rm = ak_resman_make(l->tp, l->alct);
 
@@ -272,8 +284,8 @@ on_startup(void* ctx, ak_app* app)
 
   l->sys_tf = ak_sys_tf_make(l->alct);
   l->sys_ren = ak_sys_ren_make(l->alct);
-
-  set_root(l);
+  l->sys_script =
+    ak_sys_script_make(l->alct);
 
   if (l->load) {
     ak_resman_load(&l->rm, l->wid);
@@ -281,7 +293,16 @@ on_startup(void* ctx, ak_app* app)
     store(l);
   }
 
+  set_root(l);
+  ak_sys_script_set(
+    &l->sys_script, &l->wv, &l->wcb);
+  ak_sys_script_run_deinit(&l->sys_script,
+                           &l->wcb_script);
   ak_world_cb_flush(&l->w, &l->wcb, &l->ig);
+  ak_sys_script_run_init(&l->sys_script,
+                         &l->wcb_script);
+  ak_world_cb_flush(
+    &l->w, &l->wcb_script, &l->ig);
 }
 
 static void
@@ -289,14 +310,22 @@ on_shutdown(void* ctx)
 {
   ak_lworld* l = ctx;
 
+  ak_sys_script_run_shutdown(&l->sys_script,
+                             &l->wcb_script);
+  ak_world_cb_flush(
+    &l->w, &l->wcb_script, &l->ig);
+
   ak_renderer_shutdown(l->renderer);
 
+  ak_sys_script_destroy(&l->sys_script);
   ak_sys_ren_destroy(&l->sys_ren);
   ak_sys_tf_destroy(&l->sys_tf);
 
   ak_gresman_shutdown(l->grm);
   ak_resman_destroy(&l->rm);
   ak_thpool_shutdown(l->tp);
+
+  ak_wcb_destroy(&l->wcb_script);
 
   ak_wcb_destroy(&l->wcb);
   ak_wv_destroy(&l->wv);
@@ -371,8 +400,33 @@ on_update(void* ctx, ak_dur delta)
   if (l->load && l->world_added) {
     ak_sys_tf_update(
       &l->sys_tf, &l->wv, &l->wcb);
+
+    ak_sys_script_set(
+      &l->sys_script, &l->wv, &l->wcb);
+    ak_sys_script_run_deinit(&l->sys_script,
+                             &l->wcb_script);
     ak_world_cb_flush(
       &l->w, &l->wcb, &l->ig);
+    ak_sys_script_run_init(&l->sys_script,
+                           &l->wcb_script);
+    ak_world_cb_flush(
+      &l->w, &l->wcb_script, &l->ig);
+
+    ak_sys_script_run_update(
+      &l->sys_script, delta, &l->wcb_script);
+
+    ak_sys_script_set(&l->sys_script,
+                      &l->wv,
+                      &l->wcb_script);
+    ak_sys_script_run_deinit(&l->sys_script,
+                             &l->wcb);
+    ak_world_cb_flush(
+      &l->w, &l->wcb_script, &l->ig);
+    ak_sys_script_run_init(&l->sys_script,
+                           &l->wcb);
+    ak_world_cb_flush(
+      &l->w, &l->wcb, &l->ig);
+
     if (ak_gresman_status(l->grm,
                           l->dog_gid) ==
         ak_gres_loaded) {

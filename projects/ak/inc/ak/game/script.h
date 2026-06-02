@@ -23,8 +23,6 @@ typedef void (*ak_script_event_fn)(
   ak_script_ctx ctx);
 typedef void (*ak_script_update_fn)(
   ak_script_ctx ctx);
-typedef void (*ak_script_upost_fn)(
-  ak_script_ctx ctx);
 
 typedef struct ak_script ak_script;
 struct ak_script
@@ -33,10 +31,10 @@ struct ak_script
   ak_script_deinit_fn deinit;
   ak_script_event_fn event;
   ak_script_update_fn update;
-  ak_script_upost_fn upost;
 };
 
-#define ak_as_script_e(name) ak_##name##_e
+#define ak_as_script_e(name)                \
+  ak_script_##name##_e
 typedef enum
 {
 #define ak_script_x(name)                   \

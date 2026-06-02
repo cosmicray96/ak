@@ -205,7 +205,7 @@ ak_resman_make(ak_thpool* jp, ak_alct alct)
 void
 ak_resman_destroy(ak_resman* rm)
 {
-  ak_assert(false); // todo
+  ak_log("Fix Resman");
 
   ak_da_destroy(&rm->unloads);
   ak_da_destroy(&rm->jids);

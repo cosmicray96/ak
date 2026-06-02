@@ -18,13 +18,13 @@ ak_world_cb_flush(ak_world* w,
                   ak_wcb* wcb,
                   ak_idgen* ig)
 {
-  ak_world_cmditem item = { 0 };
+  ak_wcbitem item = { 0 };
   ak_tf2d_t tf2d = ak_tf2d_identity();
   ak_gmat3_t mat3 = ak_mat3_identity();
   while (ak_wcb_pop(wcb, &item)) {
 
     switch (item.cmd) {
-      case ak_world_cmd_ett_new: {
+      case ak_wcbtype_ett_new: {
         ak_world_ett_new(w, item.e, item.pt);
         ak_world_comp_add(
           w, item.e, ak_tf2d_e, &tf2d);
@@ -32,12 +32,12 @@ ak_world_cb_flush(ak_world* w,
           w, item.e, ak_gmat3_e, &mat3);
         break;
       }
-      case ak_world_cmd_ett_remove: {
+      case ak_wcbtype_ett_remove: {
         ak_world_ett_remove_cb(
           w, item.e, &ett_remove_cb, ig);
         break;
       }
-      case ak_world_cmd_comp_add: {
+      case ak_wcbtype_comp_add: {
         if (ak_world_comp_exist(
               w, item.e, item.ctu.ce)) {
           ak_world_comp_overwrite(
@@ -54,7 +54,7 @@ ak_world_cb_flush(ak_world* w,
         }
         break;
       }
-      case ak_world_cmd_comp_remove: {
+      case ak_wcbtype_comp_remove: {
         ak_world_comp_remove(
           w, item.e, item.ctu.ce);
         break;
