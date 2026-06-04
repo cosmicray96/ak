@@ -24,12 +24,13 @@
 #include "ak/game/world/write.h"
 #include "ak/gfx/core.h"
 #include "ak/gfx/gcb.h"
-#include "ak/gfx/gfx.h"
 #include "ak/gfx/gresman.h"
+#include "ak/os/time.h"
 #include "ak/system/idgen.h"
 #include "ak/system/render.h"
 #include "ak/system/resman.h"
 #include "ak/system/resman_itn.h"
+#include "ak/ui/ui.h"
 #include <stdbool.h>
 
 //===== ak_lworld =====//
@@ -70,6 +71,9 @@ struct ak_lworld
   bool world_added;
   ak_resid wid;
   ak_world w_store;
+
+  ak_ui ui;
+  float time;
 };
 
 bool
@@ -215,31 +219,26 @@ set_root(ak_lworld* l)
     script_test,
     (ak_script_t){ .se = ak_script_test_e });
 }
-/*
+
 static void
-push_child(ak_lworld* l, float x, float y)
+ui_render(ak_lworld* l)
 {
-  ak_ett root = ak_wv_ett_root(&l->wv);
-  ak_ett e = ak_wcb_ett_new(&l->wcb, root);
-
-  ak_fx scale_x = ak_fx_i(20);
-  ak_fx scale_y = ak_fx_i(20);
-  ak_tf2d_t tf = { 0 };
-  tf = ak_tf2d_make(
-    ak_vec2_make(ak_fx_f(x), ak_fx_f(y)),
-    ak_angle_deg(ak_fx_f(0)),
-    ak_vec2_make(scale_x, scale_y));
-  ak_wcb_comp_tf2d_add(&l->wcb, e, tf);
-
-  ak_mtrl_t mat = { 0 };
-  mat.base_id = l->e_mtrl_base;
-  mat.data.uv_min =
-    ak_vec2_make(ak_fx_f(0), ak_fx_f(0));
-  mat.data.uv_max = ak_vec2_make(
-    ak_fx_f(1.0f), ak_fx_f(1.0f));
-  ak_wcb_comp_mtrl_add(&l->wcb, e, mat);
+  ak_ui_clear(&l->ui);
+  ak_ui_add(
+    &l->ui,
+    ak_ui_root(&l->ui),
+    (ak_cnst){ .rel = 0.5f, .abs = 0 },
+    (ak_cnst){ .rel = 0.5f, .abs = 0 },
+    true);
+  ak_ui_add(&l->ui,
+            ak_ui_root(&l->ui),
+            (ak_cnst){ .rel = 0, .abs = 0 },
+            (ak_cnst){ .rel = 0,
+                       .abs = l->time * 30 },
+            true);
+  ak_ui_set(&l->ui, 0, 0, 800, 600);
+  ak_ui_render(&l->ui, &l->gcb);
 }
-*/
 
 static void
 on_startup(void* ctx, ak_app* app)
@@ -293,6 +292,8 @@ on_startup(void* ctx, ak_app* app)
     store(l);
   }
 
+  l->ui = ak_ui_make(l->alct);
+
   set_root(l);
   ak_sys_script_set(
     &l->sys_script, &l->wv, &l->wcb);
@@ -303,12 +304,16 @@ on_startup(void* ctx, ak_app* app)
                          &l->wcb_script);
   ak_world_cb_flush(
     &l->w, &l->wcb_script, &l->ig);
+
+  l->time = 0;
 }
 
 static void
 on_shutdown(void* ctx)
 {
   ak_lworld* l = ctx;
+
+  ak_ui_destroy(&l->ui);
 
   ak_sys_script_run_shutdown(&l->sys_script,
                              &l->wcb_script);
@@ -376,6 +381,9 @@ static void
 on_update(void* ctx, ak_dur delta)
 {
   ak_lworld* l = ctx;
+
+  l->time += ak_dur_as_secs_f(delta);
+
   ak_resman_update(&l->rm);
 
   if (l->load && !l->world_added &&
@@ -435,6 +443,7 @@ on_update(void* ctx, ak_dur delta)
     }
   }
 
+  ui_render(l);
   ak_renderer_render(l->renderer, &l->gcb);
 }
 

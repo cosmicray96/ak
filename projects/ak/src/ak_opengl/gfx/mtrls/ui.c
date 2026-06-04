@@ -31,8 +31,6 @@ static const char* vs_src =
   "vo_col = vi_col;\n"
   "}\n";
 
-//"  gl_Position = vec4(pos.xy, 0.0, 1.0);\n"
-
 static const char* fs_src =
   "#version 330 core\n"
   "in vec4 vo_col;"
@@ -192,10 +190,10 @@ ak_mtrl_ui_pushquad(
   ak_mtrl_ui* m = mtrl;
   ak_assert(m->call_begin);
 
-  quad q = { .r = ak_fx_to_f(qd->ui.col.r),
-             .g = ak_fx_to_f(qd->ui.col.g),
-             .b = ak_fx_to_f(qd->ui.col.b),
-             .a = ak_fx_to_f(qd->ui.col.a),
+  quad q = { .r = qd->ui.col.r,
+             .g = qd->ui.col.g,
+             .b = qd->ui.col.b,
+             .a = qd->ui.col.a,
              .m = *gmat3f };
 
   ak_gfx_pushquad(m->g, &q);

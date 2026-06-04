@@ -1,6 +1,7 @@
 #include "ak/ui/core.h"
 #include "ak/ui/ui_dir.h"
 
+//===== layout =====//
 //--- private ---//
 static void
 set_layout(ak_uilstg* lstg,
@@ -60,15 +61,25 @@ set_layout(ak_uilstg* lstg,
 }
 
 //--- dir ---//
+ak_uilstg
+ak_uilstg_make(ak_alct alct)
+{
+  return (ak_uilstg){ 0 };
+}
+
+void
+ak_uilstg_destroy(ak_uilstg* lstg)
+{
+  // empty
+}
 void
 ak_ui_layout(ak_ui* ui,
-             ak_uilstg* lstg,
              float x,
              float y,
              float w,
              float h)
 {
-  ak_fcnst* tree = ak_ui_tree(ui);
+  ak_fcnst* tree = &ui->tree;
   ak_uiid root_id = ak_fcnst_root(tree);
   ak_uielm* elm = ak_fcnst_at(tree, root_id);
 
@@ -86,5 +97,5 @@ ak_ui_layout(ak_ui* ui,
   *elm_w = w;
   *elm_h = h;
 
-  set_layout(lstg, tree, root_id);
+  set_layout(&ui->lstg, tree, root_id);
 }

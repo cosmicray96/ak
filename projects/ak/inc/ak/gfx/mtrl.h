@@ -4,7 +4,7 @@
 #include "ak/core/math/fixed.h"
 #include "ak/core/math/mat3x3.h"
 #include "ak/core/math/vec2.h"
-#include "ak/core/math/vec4.h"
+#include "ak/core/math/vec4f.h"
 #include "ak/gfx/core.h"
 
 #include <stdint.h>

@@ -2,9 +2,11 @@
 #define ak_ui_ui_dir_h
 
 #include "ak/core/math/vec4.h"
+#include "ak/core/mem/allocator.h"
 #include "ak/ui/core.h"
 #include "ak/ui/ui.h"
 
+//===== ak_uielm =====//
 typedef enum
 {
   ak_uiaxis_h = 0,
@@ -14,7 +16,9 @@ typedef enum
 typedef struct
 {
   ak_uiaxistype axistype;
-  bool overflowed;
+  bool clipping;
+  bool visible;
+  ak_vec4f color;
   union
   {
     struct
@@ -25,7 +29,6 @@ typedef struct
     ak_cnst cnsts[2];
   };
 
-  ak_vec4f color;
   union
   {
     struct
@@ -58,7 +61,7 @@ ak_uielm_axis_cross(ak_uielm* elm)
   if (elm->axistype == ak_uiaxis_h) {
     return ak_uiaxis_v;
   }
-  return ak_uiaxis_v;
+  return ak_uiaxis_h;
 }
 
 static ak_cnst*
@@ -80,19 +83,24 @@ ak_uisize_axis(float size[2],
   return &size[uia];
 }
 
-ak_fcnst*
-ak_ui_tree(ak_ui* ui);
+ak_vec4f
+ak_ui_rectintersect(ak_vec4f a, ak_vec4f b);
 
-typedef struct
-{
-} ak_uilstg;
-
+//===== ui_layout =====//
+ak_uilstg
+ak_uilstg_make(ak_alct alct);
+void
+ak_uilstg_destroy(ak_uilstg* lstg);
 void
 ak_ui_layout(ak_ui* ui,
-             ak_uilstg* lstg,
              float x,
              float y,
              float w,
              float h);
+
+ak_uirstg
+ak_uirstg_make(ak_alct alct);
+void
+ak_uirstg_destroy(ak_uirstg* rstg);
 
 #endif

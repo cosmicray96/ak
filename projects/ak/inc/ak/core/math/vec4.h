@@ -15,26 +15,6 @@ typedef struct
   };
 } ak_vec4;
 
-typedef struct
-{
-  union
-  {
-    struct
-    {
-      float x, y, z, w;
-    };
-    struct
-    {
-      float r, g, b, a;
-    };
-    struct
-    {
-      float _x, _y, width, height;
-    };
-    float v[4];
-  };
-} ak_vec4f;
-
 static ak_vec4
 ak_vec4_make(ak_fx x,
              ak_fx y,

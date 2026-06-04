@@ -113,6 +113,7 @@ void
 ak_sla_clear(ak_sla* s)
 {
   init_slots(s, 0);
+  s->count = 0;
 }
 
 void*

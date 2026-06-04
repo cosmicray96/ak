@@ -112,6 +112,10 @@ void
 ak_fcnst_clear(ak_fcnst* t)
 {
   ak_sla_clear(&t->slots);
+  uint32_t id =
+    ak_sla_insert_empty(&t->slots);
+  ak_assert(id == 0);
+  t->root = 0;
 }
 
 ak_fcnstid

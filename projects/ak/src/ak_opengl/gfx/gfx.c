@@ -186,11 +186,6 @@ ak_gfx_startup(ak_plat_base* pr,
     check_err;
   }
   {
-    /*
-uint16_t ebo_buf[6] = {
-0, 1, 2, 2, 3, 0
-};
-            */
     uint16_t ebo_buf[6] = {
       0, 3, 2, 2, 1, 0
     };
@@ -304,6 +299,7 @@ ak_gfx_vp_make(const ak_mat3* cam,
   return result;
 }
 
+/*
 ak_mat3_f
 ak_gfx_vp_ui_make(uint32_t w, uint32_t h)
 {
@@ -313,6 +309,19 @@ ak_gfx_vp_ui_make(uint32_t w, uint32_t h)
   proj.m[0][2] = -1.0f;
   proj.m[1][2] = 1.0f;
   proj.m[2][2] = 1.0f;
+  return proj;
+}*/
+ak_mat3_f
+ak_gfx_vp_ui_make(uint32_t w, uint32_t h)
+{
+  ak_mat3_f proj = { 0 };
+
+  proj.m[0][0] = 2.0f / (float)w;
+  proj.m[1][1] = -2.0f / (float)h;
+  proj.m[2][0] = -1.0f;
+  proj.m[2][1] = 1.0f;
+  proj.m[2][2] = 1.0f;
+
   return proj;
 }
 

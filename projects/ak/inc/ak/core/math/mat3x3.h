@@ -158,6 +158,7 @@ ak_mat3_to_f(const ak_mat3* m, ak_mat3_f* mf)
     mf->v[i] = ak_fx_to_f(m->v[i]);
 }
 
+/*
 static ak_mat3_f
 ak_mat3_from_rect(float x,
                   float y,
@@ -176,5 +177,23 @@ ak_mat3_from_rect(float x,
   m.m[2][2] = 1.0f;
   return m;
 }
+*/
 
+static ak_mat3_f
+ak_mat3_from_rect(float x,
+                  float y,
+                  float w,
+                  float h)
+{
+  ak_mat3_f m = { 0 };
+
+  m.m[0][0] = w;
+  m.m[1][1] = h;
+
+  m.m[2][0] = x + w * 0.5f;
+  m.m[2][1] = y + h * 0.5f;
+  m.m[2][2] = 1.0f;
+
+  return m;
+}
 #endif
