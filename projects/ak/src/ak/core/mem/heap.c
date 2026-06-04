@@ -1,5 +1,6 @@
 #include "ak/core/mem/heap.h"
 #include "ak/core/errcode.h"
+#include "ak/core/mem/allocator.h"
 #include "ak/debug.h"
 #include <stdlib.h>
 
@@ -52,8 +53,7 @@ ak_alct
 ak_heap_to_alct(ak_heap* h)
 {
   ak_alct a = { 0 };
+  a.type = ak_alcttype_heap;
   a.ctx = h;
-  a.alloc = &ak_heap_alloc_b;
-  a.free = &ak_heap_free_b;
   return a;
 }

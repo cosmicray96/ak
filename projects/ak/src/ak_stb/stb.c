@@ -1,11 +1,11 @@
+#include "ak/core/img.h"
 #include "ak/debug.h"
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
-#include "ak/gfx/img.h"
-
 ak_img
-ak_img_load(const char* path)
+ak_img_make_from_path(const char* path)
 {
   ak_img img = { 0 };
 
@@ -25,7 +25,7 @@ ak_img_load(const char* path)
 }
 
 void
-ak_img_unload(ak_img* img)
+ak_img_destroy(ak_img* img)
 {
   stbi_image_free(img->pixels);
 }

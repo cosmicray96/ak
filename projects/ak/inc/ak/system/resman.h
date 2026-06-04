@@ -1,9 +1,10 @@
 #ifndef ak_system_resman_h
 #define ak_system_resman_h
 
+#include "ak/core/img.h"
 #include "ak/export.h"
 #include "ak/game/stg/world.h"
-#include "ak/system/idgen.h"
+#include "ak/res/reg.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -14,23 +15,8 @@ typedef struct
   uint64_t size;
 } ak_res_file;
 
-typedef enum
-{
-  ak_img_rgba8
-} ak_imgtype;
-
-typedef struct
-{
-  ak_imgtype type;
-  void* pixels;
-  uint32_t w;
-  uint32_t h;
-} ak_res_img;
-typedef ak_res_img ak_img;
-
 typedef struct ak_resman ak_resman;
 
-typedef uint32_t ak_resid;
 typedef enum
 {
   ak_restype_none = 0,
@@ -77,7 +63,7 @@ ak_resman_register_img(ak_resman* rm,
 ak_ex bool
 ak_resman_acquire_img(ak_resman* rm,
                       ak_resid id,
-                      ak_res_img* o_img);
+                      ak_img* o_img);
 
 ak_ex void
 ak_resman_register_world(ak_resman* rm,

@@ -149,7 +149,7 @@ ak_stm_read_mat3(ak_stm stm, ak_mat3* o_mat3)
 }
 
 ak_stmerr
-ak_stm_write_tex(ak_stm stm, ak_tex tex)
+ak_stm_write_tex(ak_stm stm, ak_tex_old tex)
 {
   ak_stm_try(ak_stm_write_u32(stm, tex.gid));
   ak_stm_try(
@@ -161,7 +161,8 @@ ak_stm_write_tex(ak_stm stm, ak_tex tex)
 }
 
 ak_stmerr
-ak_stm_read_tex(ak_stm stm, ak_tex* o_tex)
+ak_stm_read_tex(ak_stm stm,
+                ak_tex_old* o_tex)
 {
   ak_stm_try(
     ak_stm_read_u32(stm, &o_tex->gid));

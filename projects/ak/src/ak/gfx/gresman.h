@@ -3,6 +3,7 @@
 
 #include "ak/core/mem/allocator.h"
 #include "ak/gfx/core.h"
+#include "ak/gfx/tex.h"
 #include "ak/system/resman.h"
 #include <stdint.h>
 
@@ -56,5 +57,10 @@ ak_gresman_release(ak_gresman* grm,
                    ak_gresid gid);
 void
 ak_gresman_update(ak_gresman* grm);
+
+bool
+ak_gresman_acquire_tex(ak_gresman* grm,
+                       ak_gresid gid,
+                       ak_tex** o_tex);
 
 #endif

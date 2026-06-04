@@ -31,7 +31,7 @@ typedef struct
     ak_filter_nearest,
     ak_filter_linear
   } filter_type;
-} ak_tex;
+} ak_tex_old;
 
 typedef struct
 {
@@ -64,7 +64,7 @@ typedef struct
     } col;
     struct
     {
-      ak_tex tex;
+      ak_tex_old tex;
     } tex;
     struct
     {

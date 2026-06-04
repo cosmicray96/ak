@@ -9,11 +9,13 @@
 #include "ak/core/mem/allocator.h"
 #include "ak/core/mem/heap.h"
 #include "ak/export.h"
+#include "ak/res/reg.h"
 #include "ak/system/resman.h"
 
 struct ak_resman
 {
   ak_heap heap;
+  ak_resreg* rr;
   ak_mutex m;
   ak_hmn map;
   ak_thpool* jp;
@@ -22,7 +24,9 @@ struct ak_resman
 };
 
 ak_resman
-ak_resman_make(ak_thpool* jp, ak_alct alct);
+ak_resman_make(ak_resreg* rr,
+               ak_thpool* jp,
+               ak_alct alct);
 void
 ak_resman_destroy(ak_resman* rm);
 

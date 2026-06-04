@@ -26,6 +26,7 @@
 #include "ak/gfx/gcb.h"
 #include "ak/gfx/gresman.h"
 #include "ak/os/time.h"
+#include "ak/res/reg.h"
 #include "ak/system/idgen.h"
 #include "ak/system/render.h"
 #include "ak/system/resman.h"
@@ -50,6 +51,7 @@ struct ak_lworld
 
   ak_wcb wcb_script;
 
+  ak_resreg rr;
   ak_thpool* tp;
   ak_resman rm;
 
@@ -205,10 +207,10 @@ set_root(ak_lworld* l)
   ak_mtrl_base_t base = { 0 };
   base.data.me = ak_mtrl_tex_e;
   base.data.tex.tex =
-    (ak_tex){ .gid = l->dog_gid,
-              .uv_type = ak_uv_repeat,
-              .filter_type =
-                ak_filter_linear };
+    (ak_tex_old){ .gid = l->dog_gid,
+                  .uv_type = ak_uv_repeat,
+                  .filter_type =
+                    ak_filter_linear };
   ak_wcb_comp_mtrl_base_add(
     &l->wcb, l->e_mtrl_base, base);
 
@@ -243,6 +245,8 @@ ui_render(ak_lworld* l)
 static void
 on_startup(void* ctx, ak_app* app)
 {
+  ak_logv(sizeof(ak_world), d);
+
   ak_lworld* l = ctx;
   l->app = app;
   l->ig = ak_idgen_make(l->alct);
@@ -253,8 +257,10 @@ on_startup(void* ctx, ak_app* app)
   l->wcb_script =
     ak_wcb_make(&l->ig, l->alct);
 
+  l->rr = ak_resreg_make(l->alct);
   l->tp = ak_thpool_startup();
-  l->rm = ak_resman_make(l->tp, l->alct);
+  l->rm =
+    ak_resman_make(&l->rr, l->tp, l->alct);
 
   l->gcb = ak_gcb_make(l->alct);
 

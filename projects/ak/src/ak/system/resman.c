@@ -3,12 +3,12 @@
 #include "ak/coll/hmn.h"
 #include "ak/core/async/mutex.h"
 #include "ak/core/async/thpool.h"
+#include "ak/core/img.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/core/mem/heap.h"
 #include "ak/debug.h"
 #include "ak/game/stg/world.h"
 #include "ak/game/world/write.h"
-#include "ak/gfx/img.h"
 #include "ak/os/file.h"
 #include "ak/system/resman_itn.h"
 #include "ak/system/stream.h"
@@ -35,7 +35,7 @@ typedef struct
   union
   {
     ak_res_file file;
-    ak_res_img img;
+    ak_img img;
     res_item_world wi;
   };
 } res_item;
@@ -88,7 +88,8 @@ res_load(ak_resman* rm, ak_resid id)
     }
     case ak_restype_img: {
 
-      ri.img = ak_img_load(ri.path);
+      ri.img =
+        ak_img_make_from_path(ri.path);
 
       ak_mutex_lock(&rm->m);
       res_item* rip =
@@ -136,8 +137,8 @@ res_unload_unsafe(ak_resman* rm, ak_resid id)
       break;
     }
     case ak_restype_img: {
-      ak_img_unload(&ri->img);
-      ri->img = (ak_res_img){ 0 };
+      ak_img_destroy(&ri->img);
+      ri->img = (ak_img){ 0 };
       break;
     }
     default: {
@@ -187,9 +188,12 @@ res_register(ak_resman* rm,
 
 //--- internal ---//
 ak_resman
-ak_resman_make(ak_thpool* jp, ak_alct alct)
+ak_resman_make(ak_resreg* rr,
+               ak_thpool* jp,
+               ak_alct alct)
 {
   ak_resman rm = { 0 };
+  rm.rr = rr;
   rm.m = ak_mutex_make();
   rm.heap = ak_heap_make();
   rm.jp = jp;
@@ -364,7 +368,7 @@ ak_resman_register_img(ak_resman* rm,
 bool
 ak_resman_acquire_img(ak_resman* rm,
                       ak_resid id,
-                      ak_res_img* o_img)
+                      ak_img* o_img)
 {
   ak_assert(ak_resman_res_type(rm, id) ==
             ak_restype_img);

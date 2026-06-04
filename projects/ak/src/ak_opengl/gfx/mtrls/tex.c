@@ -3,10 +3,11 @@
 #include "ak/core/mem/allocator.h"
 #include "ak/debug.h"
 #include "ak/gfx/core.h"
+#include "ak/gfx/gresman.h"
 #include "ak/gfx/mtrl_itn.h"
 #include "ak_opengl/gfx/convert.h"
 #include "ak_opengl/gfx/gfx_impl.h"
-#include "ak_opengl/gfx/gresman_impl.h"
+#include "ak_opengl/gfx/tex_impl.h"
 
 #include <stddef.h>
 
@@ -206,7 +207,7 @@ ak_mtrl_tex_call_begin(
   glUniform1f(m->t_loc,
               ak_fx_to_f(id->time));
 
-  ak_tex tex = bd->tex.tex;
+  ak_tex_old tex = bd->tex.tex;
   if (ak_gresman_status(m->grm, tex.gid) !=
       ak_gres_loaded) {
     glBindVertexArray(m->vao);
@@ -215,13 +216,14 @@ ak_mtrl_tex_call_begin(
     return;
   }
   m->gid = tex.gid;
-  GLuint gltex = 0;
+  ak_tex* t = 0;
   bool success = ak_gresman_acquire_tex(
-    m->grm, tex.gid, &gltex);
+    m->grm, tex.gid, &t);
   ak_assert(success);
 
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, gltex);
+  glBindTexture(GL_TEXTURE_2D,
+                ak_tex_get(t));
   glUniform1i(m->tex_loc, 0);
 
   if (tex.filter_type == ak_filter_linear) {

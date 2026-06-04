@@ -5,8 +5,8 @@
 #include "ak/core/mem/allocator.h"
 #include "ak/debug.h"
 #include "ak/gfx/core.h"
+#include "ak/gfx/tex.h"
 #include "ak/system/resman.h"
-#include "ak_opengl/gfx/gresman_impl.h"
 
 //===== gres_item =====//
 //--- private ---//
@@ -20,12 +20,12 @@ typedef struct
   {
     struct
     {
+      ak_tex* tex;
       ak_resid rid;
-      GLuint glint;
     } img;
     struct
     {
-      GLuint glint;
+      // GLuint glint;
     } fb;
   };
 } gres_item;
@@ -52,25 +52,17 @@ gres_load_unsafe(ak_gresman* grm,
   gres_item* gi = ak_hmn_at(&grm->map, gid);
   switch (gi->type) {
     case ak_grestype_tex: {
-      ak_res_img img = { 0 };
+      ak_img img = { 0 };
       bool success = ak_resman_acquire_img(
         grm->rm, gi->img.rid, &img);
+      ak_assert(success);
 
-      glGenTextures(1, &gi->img.glint);
-      glBindTexture(GL_TEXTURE_2D,
-                    gi->img.glint);
+      gi->img.tex = ak_tex_make_from_img(
+        grm->gf,
+        &img,
+        ak_textype_rgba8,
+        grm->alct);
 
-      glTexImage2D(GL_TEXTURE_2D,
-                   0,
-                   GL_RGBA8,
-                   img.w,
-                   img.h,
-                   0,
-                   GL_RGBA,
-                   GL_UNSIGNED_BYTE,
-                   img.pixels);
-
-      glBindTexture(GL_TEXTURE_2D, 0);
       gi->s = ak_gres_loaded;
       ak_resman_release(grm->rm,
                         gi->img.rid);
@@ -91,7 +83,7 @@ gres_unload_unsafe(ak_gresman* grm,
   ak_assert(gi->s == ak_gres_loaded);
   switch (gi->type) {
     case ak_grestype_tex: {
-      glDeleteTextures(1, &gi->img.glint);
+      ak_tex_destroy(gi->img.tex, grm->gf);
       gi->s = ak_gres_not_loaded;
       break;
     }
@@ -114,24 +106,6 @@ gres_register(ak_gresman* grm,
   item.load_count = 0;
   item.access_count = 0;
   ak_hmn_insert(&grm->map, gid, &item);
-}
-
-//--- impl ---//
-bool
-ak_gresman_acquire_tex(ak_gresman* grm,
-                       ak_gresid gid,
-                       GLuint* o_glint)
-{
-  ak_mutex_lock(&grm->m);
-  gres_item* gi = ak_hmn_at(&grm->map, gid);
-  if (gi->s == ak_gres_loaded) {
-    gi->access_count++;
-    *o_glint = gi->img.glint;
-    ak_mutex_unlock(&grm->m);
-    return true;
-  }
-  ak_mutex_unlock(&grm->m);
-  return false;
 }
 
 //--- internal ---//
@@ -336,4 +310,21 @@ ak_gresman_release(ak_gresman* grm,
     ak_da_pushback(&grm->unloads, &gid);
   }
   ak_mutex_unlock(&grm->m);
+}
+
+bool
+ak_gresman_acquire_tex(ak_gresman* grm,
+                       ak_gresid gid,
+                       ak_tex** o_tex)
+{
+  ak_mutex_lock(&grm->m);
+  gres_item* gi = ak_hmn_at(&grm->map, gid);
+  if (gi->s == ak_gres_loaded) {
+    gi->access_count++;
+    *o_tex = gi->img.tex;
+    ak_mutex_unlock(&grm->m);
+    return true;
+  }
+  ak_mutex_unlock(&grm->m);
+  return false;
 }
