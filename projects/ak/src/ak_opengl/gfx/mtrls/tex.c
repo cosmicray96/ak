@@ -207,7 +207,7 @@ ak_mtrl_tex_call_begin(
   glUniform1f(m->t_loc,
               ak_fx_to_f(id->time));
 
-  ak_tex_old tex = bd->tex.tex;
+  ak_tex_old tex = bd->tex;
   if (ak_gresman_status(m->grm, tex.gid) !=
       ak_gres_loaded) {
     glBindVertexArray(m->vao);
@@ -289,8 +289,7 @@ ak_mtrl_tex_pushquad(
   ak_assert(m->call_begin);
 
   quad q = { .uv = ak_opengl_convert_uv(
-               qd->tex.uv_min,
-               qd->tex.uv_max),
+               qd->uv_min, qd->uv_max),
              .m = *gmat3f };
 
   ak_gfx_pushquad(m->g, &q);

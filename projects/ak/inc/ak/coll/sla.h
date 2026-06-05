@@ -23,6 +23,12 @@ ak_sla_destroy(ak_sla* s);
 ak_ex void
 ak_sla_clear(ak_sla* s);
 
+static uint32_t
+ak_sla_itemsize(const ak_sla* s)
+{
+  return ak_dbuff_itemsize(&s->slots);
+}
+
 ak_ex void*
 ak_sla_at(ak_sla* s, uint32_t idx);
 ak_ex bool

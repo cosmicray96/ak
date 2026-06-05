@@ -10,15 +10,17 @@
 #include "ak/core/mem/heap.h"
 #include "ak/export.h"
 #include "ak/res/reg.h"
-#include "ak/system/resman.h"
+#include "ak/res/resman.h"
 
 struct ak_resman
 {
   ak_heap heap;
   ak_resreg* rr;
+
   ak_mutex m;
-  ak_hmn map;
   ak_thpool* jp;
+
+  ak_hmn map;
   ak_da jids;
   ak_da unloads;
 };

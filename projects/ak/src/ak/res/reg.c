@@ -1,77 +1,126 @@
 #include "ak/res/reg.h"
 #include "ak/coll/hmn.h"
+#include "ak/core/img.h"
+#include "ak/core/mem/allocator.h"
 #include "ak/core/mem/ptr.h"
 #include "ak/debug.h"
+#include "ak/game/stg/world.h"
 #include <stdint.h>
 
-#define ak_s_max_res_size 200
-#define ak_s_cutoff ((uint32_t)(1) << 31)
-
+//--- private ---//
 typedef struct
 {
-  uint8_t data[ak_s_max_res_size];
+  ak_restype type;
+  uint32_t idx;
 } item;
 
+typedef void (*destroy_fn)(void*);
+
+//===== ak_resreg =====//
+//--- private ---//
+struct ak_resreg
+{
+  ak_alct alct;
+  ak_sla ress[ak_restype_count];
+  ak_hmn map;
+};
+
+static void
+res_destroy(ak_resreg* rr, ak_resid id)
+{
+  item* itm = ak_hmn_at(&rr->map, id);
+  ak_sla* sla = &rr->ress[itm->type];
+  void* p = ak_sla_at(sla, itm->idx);
+
+  switch (itm->type) {
+    case ak_restype_image: {
+      ak_img* img = p;
+      ak_img_destroy(img);
+      break;
+    }
+    case ak_restype_world: {
+      ak_world* world = p;
+      ak_world_destroy(world);
+      break;
+    }
+    default: {
+      ak_assert(false);
+    }
+  }
+  ak_sla_remove(sla, itm->idx);
+}
+
 //--- export ---//
-ak_resreg
+ak_resreg*
 ak_resreg_make(ak_alct alct)
 {
-  ak_resreg rr = { 0 };
-  rr.map = ak_hmn_make(sizeof(item), alct);
-  rr.counter = ak_s_cutoff;
+  ak_resreg* rr =
+    ak_alct_alloc(alct, sizeof(ak_resreg));
+  rr->alct = alct;
+
+  rr->map = ak_hmn_make(sizeof(item), alct);
+
+  rr->ress[ak_restype_image] =
+    ak_sla_make(sizeof(ak_img), alct);
+
+  rr->ress[ak_restype_world] =
+    ak_sla_make(sizeof(ak_world), alct);
+
   return rr;
 }
 
 void
 ak_resreg_destroy(ak_resreg* rr)
 {
+
+  ak_hmn_iter it =
+    ak_hmn_iter_make(&rr->map);
+  uint64_t key = 0;
+  void* value = 0;
+  while (
+    ak_hmn_iter_next(&it, &key, &value)) {
+    ak_resid id = key;
+    res_destroy(rr, id);
+  }
+
+  for (uint32_t i = 0; i < ak_restype_count;
+       i++) {
+    ak_sla_destroy(&rr->ress[i]);
+  }
+
   ak_hmn_destroy(&rr->map);
+  ak_alct_free(rr->alct, rr);
 }
 
 void
-ak_resreg_reg_w_id(ak_resreg* rr,
-                   ak_resid id,
-                   const void* res,
-                   uint32_t size)
-{
-  ak_assert(!ak_hmn_exist(&rr->map, id));
-  ak_assert(id < ak_s_cutoff);
-  ak_assert(size <= ak_s_max_res_size);
-
-  item itm = { 0 };
-  ak_p_cpy(itm.data, res, size);
-
-  ak_hmn_insert(&rr->map, id, &itm);
-}
-
-ak_resid
 ak_resreg_reg(ak_resreg* rr,
-              const void* res,
-              uint32_t size)
+              ak_resid id,
+              ak_restype type,
+              const void* res)
 {
-  ak_assert(size <= ak_s_max_res_size);
+  uint32_t idx =
+    ak_sla_insert(&rr->ress[type], res);
 
-  ak_resid id = rr->counter;
-  rr->counter++;
-
-  item itm = { 0 };
-  ak_p_cpy(itm.data, res, size);
-
+  item itm = { .type = type, .idx = idx };
   ak_hmn_insert(&rr->map, id, &itm);
-  return id;
 }
 
 void
 ak_resreg_unreg(ak_resreg* rr, ak_resid id)
 {
+  res_destroy(rr, id);
   ak_hmn_remove(&rr->map, id);
 }
 
-void*
-ak_resreg_get(ak_resreg* rr, ak_resid id)
+void
+ak_resreg_get(ak_resreg* rr,
+              ak_resid id,
+              void* o_res)
 {
-  ak_assert(ak_hmn_exist(&rr->map, id));
-
   item* itm = ak_hmn_at(&rr->map, id);
-  return itm->data;
+  ak_sla* sla = &rr->ress[itm->type];
+
+  void* p = ak_sla_at(sla, itm->idx);
+
+  ak_p_cpy(o_res, p, ak_sla_itemsize(sla));
 }

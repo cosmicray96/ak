@@ -4,7 +4,7 @@
 #include "ak/core/mem/allocator.h"
 #include "ak/gfx/core.h"
 #include "ak/gfx/tex.h"
-#include "ak/system/resman.h"
+#include "ak/res/resman.h"
 #include <stdint.h>
 
 typedef enum

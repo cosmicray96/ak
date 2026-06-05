@@ -27,15 +27,17 @@
 #include "ak/gfx/gresman.h"
 #include "ak/os/time.h"
 #include "ak/res/reg.h"
+#include "ak/res/resman.h"
+#include "ak/res/resman_itn.h"
 #include "ak/system/idgen.h"
 #include "ak/system/render.h"
-#include "ak/system/resman.h"
-#include "ak/system/resman_itn.h"
 #include "ak/ui/ui.h"
 #include <stdbool.h>
 
 //===== ak_lworld =====//
 //--- private ---//
+
+#define ak_s_load false
 
 struct ak_lworld
 {
@@ -51,7 +53,7 @@ struct ak_lworld
 
   ak_wcb wcb_script;
 
-  ak_resreg rr;
+  ak_resreg* rr;
   ak_thpool* tp;
   ak_resman rm;
 
@@ -141,9 +143,9 @@ push_child2(ak_wv* wv,
 
   ak_mtrl_t mat = { 0 };
   mat.base_id = mtrl_id;
-  mat.data.tex.uv_min =
+  mat.data.uv_min =
     ak_vec2_make(ak_fx_f(0), ak_fx_f(0));
-  mat.data.tex.uv_max = ak_vec2_make(
+  mat.data.uv_max = ak_vec2_make(
     ak_fx_f(1.0f), ak_fx_f(1.0f));
   ak_wcb_comp_mtrl_add(wcb, e, mat);
 }
@@ -206,7 +208,7 @@ set_root(ak_lworld* l)
     ak_wcb_ett_new(&l->wcb, root);
   ak_mtrl_base_t base = { 0 };
   base.data.me = ak_mtrl_tex_e;
-  base.data.tex.tex =
+  base.data.tex =
     (ak_tex_old){ .gid = l->dog_gid,
                   .uv_type = ak_uv_repeat,
                   .filter_type =
@@ -260,7 +262,7 @@ on_startup(void* ctx, ak_app* app)
   l->rr = ak_resreg_make(l->alct);
   l->tp = ak_thpool_startup();
   l->rm =
-    ak_resman_make(&l->rr, l->tp, l->alct);
+    ak_resman_make(l->rr, l->tp, l->alct);
 
   l->gcb = ak_gcb_make(l->alct);
 
@@ -272,7 +274,7 @@ on_startup(void* ctx, ak_app* app)
   l->grm =
     ak_renderer_gresman_get(l->renderer);
 
-  l->load = true;
+  l->load = ak_s_load;
   l->world_added = false;
 
   l->wid = 5;
@@ -335,6 +337,8 @@ on_shutdown(void* ctx)
   ak_gresman_shutdown(l->grm);
   ak_resman_destroy(&l->rm);
   ak_thpool_shutdown(l->tp);
+
+  ak_resreg_destroy(l->rr);
 
   ak_wcb_destroy(&l->wcb_script);
 

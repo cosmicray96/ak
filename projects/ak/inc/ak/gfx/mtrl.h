@@ -36,40 +36,15 @@ typedef struct
 typedef struct
 {
   ak_mtrl_enum me;
-  union
-  {
-    struct
-    {
-      ak_vec4f col;
-    } ui;
-    struct
-    {
-      ak_vec4f col;
-    } col;
-    struct
-    {
-      ak_vec2 uv_min;
-      ak_vec2 uv_max;
-    } tex;
-  };
+  ak_vec4f col;
+  ak_vec2 uv_min;
+  ak_vec2 uv_max;
 } ak_mtrl_quaddata;
 
 typedef struct
 {
   ak_mtrl_enum me;
-  union
-  {
-    struct
-    {
-    } col;
-    struct
-    {
-      ak_tex_old tex;
-    } tex;
-    struct
-    {
-    } ui;
-  };
+  ak_tex_old tex;
 } ak_mtrl_basedata;
 
 typedef struct

@@ -192,10 +192,10 @@ ak_mtrl_col_pushquad(
   ak_mtrl_col* m = mtrl;
   ak_assert(m->call_begin);
 
-  quad q = { .r = ak_fx_to_f(qd->col.col.r),
-             .g = ak_fx_to_f(qd->col.col.g),
-             .b = ak_fx_to_f(qd->col.col.b),
-             .a = ak_fx_to_f(qd->col.col.a),
+  quad q = { .r = ak_fx_to_f(qd->col.r),
+             .g = ak_fx_to_f(qd->col.g),
+             .b = ak_fx_to_f(qd->col.b),
+             .a = ak_fx_to_f(qd->col.a),
              .m = *gmat3f };
 
   ak_gfx_pushquad(m->g, &q);

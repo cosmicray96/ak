@@ -1,4 +1,4 @@
-#include "ak/system/resman.h"
+#include "ak/res/resman.h"
 #include "ak/coll/da.h"
 #include "ak/coll/hmn.h"
 #include "ak/core/async/mutex.h"
@@ -10,7 +10,10 @@
 #include "ak/game/stg/world.h"
 #include "ak/game/world/write.h"
 #include "ak/os/file.h"
-#include "ak/system/resman_itn.h"
+#include "ak/os/time.h"
+#include "ak/program/program.h"
+#include "ak/res/reg.h"
+#include "ak/res/resman_itn.h"
 #include "ak/system/stream.h"
 
 #include <stdint.h>
@@ -20,23 +23,17 @@
 
 typedef struct
 {
-  ak_world world;
-  ak_stmerr err;
-} res_item_world;
-
-typedef struct
-{
   ak_restype type;
   ak_res_status status;
+  ak_stmerr err;
   uint32_t load_count;
   uint32_t access_count;
   ak_alct alct;
   const char* path;
   union
   {
-    ak_res_file file;
     ak_img img;
-    res_item_world wi;
+    ak_world world;
   };
 } res_item;
 
@@ -73,20 +70,7 @@ res_load(ak_resman* rm, ak_resid id)
 
   ak_restype type = ri.type;
   switch (type) {
-    case ak_restype_file: {
-      ri.file.size = ak_file_open_read_all(
-        ri.path, &ri.file.data, ri.alct);
-
-      ak_mutex_lock(&rm->m);
-      res_item* rip =
-        ak_hmn_at(&rm->map, id);
-      rip->file = ri.file;
-      status_set_unsafe(
-        rm, id, ak_res_loaded);
-      ak_mutex_unlock(&rm->m);
-      break;
-    }
-    case ak_restype_img: {
+    case ak_restype_image: {
 
       ri.img =
         ak_img_make_from_path(ri.path);
@@ -104,15 +88,15 @@ res_load(ak_resman* rm, ak_resid id)
 
       ak_stm stm =
         ak_stm_open_file(ri.path, "rb");
-      ri.wi.err = ak_stream_read_world(
-        stm, &ri.wi.world, ri.alct);
+      ri.err = ak_stream_read_world(
+        stm, &ri.world, ri.alct);
       ak_stm_close(stm);
 
       ak_mutex_lock(&rm->m);
       res_item* rip =
         ak_hmn_at(&rm->map, id);
-      rip->wi.world = ri.wi.world;
-      rip->wi.err = ri.wi.err;
+      rip->world = ri.world;
+      rip->err = ri.err;
       status_set_unsafe(
         rm, id, ak_res_loaded);
       ak_mutex_unlock(&rm->m);
@@ -131,12 +115,7 @@ res_unload_unsafe(ak_resman* rm, ak_resid id)
 {
   res_item* ri = ak_hmn_at(&rm->map, id);
   switch (ri->type) {
-    case ak_restype_file: {
-      ak_alct_free(ri->alct, ri->file.data);
-      ri->file = (ak_res_file){ 0 };
-      break;
-    }
-    case ak_restype_img: {
+    case ak_restype_image: {
       ak_img_destroy(&ri->img);
       ri->img = (ak_img){ 0 };
       break;
@@ -210,6 +189,7 @@ void
 ak_resman_destroy(ak_resman* rm)
 {
   ak_log("Fix Resman");
+  ak_this_thread_sleep(ak_dur_from_secs(1));
 
   ak_da_destroy(&rm->unloads);
   ak_da_destroy(&rm->jids);
@@ -327,42 +307,12 @@ ak_resman_release(ak_resman* rm, ak_resid id)
 }
 
 void
-ak_resman_register_file(ak_resman* rm,
-                        ak_resid id,
-                        const char* path)
-{
-  res_register(
-    rm, ak_restype_file, id, path);
-}
-
-bool
-ak_resman_acquire_file(ak_resman* rm,
-                       ak_resid id,
-                       ak_res_file* o_file)
-{
-  ak_assert(ak_resman_res_type(rm, id) ==
-            ak_restype_file);
-
-  bool success = false;
-
-  ak_mutex_lock(&rm->m);
-  res_item* ri = ak_hmn_at(&rm->map, id);
-  if (ri->status == ak_res_loaded) {
-    ri->access_count++;
-    *o_file = ri->file;
-    success = true;
-  }
-  ak_mutex_unlock(&rm->m);
-
-  return success;
-}
-
-void
 ak_resman_register_img(ak_resman* rm,
                        ak_resid id,
                        const char* path)
 {
-  res_register(rm, ak_restype_img, id, path);
+  res_register(
+    rm, ak_restype_image, id, path);
 }
 
 bool
@@ -371,7 +321,7 @@ ak_resman_acquire_img(ak_resman* rm,
                       ak_img* o_img)
 {
   ak_assert(ak_resman_res_type(rm, id) ==
-            ak_restype_img);
+            ak_restype_image);
 
   bool success = false;
 
@@ -411,8 +361,8 @@ ak_resman_acquire_world(ak_resman* rm,
   res_item* ri = ak_hmn_at(&rm->map, id);
   if (ri->status == ak_res_loaded) {
     ri->access_count++;
-    *o_world = ri->wi.world;
-    *o_err = ri->wi.err;
+    *o_world = ri->world;
+    *o_err = ri->err;
     success = true;
   }
   ak_mutex_unlock(&rm->m);

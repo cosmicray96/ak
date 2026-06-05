@@ -67,8 +67,7 @@ elm_render_bg(ak_uirstg* rstg,
 
   if (elm->visible) {
     ak_mtrl_quaddata qd = {
-      .me = ak_mtrl_ui_e,
-      .ui = { .col = elm->color }
+      .me = ak_mtrl_ui_e, .col = elm->color
     };
 
     ak_mat3_f m =
@@ -101,8 +100,7 @@ ak_uirstg_make(ak_alct alct)
   rstg.scissors =
     ak_dq_make(sizeof(ak_vec4f), alct);
   rstg.mtrl_b =
-    (ak_mtrl_basedata){ .me = ak_mtrl_ui_e,
-                        .ui = {} };
+    (ak_mtrl_basedata){ .me = ak_mtrl_ui_e };
   return rstg;
 }
 void

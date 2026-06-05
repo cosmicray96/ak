@@ -179,28 +179,12 @@ ak_stm_write_qd(ak_stm stm,
                 ak_mtrl_quaddata qd)
 {
   ak_stm_try(ak_stm_write_u32(stm, qd.me));
-  switch (qd.me) {
-    case ak_mtrl_col_e: {
-      ak_stm_try(
-        ak_stm_write_vec4f(stm, qd.col.col));
-      break;
-    }
-    case ak_mtrl_tex_e: {
-      ak_stm_try(ak_stm_write_vec2(
-        stm, qd.tex.uv_min));
-      ak_stm_try(ak_stm_write_vec2(
-        stm, qd.tex.uv_max));
-      break;
-    }
-    case ak_mtrl_ui_e: {
-      ak_stm_try(
-        ak_stm_write_vec4f(stm, qd.ui.col));
-      break;
-    }
-    default: {
-      ak_assert(false);
-    }
-  }
+  ak_stm_try(
+    ak_stm_write_vec4f(stm, qd.col));
+  ak_stm_try(
+    ak_stm_write_vec2(stm, qd.uv_min));
+  ak_stm_try(
+    ak_stm_write_vec2(stm, qd.uv_max));
   return ak_stmerr_ok;
 }
 
@@ -211,28 +195,12 @@ ak_stm_read_qd(ak_stm stm,
 
   ak_stm_try(
     ak_stm_read_u32(stm, &o_qd->me));
-  switch (o_qd->me) {
-    case ak_mtrl_col_e: {
-      ak_stm_try(ak_stm_read_vec4f(
-        stm, &o_qd->col.col));
-      break;
-    }
-    case ak_mtrl_tex_e: {
-      ak_stm_try(ak_stm_read_vec2(
-        stm, &o_qd->tex.uv_min));
-      ak_stm_try(ak_stm_read_vec2(
-        stm, &o_qd->tex.uv_max));
-      break;
-    }
-    case ak_mtrl_ui_e: {
-      ak_stm_try(ak_stm_read_vec4f(
-        stm, &o_qd->ui.col));
-      break;
-    }
-    default: {
-      ak_assert(false);
-    }
-  }
+  ak_stm_try(
+    ak_stm_read_vec4f(stm, &o_qd->col));
+  ak_stm_try(
+    ak_stm_read_vec2(stm, &o_qd->uv_min));
+  ak_stm_try(
+    ak_stm_read_vec2(stm, &o_qd->uv_max));
   return ak_stmerr_ok;
 }
 
@@ -396,22 +364,8 @@ ak_stm_write_mtrl_base(
 {
   ak_stm_try(ak_stm_write_u32(
     stm, mtrl_base.data.me));
-  switch (mtrl_base.data.me) {
-    case ak_mtrl_col_e: {
-      break;
-    }
-    case ak_mtrl_tex_e: {
-      ak_stm_try(ak_stm_write_tex(
-        stm, mtrl_base.data.tex.tex));
-      break;
-    }
-    case ak_mtrl_ui_e: {
-      break;
-    }
-    default: {
-      ak_assert(false);
-    }
-  }
+  ak_stm_try(ak_stm_write_tex(
+    stm, mtrl_base.data.tex));
   return ak_stmerr_ok;
 }
 
@@ -423,22 +377,8 @@ ak_stm_read_mtrl_base(
 
   ak_stm_try(ak_stm_read_u32(
     stm, &o_mtrl_base->data.me));
-  switch (o_mtrl_base->data.me) {
-    case ak_mtrl_col_e: {
-      break;
-    }
-    case ak_mtrl_tex_e: {
-      ak_stm_try(ak_stm_read_tex(
-        stm, &o_mtrl_base->data.tex.tex));
-      break;
-    }
-    case ak_mtrl_ui_e: {
-      break;
-    }
-    default: {
-      ak_assert(false);
-    }
-  }
+  ak_stm_try(ak_stm_read_tex(
+    stm, &o_mtrl_base->data.tex));
   return ak_stmerr_ok;
 }
 

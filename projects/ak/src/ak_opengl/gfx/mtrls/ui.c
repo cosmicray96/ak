@@ -190,10 +190,10 @@ ak_mtrl_ui_pushquad(
   ak_mtrl_ui* m = mtrl;
   ak_assert(m->call_begin);
 
-  quad q = { .r = qd->ui.col.r,
-             .g = qd->ui.col.g,
-             .b = qd->ui.col.b,
-             .a = qd->ui.col.a,
+  quad q = { .r = qd->col.r,
+             .g = qd->col.g,
+             .b = qd->col.b,
+             .a = qd->col.a,
              .m = *gmat3f };
 
   ak_gfx_pushquad(m->g, &q);
