@@ -5,29 +5,34 @@
 #include "ak/core/mem/allocator.h"
 #include "ak/debug.h"
 #include "ak/gfx/core.h"
+#include "ak/gfx/gresreg.h"
 #include "ak/gfx/tex.h"
 #include "ak/res/resman.h"
 
 //===== gres_item =====//
 //--- private ---//
+
+typedef struct
+{
+  ak_gresid id;
+  ak_grestype type;
+  bool success;
+  union
+  {
+    struct
+    {
+      ak_img img;
+      ak_textype type;
+    } tex;
+  };
+} load_item;
+
 typedef struct
 {
   ak_grestype type;
   ak_gres_status s;
   uint32_t access_count;
   uint32_t load_count;
-  union
-  {
-    struct
-    {
-      ak_tex* tex;
-      ak_resid rid;
-    } img;
-    struct
-    {
-      // GLuint glint;
-    } fb;
-  };
 } gres_item;
 
 //===== ak_gresman =====//
@@ -35,14 +40,14 @@ typedef struct
 struct ak_gresman
 {
   ak_alct alct;
-  ak_resman* rm;
+  ak_gresreg* grr;
   ak_gfx* gf;
 
   ak_mutex m;
 
   ak_hmn map;
-  ak_da loads;
-  ak_da unloads;
+  ak_dq loadings;
+  ak_dq unloads;
 };
 
 static void
@@ -110,20 +115,20 @@ gres_register(ak_gresman* grm,
 
 //--- internal ---//
 ak_gresman*
-ak_gresman_startup(ak_resman* rm,
+ak_gresman_startup(ak_gresreg* grr,
                    ak_gfx* gf,
                    ak_alct alct)
 {
   ak_gresman* grm =
     ak_alct_alloc(alct, sizeof(ak_gresman));
   grm->alct = alct;
-  grm->rm = rm;
+  grm->grr = grr;
   grm->map =
     ak_hmn_make(sizeof(gres_item), alct);
-  grm->loads =
-    ak_da_make(sizeof(ak_gresid), alct);
+  grm->loadings =
+    ak_dq_make(sizeof(load_item), alct);
   grm->unloads =
-    ak_da_make(sizeof(ak_gresid), alct);
+    ak_dq_make(sizeof(ak_gresid), alct);
 
   grm->m = ak_mutex_make();
   return grm;
@@ -146,7 +151,8 @@ ak_gresman_shutdown(ak_gresman* grm)
     }
   }
 
-  ak_da_destroy(&grm->loads);
+  ak_dq_destroy(&grm->loadings);
+  ak_dq_destroy(&grm->unloads);
   ak_hmn_destroy(&grm->map);
   ak_alct_free(grm->alct, grm);
 }
@@ -175,11 +181,11 @@ ak_gresman_update(ak_gresman* grm)
 
   {
     uint32_t count =
-      ak_da_count(&grm->loads);
+      ak_da_count(&grm->loadings);
     uint32_t i = 0;
     while (i < count) {
       ak_gresid gid = *(ak_gresid*)ak_da_at(
-        &grm->loads, i);
+        &grm->loadings, i);
       gres_item* gi =
         ak_hmn_at(&grm->map, gid);
 
@@ -191,7 +197,7 @@ ak_gresman_update(ak_gresman* grm)
           if (rs == ak_res_loaded) {
             gres_load_unsafe(grm, gid);
             ak_da_remove_swaplast(
-              &grm->loads, i);
+              &grm->loadings, i);
             count--;
           } else {
             i++;
@@ -249,11 +255,6 @@ ak_gresman_register_tex_from_rid(
 }
 
 void
-ak_gresman_register_framebuffer(
-  ak_gresman* grm,
-  ak_gresid gid);
-
-void
 ak_gresman_load(ak_gresman* grm,
                 ak_gresid gid)
 {
@@ -274,7 +275,7 @@ ak_gresman_load(ak_gresman* grm,
       }
     }
 
-    ak_da_pushback(&grm->loads, &gid);
+    ak_da_pushback(&grm->loadings, &gid);
   }
   gi->load_count++;
 
@@ -328,3 +329,29 @@ ak_gresman_acquire_tex(ak_gresman* grm,
   ak_mutex_unlock(&grm->m);
   return false;
 }
+
+void
+ak_gresman_reg_tex(ak_gresman* grm,
+                   ak_gresid gid,
+                   ak_img* img,
+                   ak_textype type)
+{
+}
+
+ak_gres_status
+ak_gresman_status(ak_gresman* grm,
+                  ak_gresid gid);
+ak_grestype
+ak_gresman_type(ak_gresman* grm,
+                ak_gresid gid);
+
+void
+ak_gresman_load(ak_gresman* grm,
+                ak_gresid gid);
+void
+ak_gresman_unload(ak_gresman* grm,
+                  ak_gresid gid);
+
+ak_tex*
+ak_gresman_get_tex(ak_gresman* grm,
+                   ak_gresid gid);

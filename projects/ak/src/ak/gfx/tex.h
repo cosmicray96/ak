@@ -19,7 +19,7 @@ ak_tex_make_from_img(ak_gfx* gfx,
                      ak_alct alct);
 
 void
-ak_tex_destroy(ak_tex* tex, ak_gfx* gfx);
+ak_tex_destroy(ak_tex* tex);
 
 ak_textype
 ak_tex_type(ak_tex* tex);

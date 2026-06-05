@@ -124,3 +124,47 @@ ak_resreg_get(ak_resreg* rr,
 
   ak_p_cpy(o_res, p, ak_sla_itemsize(sla));
 }
+
+void
+ak_resreg_reg_image(ak_resreg* rr,
+                    ak_resid id,
+                    const ak_img* img)
+{
+  uint32_t idx = ak_sla_insert(
+    &rr->ress[ak_restype_image], img);
+
+  item itm = { .type = ak_restype_image,
+               .idx = idx };
+  ak_hmn_insert(&rr->map, id, &itm);
+}
+ak_img
+ak_resreg_get_image(ak_resreg* rr,
+                    ak_resid id)
+{
+  item* itm = ak_hmn_at(&rr->map, id);
+  ak_sla* sla = &rr->ress[itm->type];
+  ak_img* img = ak_sla_at(sla, itm->idx);
+  return *img;
+}
+
+void
+ak_resreg_reg_world(ak_resreg* rr,
+                    ak_resid id,
+                    const ak_world* w)
+{
+  uint32_t idx = ak_sla_insert(
+    &rr->ress[ak_restype_world], w);
+
+  item itm = { .type = ak_restype_world,
+               .idx = idx };
+  ak_hmn_insert(&rr->map, id, &itm);
+}
+ak_world
+ak_resreg_get_world(ak_resreg* rr,
+                    ak_resid id)
+{
+  item* itm = ak_hmn_at(&rr->map, id);
+  ak_sla* sla = &rr->ress[itm->type];
+  ak_world* w = ak_sla_at(sla, itm->idx);
+  return *w;
+}

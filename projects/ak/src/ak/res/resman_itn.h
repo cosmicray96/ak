@@ -22,7 +22,9 @@ struct ak_resman
 
   ak_hmn map;
   ak_da jids;
-  ak_da unloads;
+
+  ak_dq unloads;
+  ak_dq loadeds;
 };
 
 ak_resman
