@@ -1,5 +1,6 @@
 #include "ak/game/world/write.h"
 #include "ak/coll/hmn.h"
+#include "ak/debug.h"
 #include "ak/game/comp.h"
 #include "ak/game/core.h"
 #include "ak/game/stg/world.h"
@@ -135,5 +136,21 @@ remap_ett(ak_comp_tu* ctu, ak_hmn* map)
         *(ak_ett*)ak_hmn_at(map, *e);
       *e = new_e;
     }
+  }
+}
+
+void
+ak_stream_print_world(ak_world* w)
+{
+  ak_wv wv = ak_wv_make(w);
+  ak_ett root = ak_wv_ett_root(&wv);
+  ak_wv_itdfspost it =
+    ak_wv_itdfspost_make(&wv, root);
+  ak_ett e = 0;
+  while ((e = ak_wv_itdfspost_next(&it))) {
+    ak_log("e: %d, pt: %d, cc: %d\n",
+           e,
+           ak_wv_ett_parent(&wv, e),
+           ak_world_ett_compcount(w, e));
   }
 }

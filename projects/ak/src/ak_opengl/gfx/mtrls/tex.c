@@ -80,7 +80,6 @@ struct ak_mtrl_tex
 {
   ak_alct alct;
   ak_gfx* g;
-  ak_gresman* grm;
   GLuint vao;
   GLuint program;
   GLuint vp_loc;
@@ -94,15 +93,12 @@ struct ak_mtrl_tex
 
 //--- internal ---//
 ak_mtrl_tex*
-ak_mtrl_tex_make(ak_gfx* g,
-                 ak_gresman* grm,
-                 ak_alct alct)
+ak_mtrl_tex_make(ak_gfx* g, ak_alct alct)
 {
   ak_mtrl_tex* m =
     ak_alct_alloc(alct, sizeof(ak_mtrl_tex));
   m->alct = alct;
   m->g = g;
-  m->grm = grm;
 
   m->program = program_make(fs_src, vs_src);
   glUseProgram(m->program);
@@ -195,6 +191,7 @@ ak_mtrl_tex_destroy(void* mtrl)
 void
 ak_mtrl_tex_call_begin(
   void* mtrl,
+  ak_gresreg* grr,
   const ak_mtrl_basedata* bd,
   const ak_mtrl_indata* id)
 {
@@ -208,18 +205,9 @@ ak_mtrl_tex_call_begin(
               ak_fx_to_f(id->time));
 
   ak_tex_old tex = bd->tex;
-  if (ak_gresman_status(m->grm, tex.gid) !=
-      ak_gres_loaded) {
-    glBindVertexArray(m->vao);
-    ak_gfx_call_begin(m->g, sizeof(quad));
-    m->call_begin = true;
-    return;
-  }
-  m->gid = tex.gid;
-  ak_tex* t = 0;
-  bool success = ak_gresman_acquire_tex(
-    m->grm, tex.gid, &t);
-  ak_assert(success);
+
+  ak_tex* t =
+    ak_gresreg_get_tex(grr, tex.gid);
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D,
@@ -273,8 +261,6 @@ ak_mtrl_tex_call_end(void* mtrl)
   ak_gfx_call_end(m->g);
   glUseProgram(0);
   glBindVertexArray(0);
-
-  ak_gresman_release(m->grm, m->gid);
 
   m->call_begin = false;
 }

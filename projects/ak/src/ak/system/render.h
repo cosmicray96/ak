@@ -19,7 +19,6 @@ typedef enum
 
 ak_renderer*
 ak_renderer_startup(ak_plat_base* pb,
-                    ak_resman* rm,
                     ak_alct alct);
 
 void
@@ -27,6 +26,8 @@ ak_renderer_shutdown(ak_renderer* r);
 
 ak_gresman*
 ak_renderer_gresman_get(ak_renderer* r);
+ak_gresreg*
+ak_renderer_gresreg_get(ak_renderer* r);
 
 void
 ak_renderer_render(ak_renderer* r,

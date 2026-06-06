@@ -59,7 +59,7 @@ ak_gresreg_unreg(ak_gresreg* grr,
   item* itm = ak_hmn_at(&grr->map, id);
   switch (itm->type) {
     case ak_grestype_tex: {
-      ak_tex_destroy(itm->gres, grr->gfx);
+      ak_tex_destroy(itm->gres);
       break;
     }
     default: {

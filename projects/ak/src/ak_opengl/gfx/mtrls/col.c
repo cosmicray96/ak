@@ -60,9 +60,7 @@ struct ak_mtrl_ui
 
 //--- internal ---//
 ak_mtrl_col*
-ak_mtrl_col_make(ak_gfx* g,
-                 ak_gresman* grm,
-                 ak_alct alct)
+ak_mtrl_col_make(ak_gfx* g, ak_alct alct)
 {
   ak_mtrl_col* m =
     ak_alct_alloc(alct, sizeof(ak_mtrl_col));
@@ -155,6 +153,7 @@ ak_mtrl_col_destroy(void* mtrl)
 void
 ak_mtrl_col_call_begin(
   void* mtrl,
+  ak_gresreg* grr,
   const ak_mtrl_basedata* bd,
   const ak_mtrl_indata* id)
 {

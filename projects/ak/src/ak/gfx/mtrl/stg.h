@@ -3,14 +3,11 @@
 
 #include "ak/core/mem/allocator.h"
 #include "ak/gfx/core.h"
-#include "ak/gfx/gresman.h"
 #include "ak/gfx/mtrl_itn.h"
 typedef struct ak_mtrlstg ak_mtrlstg;
 
 ak_mtrlstg*
-ak_mtrlstg_make(ak_gfx* g,
-                ak_gresman* grm,
-                ak_alct alct);
+ak_mtrlstg_make(ak_gfx* g, ak_alct alct);
 void
 ak_mtrlstg_destroy(ak_mtrlstg* ms);
 

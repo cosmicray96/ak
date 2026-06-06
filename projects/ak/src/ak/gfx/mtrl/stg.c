@@ -7,13 +7,12 @@
   typedef struct ak_mtrl_##name             \
     ak_mtrl_##name;                         \
   ak_mtrl_##name* ak_mtrl_##name##_make(    \
-    ak_gfx* gf,                             \
-    ak_gresman* grm,                        \
-    ak_alct alct);                          \
+    ak_gfx* gf, ak_alct alct);              \
   void ak_mtrl_##name##_destroy(            \
     ak_mtrl_##name* m);                     \
   void ak_mtrl_##name##_call_begin(         \
     void* m,                                \
+    ak_gresreg* grr,                        \
     const ak_mtrl_basedata* bd,             \
     const ak_mtrl_indata* id);              \
   void ak_mtrl_##name##_call_end(void* m);  \
@@ -35,9 +34,7 @@ struct ak_mtrlstg
 
 //--- public ---//
 ak_mtrlstg*
-ak_mtrlstg_make(ak_gfx* g,
-                ak_gresman* grm,
-                ak_alct alct)
+ak_mtrlstg_make(ak_gfx* g, ak_alct alct)
 {
   ak_mtrlstg* ms =
     ak_alct_alloc(alct, sizeof(ak_mtrlstg));
@@ -45,7 +42,7 @@ ak_mtrlstg_make(ak_gfx* g,
 
 #define ak_d_mtrl_x(name)                   \
   ms->mtrls[ak_as_mtrl_e(name)] =           \
-    ak_mtrl_##name##_make(g, grm, alct);
+    ak_mtrl_##name##_make(g, alct);
 #include "ak/gfx/mtrl.inc"
 #undef ak_d_mtrl_x
 

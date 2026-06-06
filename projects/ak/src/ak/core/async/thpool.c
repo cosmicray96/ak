@@ -90,7 +90,6 @@ thread_fn(void* ctx)
     bool isjob =
       thpool_next_job(jp, &jid, &job);
     if (isjob) {
-      status_set(jp, jid, ak_job_working);
       job.job(job.input);
       status_set(jp, jid, ak_job_done);
     }
@@ -165,6 +164,8 @@ ak_thpool_submit(ak_thpool* jp,
                  uint32_t inputsize,
                  const void* input)
 {
+  ak_assert(inputsize <= ak_s_job_ctx_size);
+
   ak_job j = { 0 };
   j.job = jfunc;
   j.inputsize = inputsize;
@@ -175,8 +176,7 @@ ak_thpool_submit(ak_thpool* jp,
     ak_sla_insert(&jp->jobs, &j);
   ak_dq_push(&jp->jidq, &jid);
   ak_atomicint ai;
-  ak_atomicint_store(&ai,
-                     ak_job_not_started);
+  ak_atomicint_store(&ai, ak_job_working);
   ak_hmn_insert(&jp->statuses, jid, &ai);
   ak_mutex_unlock(&jp->m);
   return jid;

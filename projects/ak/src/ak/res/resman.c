@@ -28,7 +28,7 @@ typedef struct
   ak_restype type;
   const char* path;
   ak_alct alct;
-} job_in;
+} loading_item;
 
 typedef struct
 {
@@ -47,8 +47,6 @@ typedef struct
   ak_restype type;
   ak_res_status status;
   const char* path;
-  uint32_t load_count;
-
 } res_item;
 
 static void
@@ -77,6 +75,8 @@ res_load(ak_resman* rm,
         ak_stream_read_world(stm, &w, alct);
       ak_stm_close(stm);
 
+      ak_assert(err == ak_stmerr_ok);
+
       loaded.err = err;
       loaded.world = w;
       break;
@@ -103,7 +103,7 @@ res_unload_unsafe(ak_resman* rm, ak_resid id)
 static void
 job_fn(void* input)
 {
-  job_in* in = input;
+  loading_item* in = input;
   res_load(in->rm,
            in->id,
            in->type,
@@ -127,7 +127,6 @@ res_register(ak_resman* rm,
   item.status = ak_res_not_loaded;
   item.type = type;
   item.path = path;
-  item.load_count = 0;
   ak_hmn_insert(&rm->map, id, &item);
 
   ak_mutex_unlock(&rm->m);
@@ -159,25 +158,28 @@ void
 ak_resman_destroy(ak_resman* rm)
 {
   ak_log("Fix Resman");
+  ak_this_thread_sleep(ak_dur_from_secs(1));
 
-  ak_mutex_lock(&rm->m);
-  ak_hmn_iter it =
-    ak_hmn_iter_make(&rm->map);
-  uint64_t key = 0;
-  void* value = 0;
-  while (
-    ak_hmn_iter_next(&it, &key, &value)) {
-    ak_resid id = key;
-    res_item* ri = value;
-    if (ri->status == ak_res_not_loaded) {
-      continue;
-    }
-    while (ri->status == ak_res_loading) {
-      ak_cpu_yield();
-    }
-    res_unload_unsafe(rm, id);
-  }
-  ak_mutex_unlock(&rm->m);
+  /*
+ak_mutex_lock(&rm->m);
+ak_hmn_iter it =
+ak_hmn_iter_make(&rm->map);
+uint64_t key = 0;
+void* value = 0;
+while (
+ak_hmn_iter_next(&it, &key, &value)) {
+ak_resid id = key;
+res_item* ri = value;
+if (ri->status == ak_res_not_loaded) {
+continue;
+}
+while (ri->status == ak_res_loading) {
+ak_cpu_yield();
+}
+res_unload_unsafe(rm, id);
+}
+ak_mutex_unlock(&rm->m);
+  */
 
   ak_dq_destroy(&rm->loadeds);
   ak_dq_destroy(&rm->unloads);
@@ -198,10 +200,22 @@ ak_resman_update(ak_resman* rm)
       ak_dq_pop(&rm->loadeds, &loaded)) {
       res_item* ri =
         ak_hmn_at(&rm->map, loaded.id);
-      ak_resreg_reg(rm->rr,
-                    loaded.id,
-                    loaded.type,
-                    &loaded.img);
+      switch (ri->type) {
+        case ak_restype_image: {
+          ak_resreg_reg_image(
+            rm->rr, loaded.id, &loaded.img);
+          break;
+        }
+        case ak_restype_world: {
+          ak_resreg_reg_world(rm->rr,
+                              loaded.id,
+                              &loaded.world);
+          break;
+        }
+        default: {
+          ak_assert(false);
+        }
+      };
       ri->status = ak_res_loaded;
     }
   }
@@ -210,10 +224,8 @@ ak_resman_update(ak_resman* rm)
     ak_resid id = { 0 };
     while (ak_dq_pop(&rm->unloads, &id)) {
       res_item* ri = ak_hmn_at(&rm->map, id);
-      if (ri->load_count) {
-        continue;
-      }
       res_unload_unsafe(rm, id);
+      ri->status = ak_res_not_loaded;
     }
   }
 
@@ -243,20 +255,22 @@ ak_resman_load(ak_resman* rm, ak_resid id)
   ak_mutex_lock(&rm->m);
   res_item* ri = ak_hmn_at(&rm->map, id);
 
-  if (ri->load_count == 0 &&
-      ri->status == ak_res_not_loaded) {
+  if (ri->status == ak_res_not_loaded) {
     ri->status = ak_res_loading;
-    job_in in = { .rm = rm,
-                  .id = id,
-                  .type = ri->type,
-                  .path = ri->path,
-                  .alct = ak_heap_to_alct(
-                    &rm->heap) };
-    ak_jobid jid = ak_thpool_submit(
-      rm->jp, &job_fn, sizeof(job_in), &in);
+    loading_item in = {
+      .rm = rm,
+      .id = id,
+      .type = ri->type,
+      .path = ri->path,
+      .alct = ak_heap_to_alct(&rm->heap)
+    };
+    ak_jobid jid =
+      ak_thpool_submit(rm->jp,
+                       &job_fn,
+                       sizeof(loading_item),
+                       &in);
     ak_da_pushback(&rm->jids, &jid);
   }
-  ri->load_count++;
   ak_mutex_unlock(&rm->m);
 }
 
@@ -264,13 +278,7 @@ void
 ak_resman_unload(ak_resman* rm, ak_resid id)
 {
   ak_mutex_lock(&rm->m);
-  res_item* ri = ak_hmn_at(&rm->map, id);
-
-  ak_assert(ri->load_count != 0);
-  ri->load_count--;
-  if (ri->load_count == 0) {
-    ak_dq_push(&rm->unloads, &id);
-  }
+  ak_dq_push(&rm->unloads, &id);
   ak_mutex_unlock(&rm->m);
 }
 
@@ -282,17 +290,6 @@ ak_resman_status(ak_resman* rm, ak_resid id)
   ak_res_status s = ri->status;
   ak_mutex_unlock(&rm->m);
   return s;
-}
-
-ak_restype
-ak_resman_res_type(ak_resman* rm,
-                   ak_resid rid)
-{
-  ak_mutex_lock(&rm->m);
-  res_item* ri = ak_hmn_at(&rm->map, rid);
-  ak_restype type = ri->type;
-  ak_mutex_unlock(&rm->m);
-  return type;
 }
 
 void

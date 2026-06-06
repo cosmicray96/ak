@@ -25,6 +25,7 @@
 #include "ak/gfx/core.h"
 #include "ak/gfx/gcb.h"
 #include "ak/gfx/gresman.h"
+#include "ak/gfx/gresreg.h"
 #include "ak/os/time.h"
 #include "ak/res/reg.h"
 #include "ak/res/resman.h"
@@ -37,7 +38,7 @@
 //===== ak_lworld =====//
 //--- private ---//
 
-#define ak_s_load false
+#define ak_s_load true
 
 struct ak_lworld
 {
@@ -53,13 +54,14 @@ struct ak_lworld
 
   ak_wcb wcb_script;
 
-  ak_resreg* rr;
   ak_thpool* tp;
+  ak_resreg* rr;
   ak_resman rm;
 
   ak_gcb gcb;
   ak_renderer* renderer;
 
+  ak_gresreg* grr;
   ak_gresman* grm;
 
   ak_sys_tf sys_tf;
@@ -68,6 +70,8 @@ struct ak_lworld
 
   ak_resid dog_rid;
   ak_gresid dog_gid;
+  bool dog_rid_loaded;
+  bool dog_gid_loading;
 
   ak_ett e_mtrl_base;
 
@@ -161,13 +165,14 @@ store(ak_lworld* l)
   ak_wcb_ett_new(&wcb, 0);
   ak_world_cb_flush(&l->w_store, &wcb, &ig);
 
-  for (int32_t y = -5; y < 6; y++) {
-    for (int32_t x = -5; x < 6; x++) {
+  for (int32_t y = 0; y < 5; y++) {
+    for (int32_t x = 0; x < 5; x++) {
       push_child2(
         &wv, &wcb, l->e_mtrl_base, x, y);
     }
   }
   ak_world_cb_flush(&l->w_store, &wcb, &ig);
+  ak_stream_print_world(&l->w_store);
 
   ak_stm stm =
     ak_stm_open_file("./world.bin", "wb");
@@ -267,12 +272,12 @@ on_startup(void* ctx, ak_app* app)
   l->gcb = ak_gcb_make(l->alct);
 
   l->renderer = ak_renderer_startup(
-    ak_lcore_plat_base(l->lcore),
-    &l->rm,
-    l->alct);
+    ak_lcore_plat_base(l->lcore), l->alct);
 
   l->grm =
     ak_renderer_gresman_get(l->renderer);
+  l->grr =
+    ak_renderer_gresreg_get(l->renderer);
 
   l->load = ak_s_load;
   l->world_added = false;
@@ -281,18 +286,20 @@ on_startup(void* ctx, ak_app* app)
   ak_resman_register_world(
     &l->rm, l->wid, "./world.bin");
 
+  l->dog_rid_loaded = false;
+  l->dog_gid_loading = false;
   l->dog_rid = 10;
+  l->dog_gid = 11;
   ak_resman_register_img(
     &l->rm, l->dog_rid, "./dog.png");
-  l->dog_gid = 11;
-  ak_gresman_register_tex_from_rid(
-    l->grm, l->dog_gid, l->dog_rid);
-  ak_gresman_load(l->grm, l->dog_gid);
+  ak_resman_load(&l->rm, l->dog_rid);
 
   l->sys_tf = ak_sys_tf_make(l->alct);
   l->sys_ren = ak_sys_ren_make(l->alct);
   l->sys_script =
     ak_sys_script_make(l->alct);
+
+  set_root(l);
 
   if (l->load) {
     ak_resman_load(&l->rm, l->wid);
@@ -302,7 +309,6 @@ on_startup(void* ctx, ak_app* app)
 
   l->ui = ak_ui_make(l->alct);
 
-  set_root(l);
   ak_sys_script_set(
     &l->sys_script, &l->wv, &l->wcb);
   ak_sys_script_run_deinit(&l->sys_script,
@@ -387,6 +393,31 @@ on_event(void* ctx, ak_evt e)
   return false;
 }
 
+static bool
+loaded(ak_lworld* l)
+{
+  if (l->dog_gid_loading) {
+    if (ak_gresman_status(l->grm,
+                          l->dog_gid) ==
+        ak_gres_loaded) {
+      return true;
+    }
+  }
+  if (ak_resman_status(&l->rm, l->dog_rid) ==
+      ak_res_loaded) {
+    if (!l->dog_gid_loading) {
+      ak_img img = ak_resreg_get_image(
+        l->rr, l->dog_rid);
+      ak_gresman_load_tex(l->grm,
+                          l->dog_gid,
+                          img,
+                          ak_textype_rgba8);
+      l->dog_gid_loading = true;
+    }
+  }
+  return false;
+}
+
 static void
 on_update(void* ctx, ak_dur delta)
 {
@@ -399,20 +430,18 @@ on_update(void* ctx, ak_dur delta)
   if (l->load && !l->world_added &&
       ak_resman_status(&l->rm, l->wid) ==
         ak_res_loaded) {
-    ak_world w = { 0 };
-    ak_stmerr err = { 0 };
-    bool success = ak_resman_acquire_world(
-      &l->rm, l->wid, &w, &err);
-    ak_assert(success);
-    ak_assert(err == ak_stmerr_ok);
+    ak_world w =
+      ak_resreg_get_world(l->rr, l->wid);
+
+    ak_stream_print_world(&w);
     ak_world_graft(&l->w,
                    &w,
                    ak_world_ett_root(&l->w),
                    &l->ig,
                    l->alct);
     l->world_added = true;
-    ak_resman_release(&l->rm, l->wid);
     ak_log("Loaded");
+    ak_stream_print_world(&l->w);
   }
 
   if (l->load && l->world_added) {
@@ -445,9 +474,7 @@ on_update(void* ctx, ak_dur delta)
     ak_world_cb_flush(
       &l->w, &l->wcb, &l->ig);
 
-    if (ak_gresman_status(l->grm,
-                          l->dog_gid) ==
-        ak_gres_loaded) {
+    if (loaded(l)) {
       ak_sys_ren_render(
         &l->sys_ren, &l->wv, &l->gcb, delta);
     }

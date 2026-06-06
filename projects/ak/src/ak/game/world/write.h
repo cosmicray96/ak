@@ -18,4 +18,7 @@ ak_stream_read_world(ak_stm stm,
                      ak_world* o_w,
                      ak_alct alct);
 
+void
+ak_stream_print_world(ak_world* o_w);
+
 #endif

@@ -3,11 +3,11 @@
 #include "ak/core/async/mutex.h"
 #include "ak/core/async/thread.h"
 #include "ak/core/mem/allocator.h"
-#include "ak/game/sys/ren.h"
 #include "ak/gfx/core.h"
 #include "ak/gfx/gcb.h"
 #include "ak/gfx/gfx.h"
 #include "ak/gfx/gresman.h"
+#include "ak/gfx/gresreg.h"
 #include "ak/gfx/mtrl/stg.h"
 #include "ak/os/cpu.h"
 #include "ak/os/time.h"
@@ -22,8 +22,9 @@ struct ak_renderer
   ak_thread* th;
 
   ak_plat_base* pb;
-  ak_gfx* gf;
-  ak_resman* rm;
+  ak_gfx* gfx;
+
+  ak_gresreg* grr;
   ak_gresman* grm;
   ak_mtrlstg* ms;
 
@@ -41,11 +42,11 @@ thread_fn(void* ctx)
 {
   ak_renderer* r = ctx;
 
-  r->gf = ak_gfx_startup(r->pb, r->alct);
+  r->gfx = ak_gfx_startup(r->pb, r->alct);
+  r->grr = ak_gresreg_make(r->gfx, r->alct);
   r->grm = ak_gresman_startup(
-    r->rm, r->gf, r->alct);
-  r->ms =
-    ak_mtrlstg_make(r->gf, r->grm, r->alct);
+    r->grr, r->gfx, r->alct);
+  r->ms = ak_mtrlstg_make(r->gfx, r->alct);
 
   while (
     !ak_atomicint_load(&r->shouldclose)) {
@@ -58,25 +59,24 @@ thread_fn(void* ctx)
     ak_atomicint_store(
       &r->status, ak_renderer_rendering);
     ak_gresman_update(r->grm);
-    ak_gcb_flush(&r->gcb, r->gf, r->ms);
+    ak_gcb_flush(
+      &r->gcb, r->gfx, r->grr, r->ms);
     ak_mutex_unlock(&r->m);
   }
 
   ak_mtrlstg_destroy(r->ms);
-  ak_gfx_shutdown(r->gf);
+  ak_gfx_shutdown(r->gfx);
 }
 
 //--- internal ---//
 ak_renderer*
 ak_renderer_startup(ak_plat_base* pb,
-                    ak_resman* rm,
                     ak_alct alct)
 {
   ak_renderer* r =
     ak_alct_alloc(alct, sizeof(ak_renderer));
   r->alct = alct;
   r->pb = pb;
-  r->rm = rm;
   r->gcb = ak_gcb_make(r->alct);
   r->m = ak_mutex_make();
 
@@ -118,6 +118,16 @@ ak_renderer_gresman_get(ak_renderer* r)
     ak_cpu_yield();
   }
   return r->grm;
+}
+
+ak_gresreg*
+ak_renderer_gresreg_get(ak_renderer* r)
+{
+  while (ak_atomicint_load(&r->status) ==
+         ak_renderer_initing) {
+    ak_cpu_yield();
+  }
+  return r->grr;
 }
 
 ak_renderer_status

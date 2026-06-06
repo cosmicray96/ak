@@ -27,11 +27,6 @@ void
 ak_resreg_destroy(ak_resreg* rr);
 
 void
-ak_resreg_reg(ak_resreg* rr,
-              ak_resid id,
-              ak_restype type,
-              const void* res);
-void
 ak_resreg_unreg(ak_resreg* rr, ak_resid id);
 
 void

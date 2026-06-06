@@ -94,10 +94,11 @@ ak_sys_ren_render(ak_sys_ren* r,
   {
     ak_hmn_iter it =
       ak_hmn_iter_make(&r->mtrls);
-    map_item* mi = 0;
     uint64_t key = 0;
-    while (ak_hmn_iter_next(
-      &it, &key, (void**)&mi)) {
+    void* value;
+    while (
+      ak_hmn_iter_next(&it, &key, &value)) {
+      map_item* mi = value;
       mi->used = false;
       ak_da_clear(&mi->da);
     }
@@ -134,12 +135,12 @@ ak_sys_ren_render(ak_sys_ren* r,
   {
     ak_hmn_iter it =
       ak_hmn_iter_make(&r->mtrls);
-    map_item* mi = 0;
     uint64_t key = 0;
-    ak_ett base_id = 0;
-    while (ak_hmn_iter_next(
-      &it, &key, (void**)&mi)) {
-      base_id = key;
+    void* value = 0;
+    while (
+      ak_hmn_iter_next(&it, &key, &value)) {
+      ak_ett base_id = key;
+      map_item* mi = value;
 
       ak_assert(ak_wv_comp_mtrl_base_exist(
         wv, base_id));

@@ -93,36 +93,10 @@ ak_resreg_destroy(ak_resreg* rr)
 }
 
 void
-ak_resreg_reg(ak_resreg* rr,
-              ak_resid id,
-              ak_restype type,
-              const void* res)
-{
-  uint32_t idx =
-    ak_sla_insert(&rr->ress[type], res);
-
-  item itm = { .type = type, .idx = idx };
-  ak_hmn_insert(&rr->map, id, &itm);
-}
-
-void
 ak_resreg_unreg(ak_resreg* rr, ak_resid id)
 {
   res_destroy(rr, id);
   ak_hmn_remove(&rr->map, id);
-}
-
-void
-ak_resreg_get(ak_resreg* rr,
-              ak_resid id,
-              void* o_res)
-{
-  item* itm = ak_hmn_at(&rr->map, id);
-  ak_sla* sla = &rr->ress[itm->type];
-
-  void* p = ak_sla_at(sla, itm->idx);
-
-  ak_p_cpy(o_res, p, ak_sla_itemsize(sla));
 }
 
 void
@@ -164,6 +138,7 @@ ak_resreg_get_world(ak_resreg* rr,
                     ak_resid id)
 {
   item* itm = ak_hmn_at(&rr->map, id);
+  ak_assert(itm->type == ak_restype_world);
   ak_sla* sla = &rr->ress[itm->type];
   ak_world* w = ak_sla_at(sla, itm->idx);
   return *w;

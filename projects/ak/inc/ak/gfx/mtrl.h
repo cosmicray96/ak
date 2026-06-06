@@ -5,7 +5,7 @@
 #include "ak/core/math/mat3x3.h"
 #include "ak/core/math/vec2.h"
 #include "ak/core/math/vec4f.h"
-#include "ak/gfx/core.h"
+#include "ak/gfx/gresreg.h"
 
 #include <stdint.h>
 

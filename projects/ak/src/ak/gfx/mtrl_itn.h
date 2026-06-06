@@ -2,12 +2,14 @@
 #define ak_gfx_mtrl_itn_h
 
 #include "ak/core/math/mat3x3.h"
+#include "ak/gfx/gresreg.h"
 #include "ak/gfx/mtrl.h"
 
 typedef struct
 {
   void (*call_begin)(
     void* ctx,
+    ak_gresreg* grr,
     const ak_mtrl_basedata* bd,
     const ak_mtrl_indata* id);
 

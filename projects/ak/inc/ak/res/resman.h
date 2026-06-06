@@ -20,9 +20,6 @@ typedef struct ak_resman ak_resman;
 
 ak_ex ak_res_status
 ak_resman_status(ak_resman* rm, ak_resid id);
-ak_ex ak_restype
-ak_resman_res_type(ak_resman* rm,
-                   ak_resid rid);
 
 ak_ex void
 ak_resman_load(ak_resman* rm, ak_resid id);

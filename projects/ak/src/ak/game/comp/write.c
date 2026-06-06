@@ -1,4 +1,5 @@
 #include "ak/core/math/fixed.h"
+#include "ak/core/math/vec4.h"
 #include "ak/game/comp.h"
 #include "ak/game/comp_t.h"
 #include <ak/core/math/vec3.h>

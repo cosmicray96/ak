@@ -1,7 +1,7 @@
 #include "ak/gfx/gcb.h"
-#include "ak/core/math/fixed.h"
 #include "ak/core/math/mat3x3.h"
 #include "ak/gfx/gfx.h"
+#include "ak/gfx/gresreg.h"
 #include "ak/gfx/mtrl/stg.h"
 #include "ak/gfx/mtrl_itn.h"
 
@@ -81,6 +81,7 @@ ak_gcb_clear(ak_gcb* gcb)
 void
 ak_gcb_flush(ak_gcb* gcb,
              ak_gfx* gfx,
+             ak_gresreg* grr,
              ak_mtrlstg* ms)
 {
 
@@ -108,7 +109,8 @@ ak_gcb_flush(ak_gcb* gcb,
           m.call_end(m.ctx);
         }
         m = ak_mtrlstg_at(ms, ci->mi.bd.me);
-        m.call_begin(m.ctx, &ci->mi.bd, &id);
+        m.call_begin(
+          m.ctx, grr, &ci->mi.bd, &id);
         has_mtrl = true;
         break;
       }
