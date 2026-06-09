@@ -9,7 +9,6 @@
 #include "ak/debug.h"
 #include "ak/game/stg/world.h"
 #include "ak/game/world/write.h"
-#include "ak/os/cpu.h"
 #include "ak/os/time.h"
 #include "ak/program/program.h"
 #include "ak/res/reg.h"
@@ -190,8 +189,8 @@ ak_resman_update(ak_resman* rm)
       res_item* ri = ak_hmn_at(&rm->map, id);
       if (ri->load_count == 0) {
         res_unload_unsafe(rm, id);
+        ak_hmn_remove(&rm->map, id);
       }
-      ak_hmn_remove(&rm->map, id);
     }
   }
 
@@ -220,7 +219,7 @@ ak_resman_status(ak_resman* rm, ak_resid id)
 {
   ak_mutex_lock(&rm->m);
   if (!ak_hmn_exist(&rm->map, id)) {
-    ak_mutex_lock(&rm->m);
+    ak_mutex_unlock(&rm->m);
     return ak_res_not_exist;
   }
   res_item* ri = ak_hmn_at(&rm->map, id);
@@ -273,6 +272,9 @@ ak_resman_unload(ak_resman* rm, ak_resid id)
   ak_mutex_lock(&rm->m);
 
   res_item* ri = ak_hmn_at(&rm->map, id);
+
+  ak_assert(ri->load_count > 0);
+
   ri->load_count--;
   if (ri->load_count == 0) {
     ak_dq_push(&rm->unloads, &id);

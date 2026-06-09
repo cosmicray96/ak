@@ -2,11 +2,38 @@
 #define ak_ui_ui_h
 
 #include "ak/coll/fcnst.h"
+#include "ak/core/math/vec2.h"
 #include "ak/core/mem/allocator.h"
 
 #include "ak/gfx/gcb.h"
 #include "ak/gfx/mtrl.h"
 #include "ak/ui/core.h"
+
+typedef struct
+{
+  ak_cnst x_cnst;
+  ak_cnst y_cnst;
+  bool visible;
+  bool clipping;
+  enum
+  {
+    bgtype_color,
+    bgtype_tex
+  } bgtype;
+  union
+  {
+    struct
+    {
+      ak_vec4f color;
+    } bg_color;
+    struct
+    {
+      ak_gresid texid;
+      ak_vec2 uv_min;
+      ak_vec2 uv_max;
+    } bg_tex;
+  };
+} ak_uielm_args;
 
 typedef struct
 {
@@ -42,9 +69,7 @@ ak_ui_root(ak_ui* ui);
 ak_uiid
 ak_ui_add(ak_ui* ui,
           ak_uiid pt,
-          ak_cnst x_cnst,
-          ak_cnst y_cnst,
-          bool visible);
+          const ak_uielm_args* args);
 
 void
 ak_ui_set(ak_ui* ui,

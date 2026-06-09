@@ -42,6 +42,7 @@ typedef struct
 {
   ak_grestype type;
   ak_gres_status s;
+  uint32_t load_count;
 } gres_item;
 
 //===== ak_gresman =====//
@@ -61,7 +62,7 @@ struct ak_gresman
 };
 
 static void
-gres_load(gres_loading_item li)
+gres_load_unsafe(gres_loading_item li)
 {
   loaded_item loaded = { .id = li.id,
                          .type = li.type };
@@ -83,7 +84,8 @@ gres_load(gres_loading_item li)
 }
 
 static void
-gres_unload(ak_gresman* grm, ak_gresid id)
+gres_unload_unsafe(ak_gresman* grm,
+                   ak_gresid id)
 {
   ak_gresreg_unreg(grm->grr, id);
   ak_hmn_remove(&grm->map, id);
@@ -132,18 +134,22 @@ ak_gresman_update(ak_gresman* grm)
 
   {
     ak_gresid id = 0;
-    while (
-      ak_dq_pop(&grm->unloadings, &id)) {
+    if (ak_dq_pop(&grm->unloadings, &id)) {
       gres_item* gi =
         ak_hmn_at(&grm->map, id);
-      gres_unload(grm, id);
+      if (gi->load_count == 0 &&
+          gi->s == ak_gres_loaded) {
+        gres_unload_unsafe(grm, id);
+      } else {
+        ak_dq_push(&grm->unloadings, &id);
+      }
     }
   }
 
   {
     gres_loading_item li = { 0 };
-    while (ak_dq_pop(&grm->loadings, &li)) {
-      gres_load(li);
+    if (ak_dq_pop(&grm->loadings, &li)) {
+      gres_load_unsafe(li);
     }
   }
 
@@ -186,10 +192,16 @@ ak_gresman_load_tex(ak_gresman* grm,
 {
   ak_mutex_lock(&grm->m);
 
-  gres_item gi = {
-    .type = ak_grestype_tex,
-    .s = ak_gres_loading,
-  };
+  if (ak_hmn_exist(&grm->map, id)) {
+    gres_item* gi = ak_hmn_at(&grm->map, id);
+    gi->load_count++;
+    ak_mutex_unlock(&grm->m);
+    return;
+  }
+
+  gres_item gi = { .type = ak_grestype_tex,
+                   .s = ak_gres_loading,
+                   .load_count = 1 };
   ak_hmn_insert(&grm->map, id, &gi);
 
   gres_loading_item li = {
@@ -209,7 +221,14 @@ ak_gresman_unload(ak_gresman* grm,
 {
   ak_mutex_lock(&grm->m);
 
-  ak_dq_push(&grm->unloadings, &id);
+  gres_item* gi = ak_hmn_at(&grm->map, id);
+
+  ak_assert(gi->load_count > 0);
+
+  gi->load_count--;
+  if (gi->load_count == 0) {
+    ak_dq_push(&grm->unloadings, &id);
+  }
 
   ak_mutex_unlock(&grm->m);
 }

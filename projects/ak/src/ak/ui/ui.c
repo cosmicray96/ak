@@ -46,22 +46,18 @@ ak_ui_root(ak_ui* ui)
 ak_uiid
 ak_ui_add(ak_ui* ui,
           ak_uiid pt,
-          ak_cnst x_cnst,
-          ak_cnst y_cnst,
-          bool visible)
+          const ak_uielm_args* args)
 {
   ak_assert(!ui->setted);
   ak_assert(pt != 0);
 
-  ak_uielm elm = { .cnst.x = x_cnst,
-                   .cnst.y = y_cnst,
+  ak_uielm elm = { .cnst.x = args->x_cnst,
+                   .cnst.y = args->y_cnst,
                    .color =
-                     (ak_vec4f){ .r = 0,
-                                 .g = 0,
-                                 .b = 1,
-                                 .a = 1 },
-                   .visible = visible,
-                   .clipping = false };
+                     args->bg_color.color,
+                   .visible = args->visible,
+                   .clipping =
+                     args->clipping };
   return ak_fcnst_add(&ui->tree, pt, &elm);
 }
 

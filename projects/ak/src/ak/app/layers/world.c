@@ -234,19 +234,25 @@ set_root(ak_lworld* l)
 static void
 ui_render(ak_lworld* l)
 {
+  ak_uielm_args args = {
+    .x_cnst = { .rel = 0.5f, .abs = 0 },
+    .y_cnst = { .rel = 0.5f, .abs = 0 },
+    .bgtype = bgtype_color,
+    .bg_color = { .color = { .r = 0,
+                             .g = 0,
+                             .b = 1,
+                             .a = 1 } },
+    .visible = true,
+    .clipping = false
+  };
   ak_ui_clear(&l->ui);
   ak_ui_add(
-    &l->ui,
-    ak_ui_root(&l->ui),
-    (ak_cnst){ .rel = 0.5f, .abs = 0 },
-    (ak_cnst){ .rel = 0.5f, .abs = 0 },
-    true);
-  ak_ui_add(&l->ui,
-            ak_ui_root(&l->ui),
-            (ak_cnst){ .rel = 0, .abs = 0 },
-            (ak_cnst){ .rel = 0,
-                       .abs = l->time * 30 },
-            true);
+    &l->ui, ak_ui_root(&l->ui), &args);
+
+  args.y_cnst.abs = l->time * 30;
+  args.visible = false;
+  ak_ui_add(
+    &l->ui, ak_ui_root(&l->ui), &args);
   ak_ui_set(&l->ui, 0, 0, 800, 600);
   ak_ui_render(&l->ui, &l->gcb);
 }
