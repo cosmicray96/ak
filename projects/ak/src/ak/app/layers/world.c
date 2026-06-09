@@ -292,7 +292,7 @@ on_startup(void* ctx, ak_app* app)
   l->dog_gid = 11;
   ak_resman_register_img(
     &l->rm, l->dog_rid, "./dog.png");
-  ak_resman_load(&l->rm, l->dog_rid);
+  ak_resman_load_old(&l->rm, l->dog_rid);
 
   l->sys_tf = ak_sys_tf_make(l->alct);
   l->sys_ren = ak_sys_ren_make(l->alct);
@@ -302,7 +302,7 @@ on_startup(void* ctx, ak_app* app)
   set_root(l);
 
   if (l->load) {
-    ak_resman_load(&l->rm, l->wid);
+    ak_resman_load_old(&l->rm, l->wid);
   } else {
     store(l);
   }

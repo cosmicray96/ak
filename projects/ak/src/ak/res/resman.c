@@ -26,7 +26,7 @@ typedef struct
   ak_resman* rm;
   ak_resid id;
   ak_restype type;
-  const char* path;
+  ak_stm stm;
   ak_alct alct;
 } loading_item;
 
@@ -46,34 +46,31 @@ typedef struct
 {
   ak_restype type;
   ak_res_status status;
-  const char* path;
+  ak_stm stm;
+  uint32_t load_count;
 } res_item;
 
 static void
 res_load(ak_resman* rm,
          ak_resid id,
          ak_restype type,
-         const char* path,
+         ak_stm stm,
          ak_alct alct)
 {
   loaded_item loaded = { .id = id,
                          .type = type };
   switch (type) {
     case ak_restype_image: {
-      ak_img img =
-        ak_img_make_from_path(path);
+      ak_img img = ak_img_make_from_stm(stm);
 
       loaded.err = ak_stmerr_ok;
       loaded.img = img;
       break;
     }
     case ak_restype_world: {
-      ak_stm stm =
-        ak_stm_open_file(path, "rb");
       ak_world w = { 0 };
       ak_stmerr err =
         ak_stream_read_world(stm, &w, alct);
-      ak_stm_close(stm);
 
       ak_assert(err == ak_stmerr_ok);
 
@@ -107,30 +104,11 @@ job_fn(void* input)
   res_load(in->rm,
            in->id,
            in->type,
-           in->path,
+           in->stm,
            in->alct);
 }
 //===== ak_resman =====//
 //--- private ---//
-
-static void
-res_register(ak_resman* rm,
-             ak_restype type,
-             ak_resid id,
-             const char* path)
-{
-  ak_mutex_lock(&rm->m);
-
-  ak_assert(!ak_hmn_exist(&rm->map, id));
-
-  res_item item = { 0 };
-  item.status = ak_res_not_loaded;
-  item.type = type;
-  item.path = path;
-  ak_hmn_insert(&rm->map, id, &item);
-
-  ak_mutex_unlock(&rm->m);
-}
 
 //--- internal ---//
 ak_resman
@@ -159,27 +137,6 @@ ak_resman_destroy(ak_resman* rm)
 {
   ak_log("Fix Resman");
   ak_this_thread_sleep(ak_dur_from_secs(1));
-
-  /*
-ak_mutex_lock(&rm->m);
-ak_hmn_iter it =
-ak_hmn_iter_make(&rm->map);
-uint64_t key = 0;
-void* value = 0;
-while (
-ak_hmn_iter_next(&it, &key, &value)) {
-ak_resid id = key;
-res_item* ri = value;
-if (ri->status == ak_res_not_loaded) {
-continue;
-}
-while (ri->status == ak_res_loading) {
-ak_cpu_yield();
-}
-res_unload_unsafe(rm, id);
-}
-ak_mutex_unlock(&rm->m);
-  */
 
   ak_dq_destroy(&rm->loadeds);
   ak_dq_destroy(&rm->unloads);
@@ -224,8 +181,10 @@ ak_resman_update(ak_resman* rm)
     ak_resid id = { 0 };
     while (ak_dq_pop(&rm->unloads, &id)) {
       res_item* ri = ak_hmn_at(&rm->map, id);
-      res_unload_unsafe(rm, id);
-      ri->status = ak_res_not_loaded;
+      if (ri->load_count == 0) {
+        res_unload_unsafe(rm, id);
+      }
+      ak_hmn_remove(&rm->map, id);
     }
   }
 
@@ -249,39 +208,6 @@ ak_resman_update(ak_resman* rm)
 
 //--- export ---//
 
-void
-ak_resman_load(ak_resman* rm, ak_resid id)
-{
-  ak_mutex_lock(&rm->m);
-  res_item* ri = ak_hmn_at(&rm->map, id);
-
-  if (ri->status == ak_res_not_loaded) {
-    ri->status = ak_res_loading;
-    loading_item in = {
-      .rm = rm,
-      .id = id,
-      .type = ri->type,
-      .path = ri->path,
-      .alct = ak_heap_to_alct(&rm->heap)
-    };
-    ak_jobid jid =
-      ak_thpool_submit(rm->jp,
-                       &job_fn,
-                       sizeof(loading_item),
-                       &in);
-    ak_da_pushback(&rm->jids, &jid);
-  }
-  ak_mutex_unlock(&rm->m);
-}
-
-void
-ak_resman_unload(ak_resman* rm, ak_resid id)
-{
-  ak_mutex_lock(&rm->m);
-  ak_dq_push(&rm->unloads, &id);
-  ak_mutex_unlock(&rm->m);
-}
-
 ak_res_status
 ak_resman_status(ak_resman* rm, ak_resid id)
 {
@@ -293,19 +219,53 @@ ak_resman_status(ak_resman* rm, ak_resid id)
 }
 
 void
-ak_resman_register_img(ak_resman* rm,
-                       ak_resid id,
-                       const char* path)
+ak_resman_load(ak_resman* rm,
+               ak_resid id,
+               ak_restype type,
+               ak_stm stm)
 {
-  res_register(
-    rm, ak_restype_image, id, path);
+  ak_mutex_lock(&rm->m);
+
+  if (ak_hmn_exist(&rm->map, id)) {
+    res_item* ri = ak_hmn_at(&rm->map, id);
+    ri->load_count++;
+    ak_mutex_unlock(&rm->m);
+    return;
+  }
+
+  res_item ri = { .type = type,
+                  .status = ak_res_loading,
+                  .stm = stm,
+                  .load_count = 1 };
+  ak_hmn_insert(&rm->map, id, &ri);
+
+  loading_item in = {
+    .rm = rm,
+    .id = id,
+    .type = type,
+    .stm = stm,
+    .alct = ak_heap_to_alct(&rm->heap)
+  };
+  ak_jobid jid =
+    ak_thpool_submit(rm->jp,
+                     &job_fn,
+                     sizeof(loading_item),
+                     &in);
+  ak_da_pushback(&rm->jids, &jid);
+
+  ak_mutex_unlock(&rm->m);
 }
 
 void
-ak_resman_register_world(ak_resman* rm,
-                         ak_resid id,
-                         const char* path)
+ak_resman_unload(ak_resman* rm, ak_resid id)
 {
-  res_register(
-    rm, ak_restype_world, id, path);
+  ak_mutex_lock(&rm->m);
+
+  res_item* ri = ak_hmn_at(&rm->map, id);
+  ri->load_count--;
+  if (ri->load_count == 0) {
+    ak_dq_push(&rm->unloads, &id);
+  }
+
+  ak_mutex_unlock(&rm->m);
 }

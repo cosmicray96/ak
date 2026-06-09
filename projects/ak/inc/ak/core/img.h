@@ -2,6 +2,7 @@
 #define ak_core_img_h
 
 #include "ak/export.h"
+#include "ak/system/stream.h"
 #include <stdint.h>
 
 typedef enum
@@ -19,6 +20,9 @@ typedef struct
 
 ak_ex ak_img
 ak_img_make_from_path(const char* path);
+
+ak_ex ak_img
+ak_img_make_from_stm(ak_stm stm);
 
 void
 ak_img_destroy(ak_img* img);
