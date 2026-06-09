@@ -15,7 +15,10 @@ typedef struct
   ak_gresman* grm;
   ak_hmn res_map;
   ak_hmn gres_map;
-  ak_da loadings;
+  ak_da res_loadings;
+  ak_da gres_loadings;
+
+  ak_da gres_unloadings;
 } ak_assetman;
 
 ak_assetman
@@ -24,6 +27,9 @@ ak_assetman_make(ak_resman* rm,
                  ak_alct alct);
 void
 ak_assetman_destroy(ak_assetman* am);
+
+void
+ak_assetman_update(ak_assetman* am);
 
 void
 ak_assetman_load_res(ak_assetman* am,
@@ -51,7 +57,7 @@ ak_assetman_reg_res_world(ak_assetman* am,
 void
 ak_assetman_reg_gres_tex(ak_assetman* am,
                          ak_gresid gid,
-                         ak_resid rid,
+                         ak_resid img_rid,
                          ak_textype type);
 
 #endif

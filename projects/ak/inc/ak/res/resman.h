@@ -12,6 +12,7 @@
 
 typedef enum
 {
+  ak_res_not_exist,
   ak_res_not_loaded,
   ak_res_loading,
   ak_res_loaded

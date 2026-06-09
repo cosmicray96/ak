@@ -10,3 +10,8 @@ ak_ex ak_stmerr
 ak_stm_file_read(void* file,
                  void* data,
                  uint64_t size);
+ak_stmerr
+ak_stm_file_read_all(void* file,
+                     void** o_data,
+                     uint64_t* o_size,
+                     ak_alct alct);

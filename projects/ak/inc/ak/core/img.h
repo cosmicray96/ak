@@ -22,7 +22,8 @@ ak_ex ak_img
 ak_img_make_from_path(const char* path);
 
 ak_ex ak_img
-ak_img_make_from_stm(ak_stm stm);
+ak_img_make_from_stm(ak_stm stm,
+                     ak_alct alct);
 
 void
 ak_img_destroy(ak_img* img);

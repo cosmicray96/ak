@@ -1,6 +1,7 @@
 #include "ak/core/async/batchjob.h"
 #include "ak/coll/da.h"
 #include "ak/core/async/thpool.h"
+#include "ak/debug.h"
 #include "ak/os/cpu.h"
 #include <stdbool.h>
 

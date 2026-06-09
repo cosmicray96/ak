@@ -1,6 +1,5 @@
 #include "ak/system/stream.h"
 #include "ak/core/mem/ptr.h"
-#include "ak/debug.h"
 #include "ak/system/stream_itn.h"
 #include <stdio.h>
 
@@ -52,6 +51,26 @@ ak_stm_read(ak_stm stm,
     case ak_stmtype_file: {
       err = ak_stm_file_read(
         stm.ctx, data, size);
+      break;
+    }
+    default: {
+      return ak_stmerr_unsupported;
+    }
+  }
+  return err;
+}
+
+ak_stmerr
+ak_stm_read_all(ak_stm stm,
+                void** o_data,
+                uint64_t* o_size,
+                ak_alct alct)
+{
+  ak_stmerr err = ak_stmerr_err;
+  switch (stm.type) {
+    case ak_stmtype_file: {
+      err = ak_stm_file_read_all(
+        stm.ctx, o_data, o_size, alct);
       break;
     }
     default: {

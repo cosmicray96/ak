@@ -1,3 +1,4 @@
+#include "ak/core/mem/allocator.h"
 #include "ak/system/stream_itn.h"
 #include <stdio.h>
 
@@ -34,5 +35,26 @@ ak_stm_file_read(void* file,
                  uint64_t size)
 {
   fread(data, 1, size, (FILE*)file);
+  return ak_stmerr_ok;
+}
+
+ak_stmerr
+ak_stm_file_read_all(void* file,
+                     void** o_data,
+                     uint64_t* o_size,
+                     ak_alct alct)
+{
+  FILE* f = file;
+
+  fseek(f, 0, SEEK_END);
+  long size = ftell(f);
+  rewind(f);
+
+  uint8_t* buf = ak_alct_alloc(alct, size);
+
+  fread(buf, 1, size, f);
+
+  *o_data = buf;
+  *o_size = size;
   return ak_stmerr_ok;
 }

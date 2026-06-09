@@ -28,7 +28,7 @@ typedef struct
   ak_restype type;
   ak_stm stm;
   ak_alct alct;
-} loading_item;
+} gres_loading_item;
 
 typedef struct
 {
@@ -61,7 +61,8 @@ res_load(ak_resman* rm,
                          .type = type };
   switch (type) {
     case ak_restype_image: {
-      ak_img img = ak_img_make_from_stm(stm);
+      ak_img img = ak_img_make_from_stm(
+        stm, ak_heap_to_alct(&rm->heap));
 
       loaded.err = ak_stmerr_ok;
       loaded.img = img;
@@ -100,7 +101,7 @@ res_unload_unsafe(ak_resman* rm, ak_resid id)
 static void
 job_fn(void* input)
 {
-  loading_item* in = input;
+  gres_loading_item* in = input;
   res_load(in->rm,
            in->id,
            in->type,
@@ -144,6 +145,12 @@ ak_resman_destroy(ak_resman* rm)
   ak_hmn_destroy(&rm->map);
   ak_heap_destroy(&rm->heap);
   ak_mutex_destroy(&rm->m);
+}
+
+ak_resreg*
+ak_resman_resreg(ak_resman* rm)
+{
+  return rm->rr;
 }
 
 void
@@ -212,6 +219,10 @@ ak_res_status
 ak_resman_status(ak_resman* rm, ak_resid id)
 {
   ak_mutex_lock(&rm->m);
+  if (!ak_hmn_exist(&rm->map, id)) {
+    ak_mutex_lock(&rm->m);
+    return ak_res_not_exist;
+  }
   res_item* ri = ak_hmn_at(&rm->map, id);
   ak_res_status s = ri->status;
   ak_mutex_unlock(&rm->m);
@@ -239,18 +250,18 @@ ak_resman_load(ak_resman* rm,
                   .load_count = 1 };
   ak_hmn_insert(&rm->map, id, &ri);
 
-  loading_item in = {
+  gres_loading_item in = {
     .rm = rm,
     .id = id,
     .type = type,
     .stm = stm,
     .alct = ak_heap_to_alct(&rm->heap)
   };
-  ak_jobid jid =
-    ak_thpool_submit(rm->jp,
-                     &job_fn,
-                     sizeof(loading_item),
-                     &in);
+  ak_jobid jid = ak_thpool_submit(
+    rm->jp,
+    &job_fn,
+    sizeof(gres_loading_item),
+    &in);
   ak_da_pushback(&rm->jids, &jid);
 
   ak_mutex_unlock(&rm->m);

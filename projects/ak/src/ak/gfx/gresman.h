@@ -10,6 +10,7 @@
 
 typedef enum
 {
+  ak_gres_not_exist,
   ak_gres_not_loaded,
   ak_gres_loading,
   ak_gres_loaded,

@@ -1,6 +1,7 @@
 #ifndef ak_system_stream_h
 #define ak_system_stream_h
 
+#include "ak/core/mem/allocator.h"
 #include "ak/export.h"
 #include <stdbool.h>
 #include <stdint.h>
@@ -47,6 +48,12 @@ ak_ex ak_stmerr
 ak_stm_read(ak_stm stm,
             void* data,
             uint64_t size);
+
+ak_ex ak_stmerr
+ak_stm_read_all(ak_stm stm,
+                void** o_data,
+                uint64_t* o_size,
+                ak_alct alct);
 
 #define ak_stm_try(x)                       \
   do {                                      \

@@ -34,6 +34,9 @@ ak_resman_make(ak_resreg* rr,
 void
 ak_resman_destroy(ak_resman* rm);
 
+ak_resreg*
+ak_resman_resreg(ak_resman* rm);
+
 void
 ak_resman_update(ak_resman* rm);
 

@@ -36,7 +36,7 @@ typedef struct
       ak_textype type;
     } tex;
   };
-} loading_item;
+} gres_loading_item;
 
 typedef struct
 {
@@ -61,7 +61,7 @@ struct ak_gresman
 };
 
 static void
-gres_load(loading_item li)
+gres_load(gres_loading_item li)
 {
   loaded_item loaded = { .id = li.id,
                          .type = li.type };
@@ -102,8 +102,8 @@ ak_gresman_startup(ak_gresreg* grr,
   grm->grr = grr;
   grm->map =
     ak_hmn_make(sizeof(gres_item), alct);
-  grm->loadings =
-    ak_dq_make(sizeof(loading_item), alct);
+  grm->loadings = ak_dq_make(
+    sizeof(gres_loading_item), alct);
   grm->loaded =
     ak_dq_make(sizeof(loaded_item), alct);
   grm->unloadings =
@@ -141,7 +141,7 @@ ak_gresman_update(ak_gresman* grm)
   }
 
   {
-    loading_item li = { 0 };
+    gres_loading_item li = { 0 };
     while (ak_dq_pop(&grm->loadings, &li)) {
       gres_load(li);
     }
@@ -167,6 +167,11 @@ ak_gresman_status(ak_gresman* grm,
 {
 
   ak_mutex_lock(&grm->m);
+
+  if (!ak_hmn_exist(&grm->map, id)) {
+    ak_mutex_unlock(&grm->m);
+    return ak_gres_not_exist;
+  }
   gres_item* gi = ak_hmn_at(&grm->map, id);
   ak_gres_status s = gi->s;
   ak_mutex_unlock(&grm->m);
@@ -187,7 +192,7 @@ ak_gresman_load_tex(ak_gresman* grm,
   };
   ak_hmn_insert(&grm->map, id, &gi);
 
-  loading_item li = {
+  gres_loading_item li = {
     .grm = grm,
     .id = id,
     .type = ak_grestype_tex,

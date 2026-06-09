@@ -1,7 +1,6 @@
 #ifndef ak_core_mem_allocator_h
 #define ak_core_mem_allocator_h
 
-#include "ak/debug.h"
 #include "ak/export.h"
 #include <stdint.h>
 
