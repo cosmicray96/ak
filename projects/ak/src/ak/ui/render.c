@@ -66,9 +66,6 @@ elm_render_bg(ak_uirstg* rstg,
   }
 
   if (elm->visible) {
-    ak_mtrl_quaddata qd = {
-      .me = ak_mtrl_ui_e, .col = elm->color
-    };
 
     ak_mat3_f m =
       ak_mat3_from_rect(elm->pos.x,
@@ -76,7 +73,7 @@ elm_render_bg(ak_uirstg* rstg,
                         elm->size.x,
                         elm->size.y);
 
-    ak_gcb_push_quad(gcb, &qd, &m);
+    ak_gcb_push_quad(gcb, &elm->qd, &m);
   }
 
   ak_fcnst_itchild it =

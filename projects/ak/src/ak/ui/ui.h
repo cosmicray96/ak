@@ -2,7 +2,6 @@
 #define ak_ui_ui_h
 
 #include "ak/coll/fcnst.h"
-#include "ak/core/math/vec2.h"
 #include "ak/core/mem/allocator.h"
 
 #include "ak/gfx/gcb.h"
@@ -15,24 +14,7 @@ typedef struct
   ak_cnst y_cnst;
   bool visible;
   bool clipping;
-  enum
-  {
-    bgtype_color,
-    bgtype_tex
-  } bgtype;
-  union
-  {
-    struct
-    {
-      ak_vec4f color;
-    } bg_color;
-    struct
-    {
-      ak_gresid texid;
-      ak_vec2 uv_min;
-      ak_vec2 uv_max;
-    } bg_tex;
-  };
+  ak_mtrl_quaddata qd;
 } ak_uielm_args;
 
 typedef struct

@@ -3,6 +3,7 @@
 
 #include "ak/core/math/vec4.h"
 #include "ak/core/mem/allocator.h"
+#include "ak/gfx/mtrl.h"
 #include "ak/ui/core.h"
 #include "ak/ui/ui.h"
 
@@ -18,7 +19,7 @@ typedef struct
   ak_uiaxistype axistype;
   bool clipping;
   bool visible;
-  ak_vec4f color;
+  ak_mtrl_quaddata qd;
   union
   {
     struct

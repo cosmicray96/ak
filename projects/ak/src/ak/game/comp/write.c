@@ -100,6 +100,30 @@ ak_stm_read_vec4(ak_stm stm, ak_vec4* o_vec4)
 }
 
 ak_stmerr
+ak_stm_write_vec2f(ak_stm stm,
+                   ak_vec2f vec2f)
+{
+  ak_stm_try(ak_stm_write_f32(stm, vec2f.x));
+
+  ak_stm_try(ak_stm_write_f32(stm, vec2f.y));
+
+  return ak_stmerr_ok;
+}
+
+ak_stmerr
+ak_stm_read_vec2f(ak_stm stm,
+                  ak_vec2f* o_vec2f)
+{
+  ak_stm_try(
+    ak_stm_read_f32(stm, &o_vec2f->x));
+
+  ak_stm_try(
+    ak_stm_read_f32(stm, &o_vec2f->y));
+
+  return ak_stmerr_ok;
+}
+
+ak_stmerr
 ak_stm_write_vec4f(ak_stm stm,
                    ak_vec4f vec4f)
 {
@@ -179,13 +203,12 @@ ak_stmerr
 ak_stm_write_qd(ak_stm stm,
                 ak_mtrl_quaddata qd)
 {
-  ak_stm_try(ak_stm_write_u32(stm, qd.me));
   ak_stm_try(
     ak_stm_write_vec4f(stm, qd.col));
   ak_stm_try(
-    ak_stm_write_vec2(stm, qd.uv_min));
+    ak_stm_write_vec2f(stm, qd.uv_min));
   ak_stm_try(
-    ak_stm_write_vec2(stm, qd.uv_max));
+    ak_stm_write_vec2f(stm, qd.uv_max));
   return ak_stmerr_ok;
 }
 
@@ -195,13 +218,11 @@ ak_stm_read_qd(ak_stm stm,
 {
 
   ak_stm_try(
-    ak_stm_read_u32(stm, &o_qd->me));
-  ak_stm_try(
     ak_stm_read_vec4f(stm, &o_qd->col));
   ak_stm_try(
-    ak_stm_read_vec2(stm, &o_qd->uv_min));
+    ak_stm_read_vec2f(stm, &o_qd->uv_min));
   ak_stm_try(
-    ak_stm_read_vec2(stm, &o_qd->uv_max));
+    ak_stm_read_vec2f(stm, &o_qd->uv_max));
   return ak_stmerr_ok;
 }
 

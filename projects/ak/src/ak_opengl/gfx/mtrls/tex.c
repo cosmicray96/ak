@@ -201,8 +201,7 @@ ak_mtrl_tex_call_begin(
   glUseProgram(m->program);
   glUniformMatrix3fv(
     m->vp_loc, 1, GL_FALSE, id->vp.v);
-  glUniform1f(m->t_loc,
-              ak_fx_to_f(id->time));
+  glUniform1f(m->t_loc, id->time);
 
   ak_tex_old tex = bd->tex;
 

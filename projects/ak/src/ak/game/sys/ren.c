@@ -62,6 +62,9 @@ ak_sys_ren_render(ak_sys_ren* r,
   r->time = ak_fxadd(
     r->time, ak_dur_as_secs_fx(delta));
   ak_ett root = ak_wv_ett_root(wv);
+  if (!root) {
+    return;
+  }
 
   ak_mat3_f vp = { 0 };
   {
@@ -87,7 +90,7 @@ ak_sys_ren_render(ak_sys_ren* r,
 
   ak_mtrl_indata mid = {
 
-    .vp = vp, .time = r->time
+    .vp = vp, .time = ak_fx_to_f(r->time)
   };
   ak_gcb_push_mtrlin(gcb, &mid);
 

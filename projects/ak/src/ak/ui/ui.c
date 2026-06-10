@@ -53,11 +53,10 @@ ak_ui_add(ak_ui* ui,
 
   ak_uielm elm = { .cnst.x = args->x_cnst,
                    .cnst.y = args->y_cnst,
-                   .color =
-                     args->bg_color.color,
                    .visible = args->visible,
                    .clipping =
-                     args->clipping };
+                     args->clipping,
+                   .qd = args->qd };
   return ak_fcnst_add(&ui->tree, pt, &elm);
 }
 

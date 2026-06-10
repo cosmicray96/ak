@@ -30,8 +30,11 @@ ak_sys_tf_update(ak_sys_tf* stf,
                  ak_wv* wv,
                  ak_wcb* wcb)
 {
-  ak_wv_itdfspre_reset(
-    &stf->it, wv, ak_wv_ett_root(wv));
+  ak_ett root = ak_wv_ett_root(wv);
+  if (!root) {
+    return;
+  }
+  ak_wv_itdfspre_reset(&stf->it, wv, root);
   ak_spa_clear(&stf->gmat3s);
 
   ak_ett e = ak_wv_itdfspre_next(&stf->it);

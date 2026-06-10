@@ -59,12 +59,13 @@ struct ak_lworld
   ak_resreg* rr;
   ak_resman rm;
 
-  ak_gcb gcb;
-  ak_renderer* renderer;
-
   ak_gresreg* grr;
   ak_gresman* grm;
+
   ak_assetman am;
+
+  ak_gcb gcb;
+  ak_renderer* renderer;
 
   ak_sys_tf sys_tf;
   ak_sys_ren sys_ren;
@@ -72,8 +73,6 @@ struct ak_lworld
 
   ak_resid dog_rid;
   ak_gresid dog_gid;
-  bool dog_rid_loaded;
-  bool dog_gid_loading;
 
   ak_ett e_mtrl_base;
 
@@ -149,10 +148,9 @@ push_child2(ak_wv* wv,
 
   ak_mtrl_t mat = { 0 };
   mat.base_id = mtrl_id;
-  mat.data.uv_min =
-    ak_vec2_make(ak_fx_f(0), ak_fx_f(0));
-  mat.data.uv_max = ak_vec2_make(
-    ak_fx_f(1.0f), ak_fx_f(1.0f));
+  mat.data.uv_min = ak_vec2f_make(0, 0);
+  mat.data.uv_max =
+    ak_vec2f_make(1.0f, 1.0f);
   ak_wcb_comp_mtrl_add(wcb, e, mat);
 }
 
@@ -237,13 +235,12 @@ ui_render(ak_lworld* l)
   ak_uielm_args args = {
     .x_cnst = { .rel = 0.5f, .abs = 0 },
     .y_cnst = { .rel = 0.5f, .abs = 0 },
-    .bgtype = bgtype_color,
-    .bg_color = { .color = { .r = 0,
-                             .g = 0,
-                             .b = 1,
-                             .a = 1 } },
     .visible = true,
-    .clipping = false
+    .clipping = false,
+    .qd = { .col = { .r = 0,
+                     .g = 0,
+                     .b = 1,
+                     .a = 1 } }
   };
   ak_ui_clear(&l->ui);
   ak_ui_add(
@@ -308,9 +305,6 @@ on_startup(void* ctx, ak_app* app)
 
   l->load = ak_s_load;
   l->world_added = false;
-
-  l->dog_rid_loaded = false;
-  l->dog_gid_loading = false;
 
   l->sys_tf = ak_sys_tf_make(l->alct);
   l->sys_ren = ak_sys_ren_make(l->alct);
@@ -424,6 +418,24 @@ loaded(ak_lworld* l)
 }
 
 static void
+script_flush(ak_lworld* l)
+{
+  ak_wcb* wcb = &l->wcb;
+  ak_wcb* out_wcb = &l->wcb_script;
+
+  ak_sys_script_set(
+    &l->sys_script, &l->wv, wcb);
+
+  ak_sys_script_run_deinit(&l->sys_script,
+                           out_wcb);
+  ak_world_cb_flush(&l->w, wcb, &l->ig);
+  ak_sys_script_run_init(&l->sys_script,
+                         out_wcb);
+
+  ak_world_cb_flush(&l->w, out_wcb, &l->ig);
+}
+
+static void
 on_update(void* ctx, ak_dur delta)
 {
   ak_lworld* l = ctx;
@@ -450,40 +462,19 @@ on_update(void* ctx, ak_dur delta)
     ak_stream_print_world(&l->w);
   }
 
-  if (l->load && l->world_added) {
-    ak_sys_tf_update(
-      &l->sys_tf, &l->wv, &l->wcb);
+  ak_sys_tf_update(
+    &l->sys_tf, &l->wv, &l->wcb);
 
-    ak_sys_script_set(
-      &l->sys_script, &l->wv, &l->wcb);
-    ak_sys_script_run_deinit(&l->sys_script,
-                             &l->wcb_script);
-    ak_world_cb_flush(
-      &l->w, &l->wcb, &l->ig);
-    ak_sys_script_run_init(&l->sys_script,
-                           &l->wcb_script);
-    ak_world_cb_flush(
-      &l->w, &l->wcb_script, &l->ig);
+  script_flush(l);
 
-    ak_sys_script_run_update(
-      &l->sys_script, delta, &l->wcb_script);
+  ak_sys_script_run_update(
+    &l->sys_script, delta, &l->wcb);
 
-    ak_sys_script_set(&l->sys_script,
-                      &l->wv,
-                      &l->wcb_script);
-    ak_sys_script_run_deinit(&l->sys_script,
-                             &l->wcb);
-    ak_world_cb_flush(
-      &l->w, &l->wcb_script, &l->ig);
-    ak_sys_script_run_init(&l->sys_script,
-                           &l->wcb);
-    ak_world_cb_flush(
-      &l->w, &l->wcb, &l->ig);
+  script_flush(l);
 
-    if (loaded(l)) {
-      ak_sys_ren_render(
-        &l->sys_ren, &l->wv, &l->gcb, delta);
-    }
+  if (loaded(l)) {
+    ak_sys_ren_render(
+      &l->sys_ren, &l->wv, &l->gcb, delta);
   }
 
   ui_render(l);
