@@ -2,8 +2,14 @@
 #define ak_gfx_shader_h
 
 #include "ak/core/mem/allocator.h"
+#include "ak/core/shaderstr.h"
 #include "ak/gfx/core.h"
 #include "ak/gfx/gresreg.h"
+
+ak_shader*
+ak_shader_from_shaderstr(ak_gfx* gfx,
+                         ak_shaderstr* ss,
+                         ak_alct alct);
 
 ak_shader*
 ak_shader_make_from_src(ak_gfx* gfx,

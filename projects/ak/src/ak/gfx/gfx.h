@@ -41,4 +41,7 @@ ak_gfx_vp_make(const ak_mat3* cam,
 ak_mat3_f
 ak_gfx_vp_ui_make(uint32_t w, uint32_t h);
 
+const char*
+ak_gfx_name();
+
 #endif

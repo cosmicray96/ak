@@ -31,6 +31,12 @@ ak_dbuff_ptr(ak_dbuff* d)
 {
   return d->buff;
 }
+static const void*
+ak_dbuff_ptr_const(const ak_dbuff* d)
+{
+  return d->buff;
+}
+
 static ak_alct
 ak_dbuff_alct(const ak_dbuff* d)
 {

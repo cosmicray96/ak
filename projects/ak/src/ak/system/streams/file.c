@@ -34,7 +34,14 @@ ak_stm_file_read(void* file,
                  void* data,
                  uint64_t size)
 {
-  fread(data, 1, size, (FILE*)file);
+  size_t n =
+    fread(data, 1, size, (FILE*)file);
+  if (n < size) {
+    if (feof((FILE*)file))
+      return ak_stmerr_end;
+    if (ferror((FILE*)file))
+      return ak_stmerr_err;
+  }
   return ak_stmerr_ok;
 }
 

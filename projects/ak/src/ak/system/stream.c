@@ -81,6 +81,36 @@ ak_stm_read_all(ak_stm stm,
 }
 
 ak_stmerr
+ak_stm_read_line(ak_stm stm, ak_str* o_str)
+{
+  char ch = 0;
+  ak_stmerr err = ak_stmerr_ok;
+  while (ch != '\n') {
+    err = ak_stm_read_char(stm, &ch);
+    if (err != ak_stmerr_ok) {
+      break;
+    }
+    ak_str_pushback(o_str, ch);
+  }
+  if (err == ak_stmerr_end &&
+      ak_str_count(o_str) > 0) {
+    return ak_stmerr_ok;
+  }
+  return err;
+}
+
+ak_stmerr
+ak_stm_write_char(ak_stm stm, char value)
+{
+  return ak_stm_write(stm, &value, 1);
+}
+ak_stmerr
+ak_stm_read_char(ak_stm stm, char* o_value)
+{
+  return ak_stm_read(stm, o_value, 1);
+}
+
+ak_stmerr
 ak_stm_write_bool(ak_stm stm, bool value)
 {
   return ak_stm_write_u8(stm, value);

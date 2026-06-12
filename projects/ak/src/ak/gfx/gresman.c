@@ -4,9 +4,11 @@
 #include "ak/core/async/mutex.h"
 #include "ak/core/img.h"
 #include "ak/core/mem/allocator.h"
+#include "ak/core/shaderstr.h"
 #include "ak/debug.h"
 #include "ak/gfx/core.h"
 #include "ak/gfx/gresreg.h"
+#include "ak/gfx/shader.h"
 #include "ak/gfx/tex.h"
 
 //===== gres_item =====//
@@ -20,6 +22,7 @@ typedef struct
   union
   {
     ak_tex* tex;
+    ak_shader* shader;
   };
 } loaded_item;
 
@@ -35,6 +38,7 @@ typedef struct
       ak_img img;
       ak_textype type;
     } tex;
+    ak_shaderstr ss;
   };
 } gres_loading_item;
 
@@ -73,6 +77,13 @@ gres_load_unsafe(gres_loading_item li)
                              &li.tex.img,
                              li.tex.type,
                              li.grm->alct);
+      loaded.success = true;
+      break;
+    }
+    case ak_grestype_shader: {
+      loaded.shader =
+        ak_shader_from_shaderstr(
+          li.grm->gfx, &li.ss, li.grm->alct);
       loaded.success = true;
       break;
     }
@@ -185,6 +196,24 @@ ak_gresman_status(ak_gresman* grm,
 }
 
 void
+ak_gresman_unload(ak_gresman* grm,
+                  ak_gresid id)
+{
+  ak_mutex_lock(&grm->m);
+
+  gres_item* gi = ak_hmn_at(&grm->map, id);
+
+  ak_assert(gi->load_count > 0);
+
+  gi->load_count--;
+  if (gi->load_count == 0) {
+    ak_dq_push(&grm->unloadings, &id);
+  }
+
+  ak_mutex_unlock(&grm->m);
+}
+
+void
 ak_gresman_load_tex(ak_gresman* grm,
                     ak_gresid id,
                     ak_img img,
@@ -216,19 +245,31 @@ ak_gresman_load_tex(ak_gresman* grm,
 }
 
 void
-ak_gresman_unload(ak_gresman* grm,
-                  ak_gresid id)
+ak_gresman_load_shader(ak_gresman* grm,
+                       ak_gresid id,
+                       ak_shaderstr ss)
 {
   ak_mutex_lock(&grm->m);
 
-  gres_item* gi = ak_hmn_at(&grm->map, id);
-
-  ak_assert(gi->load_count > 0);
-
-  gi->load_count--;
-  if (gi->load_count == 0) {
-    ak_dq_push(&grm->unloadings, &id);
+  if (ak_hmn_exist(&grm->map, id)) {
+    gres_item* gi = ak_hmn_at(&grm->map, id);
+    gi->load_count++;
+    ak_mutex_unlock(&grm->m);
+    return;
   }
+
+  gres_item gi = { .type = ak_grestype_tex,
+                   .s = ak_gres_loading,
+                   .load_count = 1 };
+  ak_hmn_insert(&grm->map, id, &gi);
+
+  gres_loading_item li = {
+    .grm = grm,
+    .id = id,
+    .type = ak_grestype_shader,
+    .ss = ss
+  };
+  ak_dq_push(&grm->loadings, &li);
 
   ak_mutex_unlock(&grm->m);
 }

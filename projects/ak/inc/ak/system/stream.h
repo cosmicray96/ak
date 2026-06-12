@@ -1,6 +1,7 @@
 #ifndef ak_system_stream_h
 #define ak_system_stream_h
 
+#include "ak/coll/str.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/export.h"
 #include <stdbool.h>
@@ -55,6 +56,9 @@ ak_stm_read_all(ak_stm stm,
                 uint64_t* o_size,
                 ak_alct alct);
 
+ak_ex ak_stmerr
+ak_stm_read_line(ak_stm stm, ak_str* o_str);
+
 #define ak_stm_try(x)                       \
   do {                                      \
     ak_stmerr ak_stmerr_ev = x;             \
@@ -62,6 +66,11 @@ ak_stm_read_all(ak_stm stm,
       return ak_stmerr_ev;                  \
     }                                       \
   } while (0)
+
+ak_ex ak_stmerr
+ak_stm_write_char(ak_stm stm, char value);
+ak_ex ak_stmerr
+ak_stm_read_char(ak_stm stm, char* o_value);
 
 ak_ex ak_stmerr
 ak_stm_write_bool(ak_stm stm, bool value);

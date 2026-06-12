@@ -2,7 +2,6 @@
 #include "ak/coll/hmn.h"
 #include "ak/core/img.h"
 #include "ak/core/mem/allocator.h"
-#include "ak/core/mem/ptr.h"
 #include "ak/debug.h"
 #include "ak/game/stg/world.h"
 #include <stdint.h>
@@ -13,8 +12,6 @@ typedef struct
   ak_restype type;
   uint32_t idx;
 } item;
-
-typedef void (*destroy_fn)(void*);
 
 //===== ak_resreg =====//
 //--- private ---//
@@ -43,6 +40,11 @@ res_destroy(ak_resreg* rr, ak_resid id)
       ak_world_destroy(world);
       break;
     }
+    case ak_restype_shaderstr: {
+      ak_shaderstr* ss = p;
+      ak_shaderstr_destroy(ss);
+      break;
+    }
     default: {
       ak_assert(false);
     }
@@ -65,6 +67,9 @@ ak_resreg_make(ak_alct alct)
 
   rr->ress[ak_restype_world] =
     ak_sla_make(sizeof(ak_world), alct);
+
+  rr->ress[ak_restype_shaderstr] =
+    ak_sla_make(sizeof(ak_shaderstr), alct);
 
   return rr;
 }
@@ -142,4 +147,30 @@ ak_resreg_get_world(ak_resreg* rr,
   ak_sla* sla = &rr->ress[itm->type];
   ak_world* w = ak_sla_at(sla, itm->idx);
   return *w;
+}
+
+void
+ak_resreg_reg_shaderstr(
+  ak_resreg* rr,
+  ak_resid id,
+  const ak_shaderstr* ss)
+{
+  uint32_t idx = ak_sla_insert(
+    &rr->ress[ak_restype_shaderstr], ss);
+
+  item itm = { .type = ak_restype_shaderstr,
+               .idx = idx };
+  ak_hmn_insert(&rr->map, id, &itm);
+}
+ak_shaderstr
+ak_resreg_get_shaderstr(ak_resreg* rr,
+                        ak_resid id)
+{
+  item* itm = ak_hmn_at(&rr->map, id);
+  ak_assert(itm->type ==
+            ak_restype_shaderstr);
+  ak_sla* sla = &rr->ress[itm->type];
+  ak_shaderstr* ss =
+    ak_sla_at(sla, itm->idx);
+  return *ss;
 }

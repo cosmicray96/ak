@@ -6,6 +6,7 @@
 #include "ak/core/img.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/core/mem/heap.h"
+#include "ak/core/shaderstr.h"
 #include "ak/debug.h"
 #include "ak/game/stg/world.h"
 #include "ak/game/world/write.h"
@@ -38,6 +39,7 @@ typedef struct
   {
     ak_img img;
     ak_world world;
+    ak_shaderstr ss;
   };
 } loaded_item;
 
@@ -76,6 +78,17 @@ res_load(ak_resman* rm,
 
       loaded.err = err;
       loaded.world = w;
+      break;
+    }
+    case ak_restype_shaderstr: {
+      ak_shaderstr ss = { 0 };
+      ak_stmerr err =
+        ak_shaderstr_load(stm, &ss, alct);
+
+      ak_assert(err == ak_stmerr_ok);
+
+      loaded.err = err;
+      loaded.ss = ss;
       break;
     }
 
@@ -173,6 +186,11 @@ ak_resman_update(ak_resman* rm)
           ak_resreg_reg_world(rm->rr,
                               loaded.id,
                               &loaded.world);
+          break;
+        }
+        case ak_restype_shaderstr: {
+          ak_resreg_reg_shaderstr(
+            rm->rr, loaded.id, &loaded.ss);
           break;
         }
         default: {

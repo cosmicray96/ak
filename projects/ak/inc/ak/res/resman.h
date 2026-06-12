@@ -1,9 +1,7 @@
 #ifndef ak_system_resman_h
 #define ak_system_resman_h
 
-#include "ak/core/img.h"
 #include "ak/export.h"
-#include "ak/game/stg/world.h"
 #include "ak/res/reg.h"
 #include "ak/system/stream.h"
 

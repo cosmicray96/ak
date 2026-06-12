@@ -393,3 +393,9 @@ ak_gfx_scissor_set(ak_gfx* gfx,
             (GLsizei)w,
             (GLsizei)h);
 }
+
+const char*
+ak_gfx_name()
+{
+  return "opengl";
+}

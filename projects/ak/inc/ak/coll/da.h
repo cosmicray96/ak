@@ -50,6 +50,11 @@ ak_da_ptr(ak_da* da)
 {
   return ak_dbuff_ptr(&da->dbuff);
 }
+static const void*
+ak_da_ptr_const(const ak_da* da)
+{
+  return ak_dbuff_ptr_const(&da->dbuff);
+}
 
 ak_ex void
 ak_da_overwrite_zero(ak_da* da,

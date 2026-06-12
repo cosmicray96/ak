@@ -3,6 +3,7 @@
 
 #include "ak/core/img.h"
 #include "ak/core/mem/allocator.h"
+#include "ak/core/shaderstr.h"
 #include "ak/game/stg/world.h"
 
 #include <stdbool.h>
@@ -14,6 +15,7 @@ typedef enum
 {
   ak_restype_image,
   ak_restype_world,
+  ak_restype_shaderstr,
   // ak_restype_animation,
   // ak_restype_aniclip,
   ak_restype_count,
@@ -43,5 +45,14 @@ ak_resreg_reg_world(ak_resreg* rr,
 ak_world
 ak_resreg_get_world(ak_resreg* rr,
                     ak_resid id);
+
+void
+ak_resreg_reg_shaderstr(
+  ak_resreg* rr,
+  ak_resid id,
+  const ak_shaderstr* ss);
+ak_shaderstr
+ak_resreg_get_shaderstr(ak_resreg* rr,
+                        ak_resid id);
 
 #endif

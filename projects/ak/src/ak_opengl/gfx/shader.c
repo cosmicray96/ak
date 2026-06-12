@@ -15,6 +15,17 @@ struct ak_shader
 
 //--- internal ---//
 ak_shader*
+ak_shader_from_shaderstr(ak_gfx* gfx,
+                         ak_shaderstr* ss,
+                         ak_alct alct)
+{
+  return ak_shader_make_from_src(
+    gfx,
+    ak_shaderstr_vert(ss),
+    ak_shaderstr_frag(ss),
+    alct);
+}
+ak_shader*
 ak_shader_make_from_src(ak_gfx* gfx,
                         const char* vert_src,
                         const char* frag_src,
