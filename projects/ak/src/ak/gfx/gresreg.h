@@ -8,11 +8,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-typedef uint32_t ak_gresid;
-
 typedef enum
 {
   ak_grestype_tex,
+  ak_grestype_shader,
   ak_grestype_count,
 } ak_grestype;
 
@@ -42,5 +41,13 @@ ak_gresreg_reg_tex(ak_gresreg* grr,
 ak_tex*
 ak_gresreg_get_tex(ak_gresreg* grr,
                    ak_gresid id);
+
+void
+ak_gresreg_reg_shader(ak_gresreg* grr,
+                      ak_gresid id,
+                      ak_shader* shader);
+ak_shader*
+ak_gresreg_get_shader(ak_gresreg* grr,
+                      ak_gresid id);
 
 #endif

@@ -2,7 +2,7 @@
 #define ak_game_comp_t_h
 
 #include "ak/game/script.h"
-#include "ak/gfx/mtrl.h"
+#include "ak/gfx/core.h"
 
 #include "ak/core/math/mat3x3.h"
 #include "ak/core/math/tf2d.h"

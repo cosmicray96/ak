@@ -1,8 +1,9 @@
 #include "ak/gfx/gfx.h"
+#include "ak/coll/da.h"
 #include "ak/core/math/fixed.h"
 #include "ak/core/math/mat3x3.h"
+#include "ak/core/math/vec4f.h"
 #include "ak/core/mem/allocator.h"
-#include "ak/core/mem/ptr.h"
 #include "ak/debug.h"
 #include "ak/gfx/core.h"
 
@@ -12,13 +13,23 @@
 
 #include <glad/glad.h>
 
+#include <stddef.h>
 #include <stdint.h>
 
 void
 ak_plat_base_glmakecurrent(ak_plat_base* pb);
 
+typedef struct
+{
+  float m[9];
+  float uv[4];
+  float col[4];
+} quad;
+
 //===== ak_gfx =====//
-#define s_max_ivbo_size 1024 * 16
+#define s_max_quad_count 512
+#define s_max_ivbo_size                     \
+  s_max_quad_count * sizeof(quad)
 
 #define check_err                           \
   do {                                      \
@@ -43,114 +54,81 @@ struct ak_gfx
   bool call_began;
 
   GLuint vbo;
-
   GLuint ebo;
-
+  GLuint vao;
   GLuint ivbo;
-  uint8_t* ivbo_buf;
 
-  uint32_t quad_count;
-  uint32_t cur_quadsize;
+  ak_da quads;
 };
 
-static void
-call_reset_ifneed(ak_gfx* g)
+void
+break_call_ifneeded(ak_gfx* g)
 {
-  ak_assert(g->call_began);
-
-  uint32_t idx =
-    g->quad_count * g->cur_quadsize;
-
-  if (idx + g->cur_quadsize <=
-      s_max_ivbo_size) {
+  uint32_t count = ak_da_count(&g->quads);
+  if (count < s_max_quad_count) {
     return;
   }
 
-  uint32_t cur_quadsize = g->cur_quadsize;
   ak_gfx_call_end(g);
-  ak_gfx_call_begin(g, cur_quadsize);
-}
-
-//--- internal ---//
-void
-ak_gfx_buff_bind_vbo(ak_gfx* g)
-{
-  glBindBuffer(GL_ARRAY_BUFFER, g->vbo);
-}
-void
-ak_gfx_buff_unbind_vbo(ak_gfx* g)
-{
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-}
-void
-ak_gfx_buff_bind_ivbo(ak_gfx* g)
-{
-  glBindBuffer(GL_ARRAY_BUFFER, g->ivbo);
-}
-void
-ak_gfx_buff_unbind_ivbo(ak_gfx* g)
-{
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-}
-void
-ak_gfx_buff_bind_ebo(ak_gfx* g)
-{
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
-               g->ebo);
-}
-void
-ak_gfx_buff_unbind_ebo(ak_gfx* g)
-{
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  ak_gfx_call_begin(g);
 }
 
 void
-ak_gfx_call_begin(ak_gfx* g,
-                  uint32_t quadsize)
+ak_gfx_call_begin(ak_gfx* g)
 {
   ak_assert(!g->call_began);
+  check_err;
   g->call_began = true;
 
-  g->quad_count = 0;
-  g->cur_quadsize = quadsize;
+  ak_da_clear(&g->quads);
 }
 
 void
-ak_gfx_pushquad(ak_gfx* g, const void* q)
+ak_gfx_pushquad(ak_gfx* g,
+                const ak_mtrl_quaddata* qd,
+                const ak_mat3_f* mat3)
 {
   ak_assert(g->call_began);
-
   check_err;
-  call_reset_ifneed(g);
-  uint32_t idx =
-    g->quad_count * g->cur_quadsize;
-  ak_p_cpy(
-    &g->ivbo_buf[idx], q, g->cur_quadsize);
-  g->quad_count++;
+
+  break_call_ifneeded(g);
+
+  quad q = { 0 };
+  for (uint32_t i = 0; i < 9; i++) {
+    q.m[i] = mat3->v[i];
+  }
+  for (uint32_t i = 0; i < 4; i++) {
+    q.col[i] = qd->col.v[i];
+  }
+  q.uv[0] = qd->uv_min.v[0];
+  q.uv[1] = qd->uv_min.v[1];
+  q.uv[2] = qd->uv_max.v[0];
+  q.uv[3] = qd->uv_max.v[1];
+
+  ak_da_pushback(&g->quads, &q);
 }
 
 void
 ak_gfx_call_end(ak_gfx* g)
 {
   ak_assert(g->call_began);
+  uint32_t count = ak_da_count(&g->quads);
 
-  glBindBuffer(GL_ARRAY_BUFFER, g->ivbo);
+  glBindVertexArray(g->vao);
   glBufferSubData(GL_ARRAY_BUFFER,
                   0,
-                  g->quad_count *
-                    g->cur_quadsize,
-                  g->ivbo_buf);
+                  sizeof(quad) * count,
+                  ak_da_ptr(&g->quads));
   check_err;
 
-  glDrawElementsInstanced(GL_TRIANGLES,
-                          6,
-                          GL_UNSIGNED_SHORT,
-                          0,
-                          g->quad_count);
+  glDrawElementsInstanced(
+    GL_TRIANGLES,
+    6,
+    GL_UNSIGNED_SHORT,
+    0,
+    ak_da_count(&g->quads));
   check_err;
 
-  g->cur_quadsize = 0;
-  g->quad_count = 0;
   g->call_began = false;
 }
 
@@ -165,6 +143,9 @@ ak_gfx_startup(ak_plat_base* pr,
   r->pb = pr;
   r->screen_w = ak_plat_base_init_width(pr);
   r->screen_h = ak_plat_base_init_height(pr);
+
+  r->quads = ak_da_make(sizeof(quad), alct);
+  ak_da_reserve(&r->quads, s_max_quad_count);
 
   ak_plat_base_glmakecurrent(pr);
 
@@ -181,7 +162,7 @@ ak_gfx_startup(ak_plat_base* pr,
     glBufferData(GL_ARRAY_BUFFER,
                  8 * sizeof(float),
                  vbo_buf,
-                 GL_DYNAMIC_DRAW);
+                 GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     check_err;
   }
@@ -200,8 +181,6 @@ ak_gfx_startup(ak_plat_base* pr,
     check_err;
   }
   {
-    r->ivbo_buf =
-      ak_alct_alloc(alct, s_max_ivbo_size);
     glGenBuffers(1, &r->ivbo);
     glBindBuffer(GL_ARRAY_BUFFER, r->ivbo);
     glBufferData(GL_ARRAY_BUFFER,
@@ -211,9 +190,78 @@ ak_gfx_startup(ak_plat_base* pr,
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     check_err;
   }
+  {
+    glGenVertexArrays(1, &r->vao);
+    glBindVertexArray(r->vao);
 
-  r->cur_quadsize = 0;
-  r->quad_count = 0;
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
+                 r->ebo);
+    glBindBuffer(GL_ARRAY_BUFFER, r->vbo);
+
+    glVertexAttribPointer(0,
+                          2,
+                          GL_FLOAT,
+                          GL_FALSE,
+                          2 * sizeof(float),
+                          (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, r->ivbo);
+    glVertexAttribPointer(
+      1,
+      3,
+      GL_FLOAT,
+      GL_FALSE,
+      sizeof(quad),
+      (void*)offsetof(quad, m[0]));
+    glEnableVertexAttribArray(1);
+    glVertexAttribDivisor(1, 1);
+
+    glVertexAttribPointer(
+      2,
+      3,
+      GL_FLOAT,
+      GL_FALSE,
+      sizeof(quad),
+      (void*)offsetof(quad, m[3]));
+    glEnableVertexAttribArray(2);
+    glVertexAttribDivisor(2, 1);
+
+    glVertexAttribPointer(
+      3,
+      3,
+      GL_FLOAT,
+      GL_FALSE,
+      sizeof(quad),
+      (void*)offsetof(quad, m[6]));
+    glEnableVertexAttribArray(3);
+    glVertexAttribDivisor(3, 1);
+
+    glVertexAttribPointer(
+      4,
+      4,
+      GL_FLOAT,
+      GL_FALSE,
+      sizeof(quad),
+      (void*)offsetof(quad, uv));
+    glEnableVertexAttribArray(4);
+    glVertexAttribDivisor(4, 1);
+
+    glVertexAttribPointer(
+      5,
+      4,
+      GL_FLOAT,
+      GL_FALSE,
+      sizeof(quad),
+      (void*)offsetof(quad, col));
+    glEnableVertexAttribArray(5);
+    glVertexAttribDivisor(5, 1);
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    check_err;
+  }
 
   // glPolygonMode(GL_FRONT_AND_BACK,
   // GL_LINE);
@@ -224,12 +272,12 @@ ak_gfx_startup(ak_plat_base* pr,
 void
 ak_gfx_shutdown(ak_gfx* r)
 {
-  ak_alct_free(r->alct, r->ivbo_buf);
-
   glDeleteBuffers(1, &r->vbo);
   glDeleteBuffers(1, &r->ebo);
 
   glDeleteBuffers(1, &r->ivbo);
+
+  ak_da_destroy(&r->quads);
 
   ak_alct_free(r->alct, r);
 }

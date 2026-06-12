@@ -385,7 +385,7 @@ ak_stm_write_mtrl_base(
   ak_mtrl_base_t mtrl_base)
 {
   ak_stm_try(ak_stm_write_u32(
-    stm, mtrl_base.data.me));
+    stm, mtrl_base.data.shaderid));
   ak_stm_try(ak_stm_write_tex(
     stm, mtrl_base.data.tex));
   return ak_stmerr_ok;
@@ -398,7 +398,7 @@ ak_stm_read_mtrl_base(
 {
 
   ak_stm_try(ak_stm_read_u32(
-    stm, &o_mtrl_base->data.me));
+    stm, &o_mtrl_base->data.shaderid));
   ak_stm_try(ak_stm_read_tex(
     stm, &o_mtrl_base->data.tex));
   return ak_stmerr_ok;

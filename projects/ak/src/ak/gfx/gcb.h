@@ -5,8 +5,7 @@
 #include "ak/core/math/mat3x3.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/gfx/core.h"
-#include "ak/gfx/mtrl.h"
-#include "ak/gfx/mtrl/stg.h"
+#include "ak/gfx/gresreg.h"
 
 typedef struct
 {
@@ -23,8 +22,7 @@ ak_gcb_clear(ak_gcb* gcb);
 void
 ak_gcb_flush(ak_gcb* gcb,
              ak_gfx* gfx,
-             ak_gresreg* grr,
-             ak_mtrlstg* ms);
+             ak_gresreg* grr);
 
 void
 ak_gcb_joinback(ak_gcb* dest, ak_gcb* src);

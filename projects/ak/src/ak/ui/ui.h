@@ -5,7 +5,6 @@
 #include "ak/core/mem/allocator.h"
 
 #include "ak/gfx/gcb.h"
-#include "ak/gfx/mtrl.h"
 #include "ak/ui/core.h"
 
 typedef struct

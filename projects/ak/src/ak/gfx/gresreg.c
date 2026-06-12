@@ -3,6 +3,7 @@
 #include "ak/core/mem/allocator.h"
 #include "ak/debug.h"
 #include "ak/gfx/core.h"
+#include "ak/gfx/shader.h"
 #include "ak/gfx/tex.h"
 
 //--- private ---//
@@ -37,6 +38,7 @@ ak_gresreg_make(ak_gfx* gfx, ak_alct alct)
 void
 ak_gresreg_destroy(ak_gresreg* grr)
 {
+  ak_log("fix gresreg");
   ak_hmn_destroy(&grr->map);
   ak_alct_free(grr->alct, grr);
 }
@@ -62,6 +64,11 @@ ak_gresreg_unreg(ak_gresreg* grr,
       ak_tex_destroy(itm->gres);
       break;
     }
+    case ak_grestype_shader: {
+      ak_shader_destroy(itm->gres);
+      break;
+    }
+
     default: {
       ak_assert(false);
     }
@@ -87,6 +94,22 @@ ak_gresreg_reg_tex(ak_gresreg* grr,
 ak_tex*
 ak_gresreg_get_tex(ak_gresreg* grr,
                    ak_gresid id)
+{
+  return ak_gresreg_get(grr, id);
+}
+
+void
+ak_gresreg_reg_shader(ak_gresreg* grr,
+                      ak_gresid id,
+                      ak_shader* shader)
+{
+  ak_gresreg_reg(
+    grr, id, ak_grestype_tex, shader);
+}
+
+ak_shader*
+ak_gresreg_get_shader(ak_gresreg* grr,
+                      ak_gresid id)
 {
   return ak_gresreg_get(grr, id);
 }

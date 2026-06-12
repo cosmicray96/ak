@@ -1,9 +1,7 @@
 #ifndef ak_ui_ui_dir_h
 #define ak_ui_ui_dir_h
 
-#include "ak/core/math/vec4.h"
 #include "ak/core/mem/allocator.h"
-#include "ak/gfx/mtrl.h"
 #include "ak/ui/core.h"
 #include "ak/ui/ui.h"
 

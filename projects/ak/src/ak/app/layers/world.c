@@ -83,6 +83,9 @@ struct ak_lworld
 
   ak_ui ui;
   float time;
+
+  ak_gresid shaderid;
+  ak_gresid uiid;
 };
 
 bool
@@ -212,7 +215,7 @@ set_root(ak_lworld* l)
   l->e_mtrl_base =
     ak_wcb_ett_new(&l->wcb, root);
   ak_mtrl_base_t base = { 0 };
-  base.data.me = ak_mtrl_tex_e;
+  base.data.shaderid = l->shaderid;
   base.data.tex =
     (ak_tex_old){ .gid = l->dog_gid,
                   .uv_type = ak_uv_repeat,

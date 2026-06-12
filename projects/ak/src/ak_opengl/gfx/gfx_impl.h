@@ -15,25 +15,14 @@ program_make(const char* fs_src,
              const char* vs_src);
 
 void
-ak_gfx_call_begin(ak_gfx* g,
-                  uint32_t quadsize);
+ak_gfx_call_begin(ak_gfx* g);
+
 void
 ak_gfx_call_end(ak_gfx* g);
 
 void
-ak_gfx_pushquad(ak_gfx* g, const void* q);
-
-void
-ak_gfx_buff_bind_vbo(ak_gfx* g);
-void
-ak_gfx_buff_unbind_vbo(ak_gfx* g);
-void
-ak_gfx_buff_bind_ivbo(ak_gfx* g);
-void
-ak_gfx_buff_unbind_ivbo(ak_gfx* g);
-void
-ak_gfx_buff_bind_ebo(ak_gfx* g);
-void
-ak_gfx_buff_unbind_ebo(ak_gfx* g);
+ak_gfx_pushquad(ak_gfx* g,
+                const ak_mtrl_quaddata* q,
+                const ak_mat3_f* mat3);
 
 #endif

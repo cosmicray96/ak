@@ -9,7 +9,6 @@
 #include "ak/game/world/view.h"
 #include "ak/gfx/core.h"
 #include "ak/gfx/gcb.h"
-#include "ak/gfx/mtrl/stg.h"
 #include "ak/os/time.h"
 
 typedef struct

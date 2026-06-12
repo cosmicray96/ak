@@ -1,4 +1,4 @@
-#include "ak/core/math/fixed.h"
+/*#include "ak/core/math/fixed.h"
 #include "ak/core/math/mat3x3.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/debug.h"
@@ -279,3 +279,4 @@ ak_mtrl_tex_pushquad(
 
   ak_gfx_pushquad(m->g, &q);
 }
+*/

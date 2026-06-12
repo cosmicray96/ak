@@ -1,9 +1,9 @@
 #include "ak/gfx/gcb.h"
 #include "ak/core/math/mat3x3.h"
+#include "ak/debug.h"
 #include "ak/gfx/gfx.h"
 #include "ak/gfx/gresreg.h"
-#include "ak/gfx/mtrl/stg.h"
-#include "ak/gfx/mtrl_itn.h"
+#include "ak/gfx/shader.h"
 
 //===== ak_gcb =====//
 //--- private ---//
@@ -81,8 +81,7 @@ ak_gcb_clear(ak_gcb* gcb)
 void
 ak_gcb_flush(ak_gcb* gcb,
              ak_gfx* gfx,
-             ak_gresreg* grr,
-             ak_mtrlstg* ms)
+             ak_gresreg* grr)
 {
 
   ak_gfx_frame_begin(gfx);
@@ -90,8 +89,8 @@ ak_gcb_flush(ak_gcb* gcb,
   ak_mtrl_indata id = { 0 };
   bool has_mtrlin = false;
 
-  ak_mtrl m = { 0 };
-  bool has_mtrl = false;
+  ak_shader* shader = 0;
+
   for (uint32_t i = 0; i < count; i++) {
     cmd_item* ci = ak_da_at(&gcb->cmds, i);
 
@@ -105,19 +104,20 @@ ak_gcb_flush(ak_gcb* gcb,
       }
       case cmdtype_mtrl: {
         ak_assert(has_mtrlin);
-        if (has_mtrl) {
-          m.call_end(m.ctx);
+        if (shader) {
+          ak_shader_end(shader);
+          shader = 0;
         }
-        m = ak_mtrlstg_at(ms, ci->mi.bd.me);
-        m.call_begin(
-          m.ctx, grr, &ci->mi.bd, &id);
-        has_mtrl = true;
+        shader = ak_gresreg_get_shader(
+          grr, ci->mi.bd.shaderid);
+        ak_shader_begin(
+          shader, grr, &id, &ci->mi.bd);
         break;
       }
       case cmdtype_quad: {
-        ak_assert(has_mtrl);
-        m.push_quad(
-          m.ctx, &ci->qi.qd, &ci->qi.gmat);
+        ak_assert(shader);
+        ak_shader_pushquad(
+          shader, &ci->qi.qd, &ci->qi.gmat);
         break;
       }
       case cmdtype_scissor: {
@@ -133,9 +133,9 @@ ak_gcb_flush(ak_gcb* gcb,
         break;
       }
       case cmdtype_resize: {
-        if (has_mtrl) {
-          m.call_end(m.ctx);
-          has_mtrl = false;
+        if (shader) {
+          ak_shader_end(shader);
+          shader = 0;
         }
         ak_gfx_resize(
           gfx, ci->ri.w, ci->ri.h);
@@ -147,8 +147,9 @@ ak_gcb_flush(ak_gcb* gcb,
       }
     }
   }
-  if (has_mtrl) {
-    m.call_end(m.ctx);
+  if (shader) {
+    ak_shader_end(shader);
+    shader = 0;
   }
 
   ak_gfx_frame_end(gfx);

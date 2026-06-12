@@ -2,7 +2,6 @@
 #include "ak/core/math/mat3x3.h"
 #include "ak/core/math/vec4f.h"
 #include "ak/gfx/gfx.h"
-#include "ak/gfx/mtrl.h"
 #include "ak/ui/core.h"
 #include "ak/ui/ui.h"
 #include "ak/ui/ui_dir.h"
@@ -97,7 +96,7 @@ ak_uirstg_make(ak_alct alct)
   rstg.scissors =
     ak_dq_make(sizeof(ak_vec4f), alct);
   rstg.mtrl_b =
-    (ak_mtrl_basedata){ .me = ak_mtrl_ui_e };
+    (ak_mtrl_basedata){ .shaderid = 20 };
   return rstg;
 }
 void

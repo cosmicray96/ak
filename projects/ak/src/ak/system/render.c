@@ -8,7 +8,6 @@
 #include "ak/gfx/gfx.h"
 #include "ak/gfx/gresman.h"
 #include "ak/gfx/gresreg.h"
-#include "ak/gfx/mtrl/stg.h"
 #include "ak/os/cpu.h"
 #include "ak/os/time.h"
 #include "ak/platform/plat_base.h"
@@ -26,7 +25,6 @@ struct ak_renderer
 
   ak_gresreg* grr;
   ak_gresman* grm;
-  ak_mtrlstg* ms;
 
   ak_gcb gcb;
 
@@ -46,7 +44,6 @@ thread_fn(void* ctx)
   r->grr = ak_gresreg_make(r->gfx, r->alct);
   r->grm = ak_gresman_startup(
     r->grr, r->gfx, r->alct);
-  r->ms = ak_mtrlstg_make(r->gfx, r->alct);
 
   while (
     !ak_atomicint_load(&r->shouldclose)) {
@@ -59,12 +56,10 @@ thread_fn(void* ctx)
     ak_atomicint_store(
       &r->status, ak_renderer_rendering);
     ak_gresman_update(r->grm);
-    ak_gcb_flush(
-      &r->gcb, r->gfx, r->grr, r->ms);
+    ak_gcb_flush(&r->gcb, r->gfx, r->grr);
     ak_mutex_unlock(&r->m);
   }
 
-  ak_mtrlstg_destroy(r->ms);
   ak_gfx_shutdown(r->gfx);
 }
 
