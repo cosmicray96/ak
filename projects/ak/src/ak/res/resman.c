@@ -28,7 +28,7 @@ typedef struct
   ak_restype type;
   ak_stm stm;
   ak_alct alct;
-} gres_loading_item;
+} args_item;
 
 typedef struct
 {
@@ -113,7 +113,7 @@ res_unload_unsafe(ak_resman* rm, ak_resid id)
 static void
 job_fn(void* input)
 {
-  gres_loading_item* in = input;
+  args_item* in = input;
   res_load(in->rm,
            in->id,
            in->type,
@@ -176,27 +176,10 @@ ak_resman_update(ak_resman* rm)
       ak_dq_pop(&rm->loadeds, &loaded)) {
       res_item* ri =
         ak_hmn_at(&rm->map, loaded.id);
-      switch (ri->type) {
-        case ak_restype_image: {
-          ak_resreg_reg_image(
-            rm->rr, loaded.id, &loaded.img);
-          break;
-        }
-        case ak_restype_world: {
-          ak_resreg_reg_world(rm->rr,
-                              loaded.id,
-                              &loaded.world);
-          break;
-        }
-        case ak_restype_shaderstr: {
-          ak_resreg_reg_shaderstr(
-            rm->rr, loaded.id, &loaded.ss);
-          break;
-        }
-        default: {
-          ak_assert(false);
-        }
-      };
+      ak_resreg_reg(rm->rr,
+                    loaded.id,
+                    loaded.type,
+                    &loaded.img);
       ri->status = ak_res_loaded;
     }
   }
@@ -267,18 +250,14 @@ ak_resman_load(ak_resman* rm,
                   .load_count = 1 };
   ak_hmn_insert(&rm->map, id, &ri);
 
-  gres_loading_item in = {
-    .rm = rm,
-    .id = id,
-    .type = type,
-    .stm = stm,
-    .alct = ak_heap_to_alct(&rm->heap)
-  };
+  args_item in = { .rm = rm,
+                   .id = id,
+                   .type = type,
+                   .stm = stm,
+                   .alct = ak_heap_to_alct(
+                     &rm->heap) };
   ak_jobid jid = ak_thpool_submit(
-    rm->jp,
-    &job_fn,
-    sizeof(gres_loading_item),
-    &in);
+    rm->jp, &job_fn, sizeof(args_item), &in);
   ak_da_pushback(&rm->jids, &jid);
 
   ak_mutex_unlock(&rm->m);

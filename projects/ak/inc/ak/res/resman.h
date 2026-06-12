@@ -29,23 +29,4 @@ ak_resman_load(ak_resman* rm,
 ak_ex void
 ak_resman_unload(ak_resman* rm, ak_resid id);
 
-/*
-ak_ex void
-ak_resman_load_old(ak_resman* rm,
-                   ak_resid id);
-ak_ex void
-ak_resman_unload_old(ak_resman* rm,
-                     ak_resid id);
-
-ak_ex void
-ak_resman_register_img(ak_resman* rm,
-                       ak_resid id,
-                       const char* path);
-
-ak_ex void
-ak_resman_register_world(ak_resman* rm,
-                         ak_resid id,
-                         const char* path);
-*/
-
 #endif

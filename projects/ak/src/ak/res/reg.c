@@ -98,24 +98,25 @@ ak_resreg_destroy(ak_resreg* rr)
 }
 
 void
+ak_resreg_reg(ak_resreg* rr,
+              ak_resid id,
+              ak_restype type,
+              const void* res)
+{
+  uint32_t idx =
+    ak_sla_insert(&rr->ress[type], res);
+
+  item itm = { .type = type, .idx = idx };
+  ak_hmn_insert(&rr->map, id, &itm);
+}
+
+void
 ak_resreg_unreg(ak_resreg* rr, ak_resid id)
 {
   res_destroy(rr, id);
   ak_hmn_remove(&rr->map, id);
 }
 
-void
-ak_resreg_reg_image(ak_resreg* rr,
-                    ak_resid id,
-                    const ak_img* img)
-{
-  uint32_t idx = ak_sla_insert(
-    &rr->ress[ak_restype_image], img);
-
-  item itm = { .type = ak_restype_image,
-               .idx = idx };
-  ak_hmn_insert(&rr->map, id, &itm);
-}
 ak_img
 ak_resreg_get_image(ak_resreg* rr,
                     ak_resid id)
@@ -126,18 +127,6 @@ ak_resreg_get_image(ak_resreg* rr,
   return *img;
 }
 
-void
-ak_resreg_reg_world(ak_resreg* rr,
-                    ak_resid id,
-                    const ak_world* w)
-{
-  uint32_t idx = ak_sla_insert(
-    &rr->ress[ak_restype_world], w);
-
-  item itm = { .type = ak_restype_world,
-               .idx = idx };
-  ak_hmn_insert(&rr->map, id, &itm);
-}
 ak_world
 ak_resreg_get_world(ak_resreg* rr,
                     ak_resid id)
@@ -149,19 +138,6 @@ ak_resreg_get_world(ak_resreg* rr,
   return *w;
 }
 
-void
-ak_resreg_reg_shaderstr(
-  ak_resreg* rr,
-  ak_resid id,
-  const ak_shaderstr* ss)
-{
-  uint32_t idx = ak_sla_insert(
-    &rr->ress[ak_restype_shaderstr], ss);
-
-  item itm = { .type = ak_restype_shaderstr,
-               .idx = idx };
-  ak_hmn_insert(&rr->map, id, &itm);
-}
 ak_shaderstr
 ak_resreg_get_shaderstr(ak_resreg* rr,
                         ak_resid id)

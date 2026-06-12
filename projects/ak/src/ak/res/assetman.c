@@ -11,42 +11,26 @@
 typedef struct
 {
   ak_resid rid;
-  ak_restype type;
   ak_stm stm;
-} res_loading_item;
+} res_cache;
 
 typedef struct
 {
   ak_gresid gid;
-  union
-  {
-    struct
-    {
-      bool tex_loading;
-    } tex;
-  };
-} gres_loading_item;
+  bool gid_loading;
+} cache_item;
+
+typedef struct
+{
+  ak_assetman_args args;
+  ak_gres_status status;
+} gres_item;
 
 typedef struct
 {
   ak_restype type;
-  ak_res_status status;
   const char* path;
 } res_item;
-
-typedef struct
-{
-  ak_grestype type;
-  ak_gres_status status;
-  union
-  {
-    struct
-    {
-      ak_resid img_rid;
-      ak_textype type;
-    } tex;
-  };
-} gres_item;
 
 static void
 tex_load_begin(ak_assetman* am,
@@ -55,58 +39,50 @@ tex_load_begin(ak_assetman* am,
   gres_item* gi =
     ak_hmn_at(&am->gres_map, gid);
 
-  ak_assetman_load_res(am, gi->tex.img_rid);
+  ak_assetman_load_res(am, gi->args.rid);
 }
 
 static bool
 tex_load_update(ak_assetman* am,
                 uint32_t idx)
 {
-  gres_loading_item* gli =
+  cache_item* gli =
     ak_da_at(&am->gres_loadings, idx);
   gres_item* gi =
     ak_hmn_at(&am->gres_map, gli->gid);
 
-  ak_res_status s = ak_resman_status(
-    am->rm, gi->tex.img_rid);
-  if (s != ak_res_loaded) {
-    return false;
-  }
-
-  if (!gli->tex.tex_loading) {
+  if (!gli->gid_loading) {
 
     ak_img img = ak_resreg_get_image(
       ak_resman_resreg(am->rm),
-      gi->tex.img_rid);
-    ak_gresman_load_tex(
-      am->grm, gli->gid, img, gi->tex.type);
+      gi->args.rid);
+    ak_gresman_args args = {
+      .type = ak_grestype_tex,
+      .tex = { .img = img,
+               .type = gi->args.tex.textype }
+    };
 
-    gli->tex.tex_loading = true;
-    return false;
+    ak_gresman_load(am->grm, gli->gid, args);
+    gli->gid_loading = true;
   }
-
-  ak_gres_status gs =
-    ak_gresman_status(am->grm, gli->gid);
-  if (gs != ak_gres_loaded) {
-    return false;
-  }
-
-  ak_assetman_unload_res(am,
-                         gi->tex.img_rid);
-
-  gi->status = ak_gres_loaded;
-  return true;
+  return false;
 }
 
 static bool
 gres_update(ak_assetman* am, uint32_t idx)
 {
-  gres_loading_item* gli =
+  cache_item* gli =
     ak_da_at(&am->gres_loadings, idx);
   gres_item* gi =
     ak_hmn_at(&am->gres_map, gli->gid);
 
-  switch (gi->type) {
+  ak_res_status s =
+    ak_resman_status(am->rm, gi->args.rid);
+  if (s != ak_res_loaded) {
+    return false;
+  }
+
+  switch (gi->args.type) {
     case ak_grestype_tex: {
       return tex_load_update(am, idx);
     }
@@ -115,25 +91,20 @@ gres_update(ak_assetman* am, uint32_t idx)
       return false;
     }
   }
+
+  ak_gres_status gs =
+    ak_gresman_status(am->grm, gli->gid);
+  if (gs != ak_gres_loaded) {
+    return false;
+  }
+
+  ak_assetman_unload_res(am, gi->args.rid);
+
+  gi->status = ak_gres_loaded;
+  return true;
 }
 
 //===== ak_assetman =====//
-//--- private ---//
-static ak_restype
-res_type(ak_assetman* am, ak_resid rid)
-{
-  res_item* ri =
-    ak_hmn_at(&am->res_map, rid);
-  return ri->type;
-}
-static ak_grestype
-gres_type(ak_assetman* am, ak_gresid rid)
-{
-  gres_item* gi =
-    ak_hmn_at(&am->gres_map, rid);
-  return gi->type;
-}
-
 //--- internal ---//
 ak_assetman
 ak_assetman_make(ak_resman* rm,
@@ -144,10 +115,10 @@ ak_assetman_make(ak_resman* rm,
   am.rm = rm;
   am.grm = grm;
 
-  am.res_loadings = ak_da_make(
-    sizeof(res_loading_item), alct);
-  am.gres_loadings = ak_da_make(
-    sizeof(gres_loading_item), alct);
+  am.res_loadings =
+    ak_da_make(sizeof(res_cache), alct);
+  am.gres_loadings =
+    ak_da_make(sizeof(cache_item), alct);
 
   am.res_map =
     ak_hmn_make(sizeof(res_item), alct);
@@ -184,7 +155,7 @@ ak_assetman_update(ak_assetman* am)
       ak_da_count(&am->res_loadings);
     uint32_t i = 0;
     while (i < count) {
-      res_loading_item* rli =
+      res_cache* rli =
         ak_da_at(&am->res_loadings, i);
 
       ak_res_status s =
@@ -207,7 +178,7 @@ ak_assetman_update(ak_assetman* am)
       ak_da_count(&am->gres_loadings);
     uint32_t i = 0;
     while (i < count) {
-      gres_loading_item* gli =
+      cache_item* gli =
         ak_da_at(&am->gres_loadings, i);
 
       bool done = gres_update(am, i);
@@ -254,14 +225,12 @@ ak_assetman_load_res(ak_assetman* am,
   res_item* ri =
     ak_hmn_at(&am->res_map, rid);
 
-  res_loading_item rli = {
-    .rid = rid,
-    .type = ri->type,
-    .stm = ak_stm_open_file(ri->path, "rb")
-  };
+  res_cache rli = { .rid = rid,
+                    .stm = ak_stm_open_file(
+                      ri->path, "rb") };
   ak_da_pushback(&am->res_loadings, &rli);
   ak_resman_load(
-    am->rm, rli.rid, rli.type, rli.stm);
+    am->rm, rid, ri->type, rli.stm);
 }
 
 void
@@ -286,13 +255,12 @@ ak_assetman_load_gres(ak_assetman* am,
   }
   gi->status = ak_gres_loading;
 
-  gres_loading_item gli = { .gid = gid };
+  cache_item gli = { .gid = gid,
+                     .gid_loading = false };
+  ak_da_pushback(&am->gres_loadings, &gli);
 
-  switch (gi->type) {
+  switch (gi->args.type) {
     case ak_grestype_tex: {
-      gli.tex.tex_loading = false;
-      ak_da_pushback(&am->gres_loadings,
-                     &gli);
       tex_load_begin(am, gid);
       break;
     }
@@ -319,36 +287,24 @@ ak_assetman_unload_gres(ak_assetman* am,
 }
 
 void
-ak_assetman_reg_res_img(ak_assetman* am,
-                        ak_resid rid,
-                        const char* path)
+ak_assetman_reg_res(ak_assetman* am,
+                    ak_resid rid,
+                    ak_restype type,
+                    const char* path)
 {
-  res_item ri = { .type = ak_restype_image,
+  res_item ri = { .type = type,
                   .path = path };
   ak_hmn_insert(&am->res_map, rid, &ri);
 }
 
 void
-ak_assetman_reg_res_world(ak_assetman* am,
-                          ak_resid rid,
-                          const char* path)
+ak_assetman_reg_gres(
+  ak_assetman* am,
+  ak_gresid gid,
+  const ak_assetman_args* args)
 {
-  res_item ri = { .type = ak_restype_world,
-                  .path = path };
-  ak_hmn_insert(&am->res_map, rid, &ri);
-}
-
-void
-ak_assetman_reg_gres_tex(ak_assetman* am,
-                         ak_gresid gid,
-                         ak_resid img_rid,
-                         ak_textype type)
-{
-  gres_item gi = {
-    .type = ak_grestype_tex,
-    .tex = { .img_rid = img_rid,
-             .type = type },
-    .status = ak_gres_not_loaded
-  };
+  gres_item gi = { .args = *args,
+                   .status =
+                     ak_gres_not_loaded };
   ak_hmn_insert(&am->gres_map, gid, &gi);
 }

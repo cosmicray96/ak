@@ -14,7 +14,7 @@ typedef enum
 
 ak_tex*
 ak_tex_make_from_img(ak_gfx* gfx,
-                     ak_img* img,
+                     const ak_img* img,
                      ak_textype type,
                      ak_alct alct);
 

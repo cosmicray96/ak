@@ -7,9 +7,10 @@
 #include "ak/gfx/gresreg.h"
 
 ak_shader*
-ak_shader_from_shaderstr(ak_gfx* gfx,
-                         ak_shaderstr* ss,
-                         ak_alct alct);
+ak_shader_from_shaderstr(
+  ak_gfx* gfx,
+  const ak_shaderstr* ss,
+  ak_alct alct);
 
 ak_shader*
 ak_shader_make_from_src(ak_gfx* gfx,

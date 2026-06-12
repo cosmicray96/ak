@@ -3,11 +3,25 @@
 
 #include "ak/coll/hmn.h"
 #include "ak/core/mem/allocator.h"
+#include "ak/gfx/core.h"
 #include "ak/gfx/gresman.h"
 #include "ak/gfx/gresreg.h"
 #include "ak/gfx/tex.h"
 #include "ak/res/reg.h"
 #include "ak/res/resman.h"
+
+typedef struct
+{
+  ak_grestype type;
+  ak_resid rid;
+  union
+  {
+    struct
+    {
+      ak_textype textype;
+    } tex;
+  };
+} ak_assetman_args;
 
 typedef struct
 {
@@ -46,18 +60,15 @@ ak_assetman_unload_gres(ak_assetman* am,
                         ak_gresid gid);
 
 void
-ak_assetman_reg_res_img(ak_assetman* am,
-                        ak_resid rid,
-                        const char* path);
-void
-ak_assetman_reg_res_world(ak_assetman* am,
-                          ak_resid rid,
-                          const char* path);
+ak_assetman_reg_res(ak_assetman* am,
+                    ak_resid rid,
+                    ak_restype type,
+                    const char* path);
 
 void
-ak_assetman_reg_gres_tex(ak_assetman* am,
-                         ak_gresid gid,
-                         ak_resid img_rid,
-                         ak_textype type);
+ak_assetman_reg_gres(
+  ak_assetman* am,
+  ak_gresid gid,
+  const ak_assetman_args* args);
 
 #endif

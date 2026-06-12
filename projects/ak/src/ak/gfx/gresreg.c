@@ -22,6 +22,32 @@ struct ak_gresreg
   ak_hmn map;
 };
 
+static void*
+gres_get(ak_gresreg* grr, ak_gresid id)
+{
+  item* itm = ak_hmn_at(&grr->map, id);
+  return itm->gres;
+}
+static void
+gres_unreg(ak_gresreg* grr, ak_gresid id)
+{
+  item* itm = ak_hmn_at(&grr->map, id);
+  switch (itm->type) {
+    case ak_grestype_tex: {
+      ak_tex_destroy(itm->gres);
+      break;
+    }
+    case ak_grestype_shader: {
+      ak_shader_destroy(itm->gres);
+      break;
+    }
+
+    default: {
+      ak_assert(false);
+    }
+  }
+}
+
 //--- internal ---//
 ak_gresreg*
 ak_gresreg_make(ak_gfx* gfx, ak_alct alct)
@@ -38,7 +64,17 @@ ak_gresreg_make(ak_gfx* gfx, ak_alct alct)
 void
 ak_gresreg_destroy(ak_gresreg* grr)
 {
-  ak_log("fix gresreg");
+
+  ak_hmn_iter it =
+    ak_hmn_iter_make(&grr->map);
+  uint64_t key = 0;
+  void* value = 0;
+  while (
+    ak_hmn_iter_next(&it, &key, &value)) {
+    ak_gresid id = key;
+    gres_unreg(grr, id);
+  }
+
   ak_hmn_destroy(&grr->map);
   ak_alct_free(grr->alct, grr);
 }
@@ -58,58 +94,20 @@ ak_gresreg_unreg(ak_gresreg* grr,
                  ak_gresid id)
 {
 
-  item* itm = ak_hmn_at(&grr->map, id);
-  switch (itm->type) {
-    case ak_grestype_tex: {
-      ak_tex_destroy(itm->gres);
-      break;
-    }
-    case ak_grestype_shader: {
-      ak_shader_destroy(itm->gres);
-      break;
-    }
-
-    default: {
-      ak_assert(false);
-    }
-  }
-}
-
-void*
-ak_gresreg_get(ak_gresreg* grr, ak_gresid id)
-{
-  item* itm = ak_hmn_at(&grr->map, id);
-  return itm->gres;
-}
-
-void
-ak_gresreg_reg_tex(ak_gresreg* grr,
-                   ak_gresid id,
-                   ak_tex* tex)
-{
-  ak_gresreg_reg(
-    grr, id, ak_grestype_tex, tex);
+  gres_unreg(grr, id);
+  ak_hmn_remove(&grr->map, id);
 }
 
 ak_tex*
 ak_gresreg_get_tex(ak_gresreg* grr,
                    ak_gresid id)
 {
-  return ak_gresreg_get(grr, id);
-}
-
-void
-ak_gresreg_reg_shader(ak_gresreg* grr,
-                      ak_gresid id,
-                      ak_shader* shader)
-{
-  ak_gresreg_reg(
-    grr, id, ak_grestype_tex, shader);
+  return gres_get(grr, id);
 }
 
 ak_shader*
 ak_gresreg_get_shader(ak_gresreg* grr,
                       ak_gresid id)
 {
-  return ak_gresreg_get(grr, id);
+  return gres_get(grr, id);
 }

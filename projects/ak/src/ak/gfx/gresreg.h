@@ -30,22 +30,10 @@ ak_gresreg_reg(ak_gresreg* grr,
 void
 ak_gresreg_unreg(ak_gresreg* grr,
                  ak_gresid id);
-void*
-ak_gresreg_get(ak_gresreg* grr,
-               ak_gresid id);
 
-void
-ak_gresreg_reg_tex(ak_gresreg* grr,
-                   ak_gresid id,
-                   ak_tex* tex);
 ak_tex*
 ak_gresreg_get_tex(ak_gresreg* grr,
                    ak_gresid id);
-
-void
-ak_gresreg_reg_shader(ak_gresreg* grr,
-                      ak_gresid id,
-                      ak_shader* shader);
 ak_shader*
 ak_gresreg_get_shader(ak_gresreg* grr,
                       ak_gresid id);
