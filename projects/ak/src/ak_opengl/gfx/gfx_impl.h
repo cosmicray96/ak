@@ -10,6 +10,14 @@ typedef struct
   float u0, v0, u1, v1;
 } ak_opengl_quad_uv;
 
+#define ak_glerr_check                      \
+  do {                                      \
+    GLenum err = glGetError();              \
+    ak_log_assert(err == GL_NO_ERROR,       \
+                  "Opengl error: %x",       \
+                  err);                     \
+  } while (0);
+
 GLuint
 program_make(const char* fs_src,
              const char* vs_src);

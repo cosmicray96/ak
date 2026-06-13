@@ -7,17 +7,14 @@
 #include "ak/debug.h"
 #include "ak/gfx/core.h"
 
-#include "ak/platform/plat.h"
 #include "ak/platform/plat_base.h"
+#include "ak_opengl/gfx/gfx.h"
 #include "ak_opengl/gfx/gfx_impl.h"
 
 #include <glad/glad.h>
 
 #include <stddef.h>
 #include <stdint.h>
-
-void
-ak_plat_base_glmakecurrent(ak_plat_base* pb);
 
 typedef struct
 {
@@ -30,16 +27,6 @@ typedef struct
 #define s_max_quad_count 512
 #define s_max_ivbo_size                     \
   s_max_quad_count * sizeof(quad)
-
-#define check_err                           \
-  do {                                      \
-    GLenum err = glGetError();              \
-    if (err != GL_NO_ERROR) {               \
-      ak_log("opengl error:");              \
-      ak_logv(err, x);                      \
-      ak_assert(false);                     \
-    }                                       \
-  } while (0);
 
 //--- private ---//
 
@@ -77,7 +64,7 @@ void
 ak_gfx_call_begin(ak_gfx* g)
 {
   ak_assert(!g->call_began);
-  check_err;
+  ak_glerr_check;
   g->call_began = true;
 
   ak_da_clear(&g->quads);
@@ -89,7 +76,7 @@ ak_gfx_pushquad(ak_gfx* g,
                 const ak_mat3_f* mat3)
 {
   ak_assert(g->call_began);
-  check_err;
+  ak_glerr_check;
 
   break_call_ifneeded(g);
 
@@ -119,7 +106,7 @@ ak_gfx_call_end(ak_gfx* g)
                   0,
                   sizeof(quad) * count,
                   ak_da_ptr(&g->quads));
-  check_err;
+  ak_glerr_check;
 
   glDrawElementsInstanced(
     GL_TRIANGLES,
@@ -127,7 +114,7 @@ ak_gfx_call_end(ak_gfx* g)
     GL_UNSIGNED_SHORT,
     0,
     ak_da_count(&g->quads));
-  check_err;
+  ak_glerr_check;
 
   g->call_began = false;
 }
@@ -151,7 +138,7 @@ ak_gfx_startup(ak_plat_base* pr,
 
   r->call_began = false;
 
-  check_err;
+  ak_glerr_check;
 
   {
     float vbo_buf[8] = { -0.5f, 0.5f, 0.5f,
@@ -164,7 +151,7 @@ ak_gfx_startup(ak_plat_base* pr,
                  vbo_buf,
                  GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    check_err;
+    ak_glerr_check;
   }
   {
     uint16_t ebo_buf[6] = {
@@ -178,7 +165,7 @@ ak_gfx_startup(ak_plat_base* pr,
                  ebo_buf,
                  GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    check_err;
+    ak_glerr_check;
   }
   {
     glGenBuffers(1, &r->ivbo);
@@ -188,7 +175,7 @@ ak_gfx_startup(ak_plat_base* pr,
                  0,
                  GL_DYNAMIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    check_err;
+    ak_glerr_check;
   }
   {
     glGenVertexArrays(1, &r->vao);
@@ -260,7 +247,7 @@ ak_gfx_startup(ak_plat_base* pr,
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    check_err;
+    ak_glerr_check;
   }
 
   // glPolygonMode(GL_FRONT_AND_BACK,
@@ -300,7 +287,7 @@ ak_gfx_frame_begin(ak_gfx* g)
 
   glClearColor(1.0f, 0.1f, 0.12f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
-  check_err;
+  ak_glerr_check;
 }
 
 void

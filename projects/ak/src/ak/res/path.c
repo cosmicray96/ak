@@ -39,7 +39,7 @@ ak_respathman_reg(ak_respathman* rpm,
   int n = 0;
 
   switch (type) {
-    case ak_restype_shader: {
+    case ak_restype_shaderstr: {
       n = snprintf(itm.path,
                    s_path_size,
                    "%s/%s",

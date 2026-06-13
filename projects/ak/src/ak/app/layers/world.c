@@ -294,15 +294,19 @@ on_startup(void* ctx, ak_app* app)
   l->dog_rid = 10;
   l->dog_gid = 11;
 
-  ak_assetman_reg_res_world(
-    &l->am, l->wid, "./world.bin");
+  ak_assetman_reg_res(&l->am,
+                      l->wid,
+                      ak_restype_world,
+                      "./world.bin");
 
-  ak_assetman_reg_res_img(
-    &l->am, l->dog_rid, "./dog.png");
-  ak_assetman_reg_gres_tex(&l->am,
-                           l->dog_gid,
-                           l->dog_rid,
-                           ak_textype_rgba8);
+  ak_assetman_reg_res(&l->am,
+                      l->dog_rid,
+                      ak_restype_image,
+                      "./dog.png");
+  ak_assert(false);
+  ak_assetman_args args = {};
+  ak_assetman_reg_gres(
+    &l->am, l->dog_gid, &args);
 
   ak_assetman_load_gres(&l->am, l->dog_gid);
 

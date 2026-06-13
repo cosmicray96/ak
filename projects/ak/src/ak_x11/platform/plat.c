@@ -3,7 +3,9 @@
 
 #include "ak/core/mem/ptr.h"
 #include "ak/platform/core.h"
-#include "ak_x11/platform/itn.h"
+
+#include "ak_x11/platform/impl.h"
+#include "ak_x11/platform/plat.h"
 
 #include <X11/X.h>
 #include <X11/Xlib.h>
@@ -57,9 +59,9 @@ ak_plat_startup(ak_plat_base* pr,
     ak_alct_alloc(alct, sizeof(ak_plat));
   p->alct = alct;
 
-  p->d = ak_plat_ren_display(pr);
-  p->wn = ak_plat_ren_window(pr);
-  p->wm_delete = ak_plat_ren_wm_delete(pr);
+  p->d = ak_plat_base_display(pr);
+  p->wn = ak_plat_base_window(pr);
+  p->wm_delete = ak_plat_base_wm_delete(pr);
 
   p->width = ak_plat_base_init_width(pr);
   p->height = ak_plat_base_init_height(pr);
