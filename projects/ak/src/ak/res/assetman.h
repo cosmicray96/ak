@@ -1,5 +1,6 @@
 #ifndef ak_res_assetman_h
 #define ak_res_assetman_h
+/*
 
 #include "ak/coll/hmn.h"
 #include "ak/core/mem/allocator.h"
@@ -70,5 +71,6 @@ ak_assetman_reg_gres(
   ak_assetman* am,
   ak_gresid gid,
   const ak_assetman_args* args);
+*/
 
 #endif

@@ -1,14 +1,13 @@
 #ifndef ak_core_async_jobpool_h
 #define ak_core_async_jobpool_h
 
-#include "ak/export.h"
-
+#include "ak/coll/da.h"
 #include <stdbool.h>
 #include <stdint.h>
 
 //===== ak_job =====//
 typedef uint32_t ak_jobid;
-typedef void (*ak_job_fn)(void* input);
+typedef bool (*ak_job_fn)(void* input);
 typedef enum
 {
   ak_job_none = 0,
@@ -30,12 +29,11 @@ ak_job_status
 ak_thpool_job_status(ak_thpool* jp,
                      ak_jobid jid);
 void
-ak_thpool_job_output(ak_thpool* jp,
-                     ak_jobid jid,
-                     void* o_output);
-
-void
 ak_thpool_job_remove(ak_thpool* jp,
                      ak_jobid jid);
+
+void
+ak_thpool_clear_done(ak_thpool* jp,
+                     ak_da* jids);
 
 #endif

@@ -1,7 +1,6 @@
 #include "ak/core/async/thpool.h"
 
 #include "ak/coll/dq.h"
-#include "ak/coll/hmn.h"
 #include "ak/coll/sla.h"
 #include "ak/core/async/atomic.h"
 #include "ak/core/async/mutex.h"
@@ -19,9 +18,10 @@
 typedef struct
 {
   ak_job_fn job;
+  uint32_t input_size;
   uint8_t input[ak_s_job_ctx_size];
-  uint32_t inputsize;
-} ak_job;
+  ak_job_status status;
+} job_item;
 
 //===== ak_jobpool =====//
 //--- private ---//
@@ -35,7 +35,6 @@ struct ak_thpool
   ak_thread* ts[s_thread_count];
   ak_atomicint shouldclose;
   ak_sla jobs;
-  ak_hmn statuses;
 };
 
 static void
@@ -44,9 +43,8 @@ status_set(ak_thpool* jp,
            ak_job_status status)
 {
   ak_mutex_lock(&jp->m);
-  ak_atomicint* ai =
-    ak_hmn_at(&jp->statuses, jid);
-  ak_atomicint_store(ai, status);
+  job_item* ji = ak_sla_at(&jp->jobs, jid);
+  ji->status = status;
   ak_mutex_unlock(&jp->m);
 }
 
@@ -54,26 +52,42 @@ static ak_job_status
 status_get(ak_thpool* jp, ak_jobid jid)
 {
   ak_mutex_lock(&jp->m);
-  ak_atomicint* ai =
-    ak_hmn_at(&jp->statuses, jid);
-  ak_job_status s = ak_atomicint_load(ai);
+  job_item* ji = ak_sla_at(&jp->jobs, jid);
+  ak_job_status s = ji->status;
   ak_mutex_unlock(&jp->m);
   return s;
 }
 
 static bool
-thpool_next_job(ak_thpool* jp,
-                ak_jobid* o_jid,
-                ak_job* o_job)
+thpool_next_job(
+  ak_thpool* jp,
+  ak_jobid* o_jid,
+  ak_job_fn* o_jobfn,
+  uint8_t o_input[ak_s_job_ctx_size])
 {
   ak_mutex_lock(&jp->m);
   bool success = ak_dq_pop(&jp->jidq, o_jid);
   if (success) {
-    ak_job* j = ak_sla_at(&jp->jobs, *o_jid);
-    *o_job = *j;
+    job_item* ji =
+      ak_sla_at(&jp->jobs, *o_jid);
+    *o_jobfn = ji->job;
+    ak_p_cpy(
+      o_input, ji->input, ji->input_size);
   }
   ak_mutex_unlock(&jp->m);
   return success;
+}
+
+static void
+thpool_repushback(ak_thpool* jp,
+                  ak_jobid id,
+                  const void* input)
+{
+  ak_mutex_lock(&jp->m);
+  job_item* ji = ak_sla_at(&jp->jobs, id);
+  ak_p_cpy(ji->input, input, ji->input_size);
+  ak_dq_push(&jp->jidq, &id);
+  ak_mutex_unlock(&jp->m);
 }
 
 static void
@@ -85,13 +99,18 @@ thread_fn(void* ctx)
   while (true) {
     ak_dur start = ak_dur_now();
 
-    ak_jobid jid = 0;
-    ak_job job = { 0 };
-    bool isjob =
-      thpool_next_job(jp, &jid, &job);
+    ak_jobid id = 0;
+    ak_job_fn jobfn = 0;
+    uint8_t input[ak_s_job_ctx_size] = { 0 };
+    bool isjob = thpool_next_job(
+      jp, &id, &jobfn, input);
     if (isjob) {
-      job.job(job.input);
-      status_set(jp, jid, ak_job_done);
+      bool finished = jobfn(input);
+      if (finished) {
+        status_set(jp, id, ak_job_done);
+      } else {
+        thpool_repushback(jp, id, input);
+      }
     }
 
     if (!isjob) {
@@ -121,10 +140,7 @@ ak_thpool_startup()
     ak_dq_make(sizeof(ak_jobid),
                ak_heap_to_alct(&jp->heap));
   jp->jobs =
-    ak_sla_make(sizeof(ak_job),
-                ak_heap_to_alct(&jp->heap));
-  jp->statuses =
-    ak_hmn_make(sizeof(ak_atomicint),
+    ak_sla_make(sizeof(job_item),
                 ak_heap_to_alct(&jp->heap));
   jp->m = ak_mutex_make();
 
@@ -149,7 +165,6 @@ ak_thpool_shutdown(ak_thpool* jp)
   }
 
   ak_mutex_destroy(&jp->m);
-  ak_hmn_destroy(&jp->statuses);
   ak_sla_destroy(&jp->jobs);
   ak_dq_destroy(&jp->jidq);
   ak_heap_destroy(&jp->heap);
@@ -166,18 +181,16 @@ ak_thpool_submit(ak_thpool* jp,
 {
   ak_assert(inputsize <= ak_s_job_ctx_size);
 
-  ak_job j = { 0 };
+  job_item j = { 0 };
   j.job = jfunc;
-  j.inputsize = inputsize;
+  j.input_size = inputsize;
+  j.status = ak_job_working;
   ak_p_cpy(&j.input, input, inputsize);
 
   ak_mutex_lock(&jp->m);
   ak_jobid jid =
     ak_sla_insert(&jp->jobs, &j);
   ak_dq_push(&jp->jidq, &jid);
-  ak_atomicint ai;
-  ak_atomicint_store(&ai, ak_job_working);
-  ak_hmn_insert(&jp->statuses, jid, &ai);
   ak_mutex_unlock(&jp->m);
   return jid;
 }
@@ -198,8 +211,28 @@ ak_thpool_job_remove(ak_thpool* jp,
 
   ak_mutex_lock(&jp->m);
   ak_sla_remove(&jp->jobs, jid);
-  ak_hmn_remove(&jp->statuses, jid);
   ak_mutex_unlock(&jp->m);
+}
+
+void
+ak_thpool_clear_done(ak_thpool* jp,
+                     ak_da* jids)
+{
+  uint32_t count = ak_da_count(jids);
+  uint32_t i = 0;
+  while (i < count) {
+    ak_jobid jid =
+      *(ak_jobid*)ak_da_at(jids, i);
+    ak_job_status s =
+      ak_thpool_job_status(jp, jid);
+    if (s == ak_job_done) {
+      ak_thpool_job_remove(jp, jid);
+      ak_da_remove_swaplast(jids, i);
+      count--;
+    } else {
+      i++;
+    }
+  }
 }
 
 /*

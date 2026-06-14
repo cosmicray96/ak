@@ -110,7 +110,7 @@ res_unload_unsafe(ak_resman* rm, ak_resid id)
   ri->status = ak_res_not_loaded;
 }
 
-static void
+static bool
 job_fn(void* input)
 {
   args_item* in = input;
@@ -119,6 +119,7 @@ job_fn(void* input)
            in->type,
            in->stm,
            in->alct);
+  return true;
 }
 //===== ak_resman =====//
 //--- private ---//

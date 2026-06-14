@@ -1,3 +1,4 @@
+/*
 #include "ak/res/assetman.h"
 #include "ak/debug.h"
 #include "ak/gfx/gresman.h"
@@ -308,3 +309,4 @@ ak_assetman_reg_gres(
                      ak_gres_not_loaded };
   ak_hmn_insert(&am->gres_map, gid, &gi);
 }
+*/

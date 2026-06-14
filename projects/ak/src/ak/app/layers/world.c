@@ -27,7 +27,6 @@
 #include "ak/gfx/gresman.h"
 #include "ak/gfx/gresreg.h"
 #include "ak/os/time.h"
-#include "ak/res/assetman.h"
 #include "ak/res/reg.h"
 #include "ak/res/resman.h"
 #include "ak/res/resman_itn.h"
@@ -62,7 +61,7 @@ struct ak_lworld
   ak_gresreg* grr;
   ak_gresman* grm;
 
-  ak_assetman am;
+  //  ak_assetman am;
 
   ak_gcb gcb;
   ak_renderer* renderer;
@@ -287,28 +286,27 @@ on_startup(void* ctx, ak_app* app)
   l->grr =
     ak_renderer_gresreg_get(l->renderer);
 
-  l->am = ak_assetman_make(
-    &l->rm, l->grm, l->alct);
-
   l->wid = 5;
   l->dog_rid = 10;
   l->dog_gid = 11;
 
-  ak_assetman_reg_res(&l->am,
-                      l->wid,
-                      ak_restype_world,
-                      "./world.bin");
+  /*
+ak_assetman_reg_res(&l->am,
+                l->wid,
+                ak_restype_world,
+                "./world.bin");
 
-  ak_assetman_reg_res(&l->am,
-                      l->dog_rid,
-                      ak_restype_image,
-                      "./dog.png");
-  ak_assert(false);
-  ak_assetman_args args = {};
-  ak_assetman_reg_gres(
-    &l->am, l->dog_gid, &args);
+ak_assetman_reg_res(&l->am,
+                l->dog_rid,
+                ak_restype_image,
+                "./dog.png");
+ak_assert(false);
+ak_assetman_args args = {};
+ak_assetman_reg_gres(
+&l->am, l->dog_gid, &args);
 
-  ak_assetman_load_gres(&l->am, l->dog_gid);
+ak_assetman_load_gres(&l->am, l->dog_gid);
+*/
 
   l->load = ak_s_load;
   l->world_added = false;
@@ -321,7 +319,7 @@ on_startup(void* ctx, ak_app* app)
   set_root(l);
 
   if (l->load) {
-    ak_assetman_load_res(&l->am, l->wid);
+    // ak_assetman_load_res(&l->am, l->wid);
   } else {
     store(l);
   }
@@ -359,7 +357,7 @@ on_shutdown(void* ctx)
   ak_sys_ren_destroy(&l->sys_ren);
   ak_sys_tf_destroy(&l->sys_tf);
 
-  ak_assetman_destroy(&l->am);
+  //  ak_assetman_destroy(&l->am);
   ak_gresman_shutdown(l->grm);
   ak_resman_destroy(&l->rm);
   ak_thpool_shutdown(l->tp);
@@ -450,7 +448,7 @@ on_update(void* ctx, ak_dur delta)
   l->time += ak_dur_as_secs_f(delta);
 
   ak_resman_update(&l->rm);
-  ak_assetman_update(&l->am);
+  //  ak_assetman_update(&l->am);
 
   if (l->load && !l->world_added &&
       ak_resman_status(&l->rm, l->wid) ==
