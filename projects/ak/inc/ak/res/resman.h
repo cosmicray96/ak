@@ -25,7 +25,8 @@ ak_ex void
 ak_resman_load(ak_resman* rm,
                ak_resid id,
                ak_restype type,
-               ak_stm stm);
+               ak_stm stm,
+               bool stm_close);
 ak_ex void
 ak_resman_unload(ak_resman* rm, ak_resid id);
 

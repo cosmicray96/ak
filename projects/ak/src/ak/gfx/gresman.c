@@ -216,3 +216,18 @@ ak_gresman_load(ak_gresman* grm,
 
   ak_mutex_unlock(&grm->m);
 }
+
+void
+ak_gresman_load_tex(ak_gresman* grm,
+                    ak_gresid id,
+                    const ak_img* img,
+                    ak_textype textype)
+{
+  ak_gresman_load(
+    grm,
+    id,
+    (ak_gresman_args){
+      .type = ak_grestype_tex,
+      .tex = { .img = *img,
+               .type = textype } });
+}

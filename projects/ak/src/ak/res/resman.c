@@ -27,6 +27,7 @@ typedef struct
   ak_resid id;
   ak_restype type;
   ak_stm stm;
+  bool stm_close;
   ak_alct alct;
 } args_item;
 
@@ -56,6 +57,7 @@ res_load(ak_resman* rm,
          ak_resid id,
          ak_restype type,
          ak_stm stm,
+         bool stm_close,
          ak_alct alct)
 {
   loaded_item loaded = { .id = id,
@@ -97,6 +99,9 @@ res_load(ak_resman* rm,
       break;
     }
   }
+  if (stm_close) {
+    ak_stm_close(stm);
+  }
   ak_mutex_lock(&rm->m);
   ak_dq_push(&rm->loadeds, &loaded);
   ak_mutex_unlock(&rm->m);
@@ -118,6 +123,7 @@ job_fn(void* input)
            in->id,
            in->type,
            in->stm,
+           in->stm_close,
            in->alct);
   return true;
 }
@@ -234,7 +240,8 @@ void
 ak_resman_load(ak_resman* rm,
                ak_resid id,
                ak_restype type,
-               ak_stm stm)
+               ak_stm stm,
+               bool stm_close)
 {
   ak_mutex_lock(&rm->m);
 
@@ -255,10 +262,15 @@ ak_resman_load(ak_resman* rm,
                    .id = id,
                    .type = type,
                    .stm = stm,
+                   .stm_close = stm_close,
                    .alct = ak_heap_to_alct(
                      &rm->heap) };
-  ak_jobid jid = ak_thpool_submit(
-    rm->jp, &job_fn, sizeof(args_item), &in);
+  ak_jobid jid =
+    ak_thpool_submit(rm->jp,
+                     &job_fn,
+                     sizeof(args_item),
+                     &in,
+                     false);
   ak_da_pushback(&rm->jids, &jid);
 
   ak_mutex_unlock(&rm->m);

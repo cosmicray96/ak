@@ -21,6 +21,7 @@ typedef struct
   uint32_t input_size;
   uint8_t input[ak_s_job_ctx_size];
   ak_job_status status;
+  bool autoremove;
 } job_item;
 
 //===== ak_jobpool =====//
@@ -52,6 +53,10 @@ static ak_job_status
 status_get(ak_thpool* jp, ak_jobid jid)
 {
   ak_mutex_lock(&jp->m);
+  if (!ak_sla_exist(&jp->jobs, jid)) {
+    ak_mutex_unlock(&jp->m);
+    return ak_job_not_exist;
+  }
   job_item* ji = ak_sla_at(&jp->jobs, jid);
   ak_job_status s = ji->status;
   ak_mutex_unlock(&jp->m);
@@ -63,7 +68,8 @@ thpool_next_job(
   ak_thpool* jp,
   ak_jobid* o_jid,
   ak_job_fn* o_jobfn,
-  uint8_t o_input[ak_s_job_ctx_size])
+  uint8_t o_input[ak_s_job_ctx_size],
+  bool* o_autoremove)
 {
   ak_mutex_lock(&jp->m);
   bool success = ak_dq_pop(&jp->jidq, o_jid);
@@ -73,6 +79,7 @@ thpool_next_job(
     *o_jobfn = ji->job;
     ak_p_cpy(
       o_input, ji->input, ji->input_size);
+    *o_autoremove = ji->autoremove;
   }
   ak_mutex_unlock(&jp->m);
   return success;
@@ -102,12 +109,16 @@ thread_fn(void* ctx)
     ak_jobid id = 0;
     ak_job_fn jobfn = 0;
     uint8_t input[ak_s_job_ctx_size] = { 0 };
+    bool autoremove = false;
     bool isjob = thpool_next_job(
-      jp, &id, &jobfn, input);
+      jp, &id, &jobfn, input, &autoremove);
     if (isjob) {
       bool finished = jobfn(input);
       if (finished) {
         status_set(jp, id, ak_job_done);
+        if (autoremove) {
+          ak_thpool_job_remove(jp, id);
+        }
       } else {
         thpool_repushback(jp, id, input);
       }
@@ -177,7 +188,8 @@ ak_jobid
 ak_thpool_submit(ak_thpool* jp,
                  ak_job_fn jfunc,
                  uint32_t inputsize,
-                 const void* input)
+                 const void* input,
+                 bool job_remove)
 {
   ak_assert(inputsize <= ak_s_job_ctx_size);
 
@@ -185,6 +197,7 @@ ak_thpool_submit(ak_thpool* jp,
   j.job = jfunc;
   j.input_size = inputsize;
   j.status = ak_job_working;
+  j.autoremove = job_remove;
   ak_p_cpy(&j.input, input, inputsize);
 
   ak_mutex_lock(&jp->m);
