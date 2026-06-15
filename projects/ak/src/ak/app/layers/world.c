@@ -86,9 +86,6 @@ struct ak_lworld
 
   ak_ui ui;
   float time;
-
-  ak_gresid shaderid;
-  ak_gresid uiid;
 };
 
 bool
@@ -218,7 +215,7 @@ set_root(ak_lworld* l)
   l->e_mtrl_base =
     ak_wcb_ett_new(&l->wcb, root);
   ak_mtrl_base_t base = { 0 };
-  base.data.shaderid = l->shaderid;
+  base.data.shaderid = l->shader_gid;
   base.data.tex =
     (ak_tex_old){ .gid = l->dog_gid,
                   .uv_type = ak_uv_repeat,
@@ -294,25 +291,44 @@ on_startup(void* ctx, ak_app* app)
   l->wid = 5;
   l->dog_rid = 10;
   l->dog_gid = 11;
+  l->ss_rid = 15;
+  l->shader_gid = 16;
 
   ak_assetman_reg_res(&l->am,
                       l->wid,
                       ak_restype_world,
                       "./world.bin");
-
   ak_assetman_reg_res(&l->am,
                       l->dog_rid,
                       ak_restype_image,
                       "./dog.png");
-  ak_assetman_args args = {
-    .type = ak_grestype_tex,
-    .rid = l->dog_rid,
-    .tex = { .textype = ak_textype_rgba8 }
-  };
-  ak_assetman_reg_gres(
-    &l->am, l->dog_gid, &args);
+  ak_assetman_reg_res(
+    &l->am,
+    l->ss_rid,
+    ak_restype_shaderstr,
+    "./assets/shader.glsl");
+
+  {
+    ak_assetman_args args = {
+      .type = ak_grestype_tex,
+      .rid = l->dog_rid,
+      .tex = { .textype = ak_textype_rgba8 }
+    };
+    ak_assetman_reg_gres(
+      &l->am, l->dog_gid, &args);
+  }
+  {
+    ak_assetman_args args = {
+      .type = ak_grestype_shader,
+      .rid = l->ss_rid
+    };
+    ak_assetman_reg_gres(
+      &l->am, l->shader_gid, &args);
+  }
 
   ak_assetman_load_gres(&l->am, l->dog_gid);
+  ak_assetman_load_gres(&l->am,
+                        l->shader_gid);
 
   l->load = ak_s_load;
   l->world_added = false;
@@ -421,11 +437,16 @@ static bool
 loaded(ak_lworld* l)
 {
   if (ak_gresman_status(l->grm,
-                        l->dog_gid) ==
+                        l->dog_gid) !=
       ak_gres_loaded) {
-    return true;
+    return false;
   }
-  return false;
+  if (ak_gresman_status(l->grm,
+                        l->shader_gid) !=
+      ak_gres_loaded) {
+    return false;
+  }
+  return true;
 }
 
 static void

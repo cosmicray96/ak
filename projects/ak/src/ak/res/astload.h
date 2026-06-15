@@ -25,4 +25,18 @@ ak_astload_gres_unload_tex(ak_thpool* th,
                            ak_gresman* grm,
                            ak_gresid gid);
 
+void
+ak_astload_gres_load_shader(ak_thpool* th,
+                            ak_resman* rm,
+                            ak_gresman* grm,
+                            ak_gresid gid,
+                            ak_resid rid,
+                            ak_stm stm);
+
+void
+ak_astload_gres_unload_shader(
+  ak_thpool* th,
+  ak_gresman* grm,
+  ak_gresid gid);
+
 #endif

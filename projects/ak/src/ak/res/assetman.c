@@ -2,10 +2,8 @@
 #include "ak/debug.h"
 #include "ak/gfx/gresman.h"
 #include "ak/gfx/gresreg.h"
-#include "ak/gfx/tex.h"
 #include "ak/res/astload.h"
 #include "ak/res/reg.h"
-#include "ak/res/resman_itn.h"
 #include "ak/system/stream.h"
 
 //--- private ---//
@@ -101,6 +99,16 @@ ak_assetman_load_gres(ak_assetman* am,
         ak_stm_open_file(ri->path, "rb"));
       break;
     }
+    case ak_grestype_shader: {
+      ak_astload_gres_load_shader(
+        am->tp,
+        am->rm,
+        am->grm,
+        gid,
+        gi->args.rid,
+        ak_stm_open_file(ri->path, "rb"));
+      break;
+    }
     default: {
       ak_assert(false);
     }
@@ -119,6 +127,11 @@ ak_assetman_unload_gres(ak_assetman* am,
   switch (gi->args.type) {
     case ak_grestype_tex: {
       ak_astload_gres_unload_tex(
+        am->tp, am->grm, gid);
+      break;
+    }
+    case ak_grestype_shader: {
+      ak_astload_gres_unload_shader(
         am->tp, am->grm, gid);
       break;
     }

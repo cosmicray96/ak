@@ -2,6 +2,7 @@
 #include "ak/gfx/core.h"
 #include "ak/gfx/gresreg.h"
 #include "ak_opengl/gfx/gfx_impl.h"
+#include "ak_opengl/gfx/tex_impl.h"
 
 //===== ak_shader =====//
 //--- private ---//
@@ -11,6 +12,9 @@ struct ak_shader
   ak_alct alct;
   ak_gfx* gfx;
   GLuint program;
+  GLint vp_loc;
+  GLint time_loc;
+  GLint tex_loc;
 };
 
 //--- internal ---//
@@ -38,6 +42,17 @@ ak_shader_make_from_src(ak_gfx* gfx,
   s->gfx = gfx;
   s->program =
     program_make(vert_src, frag_src);
+  s->vp_loc =
+    glGetUniformLocation(s->program, "u_vp");
+  ak_assert(s->vp_loc != -1);
+  s->time_loc =
+    glGetUniformLocation(s->program, "u_t");
+  ak_assert(s->time_loc != -1);
+
+  s->tex_loc = glGetUniformLocation(
+    s->program, "u_tex");
+  ak_assert(s->time_loc != -1);
+  ak_glerr_check;
   return s;
 }
 
@@ -60,6 +75,20 @@ ak_shader_begin(ak_shader* s,
                 const ak_mtrl_indata* id,
                 const ak_mtrl_basedata* bd)
 {
+  glUseProgram(s->program);
+
+  glUniformMatrix3fv(
+    s->vp_loc, 9, false, id->vp.v);
+  glUniform1f(s->vp_loc, id->time);
+
+  ak_tex* t =
+    ak_gresreg_get_tex(grr, bd->tex.gid);
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D,
+                ak_tex_get(t));
+  glUniform1i(s->tex_loc, 0);
+
   ak_gfx_call_begin(s->gfx);
 }
 
