@@ -8,6 +8,39 @@
 
 typedef struct
 {
+  ak_gresman* grm;
+  ak_gresid gid;
+} gres_unload;
+bool
+gres_unload_fn(void* ctx)
+{
+  gres_unload* gu = ctx;
+  ak_gres_status status =
+    ak_gresman_status(gu->grm, gu->gid);
+  if (status == ak_gres_not_exist) {
+    return false;
+  }
+  ak_gresman_unload(gu->grm, gu->gid);
+  return true;
+}
+void
+ak_astload_gres_unload(ak_thpool* tp,
+                       ak_gresman* grm,
+                       ak_gresid gid)
+{
+  gres_unload gu = {
+    .grm = grm,
+    .gid = gid,
+  };
+  ak_thpool_submit(tp,
+                   &gres_unload_fn,
+                   sizeof(gres_unload),
+                   &gu,
+                   true);
+}
+
+typedef struct
+{
   ak_resman* rm;
   ak_gresman* grm;
   ak_gresid gid;
@@ -58,7 +91,6 @@ gres_tex_fn(void* ctx)
   ak_assert(false);
   return false;
 }
-
 void
 ak_astload_gres_load_tex(ak_thpool* th,
                          ak_resman* rm,
@@ -84,38 +116,56 @@ ak_astload_gres_load_tex(ak_thpool* th,
 
 typedef struct
 {
+  ak_resman* rm;
   ak_gresman* grm;
   ak_gresid gid;
-} gres_tex_unload;
+  ak_resid rid;
+  ak_stm stm;
+  uint8_t phase;
+} gres_shader;
 bool
-gres_tex_unload_fn(void* ctx)
+gres_shader_fn(void* ctx)
 {
-  gres_tex_unload* gt = ctx;
-  ak_gres_status status =
-    ak_gresman_status(gt->grm, gt->gid);
-  if (status == ak_gres_not_exist) {
-    return false;
+  gres_shader* gs = ctx;
+  switch (gs->phase) {
+    case 0: {
+      ak_resman_load(gs->rm,
+                     gs->rid,
+                     ak_restype_shaderstr,
+                     gs->stm,
+                     true);
+      gs->phase = 1;
+      return false;
+    }
+    case 1: {
+      if (ak_resman_status(gs->rm,
+                           gs->rid) !=
+          ak_res_loaded) {
+        return false;
+      }
+      ak_shaderstr ss =
+        ak_resreg_get_shaderstr(
+          ak_resman_resreg(gs->rm), gs->rid);
+
+      ak_gresman_load_shader(
+        gs->grm, gs->gid, &ss);
+      gs->phase = 2;
+      return false;
+    }
+    case 2: {
+      if (ak_gresman_status(gs->grm,
+                            gs->gid) !=
+          ak_gres_loaded) {
+        return false;
+      }
+
+      ak_resman_unload(gs->rm, gs->rid);
+      return true;
+    }
   }
-  ak_gresman_unload(gt->grm, gt->gid);
-  return true;
+  ak_assert(false);
+  return false;
 }
-void
-ak_astload_gres_unload_tex(ak_thpool* th,
-                           ak_gresman* grm,
-                           ak_gresid gid)
-{
-
-  gres_tex_unload gt = {
-    .grm = grm,
-    .gid = gid,
-  };
-  ak_thpool_submit(th,
-                   &gres_tex_unload_fn,
-                   sizeof(gres_tex_unload),
-                   &gt,
-                   true);
-}
-
 void
 ak_astload_gres_load_shader(ak_thpool* th,
                             ak_resman* rm,
@@ -124,15 +174,15 @@ ak_astload_gres_load_shader(ak_thpool* th,
                             ak_resid rid,
                             ak_stm stm)
 {
-  ak_assert(false);
-}
-
-void
-ak_astload_gres_unload_shader(
-  ak_thpool* th,
-  ak_gresman* grm,
-  ak_gresid gid)
-{
-
-  ak_assert(false);
+  gres_shader gs = { .rm = rm,
+                     .grm = grm,
+                     .gid = gid,
+                     .rid = rid,
+                     .stm = stm,
+                     .phase = 0 };
+  ak_thpool_submit(th,
+                   &gres_shader_fn,
+                   sizeof(gres_shader),
+                   &gs,
+                   true);
 }

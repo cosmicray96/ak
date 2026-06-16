@@ -13,9 +13,9 @@ typedef struct
 } ak_shaderstr;
 
 ak_ex ak_stmerr
-ak_shaderstr_load(ak_stm stm,
-                  ak_shaderstr* o_ss,
-                  ak_alct alct);
+ak_stm_read_shaderstr(ak_stm stm,
+                      ak_shaderstr* o_ss,
+                      ak_alct alct);
 
 ak_ex void
 ak_shaderstr_destroy(ak_shaderstr* ss);

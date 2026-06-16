@@ -1,12 +1,14 @@
 #include "ak/core/shaderstr.h"
 #include "ak/coll/str.h"
+#include "ak/debug.h"
 #include "ak/system/stream.h"
+#include <stdio.h>
 #include <string.h>
 
 ak_stmerr
-ak_shaderstr_load(ak_stm stm,
-                  ak_shaderstr* o_ss,
-                  ak_alct alct)
+ak_stm_read_shaderstr(ak_stm stm,
+                      ak_shaderstr* o_ss,
+                      ak_alct alct)
 {
   o_ss->vert = ak_str_make(alct);
   o_ss->frag = ak_str_make(alct);
@@ -21,11 +23,11 @@ ak_shaderstr_load(ak_stm stm,
       break;
     }
 
-    if (strcmp("#vert",
+    if (strcmp("#vert\n",
                ak_str_ptr_const(&line)) ==
         0) {
       outline = &o_ss->vert;
-    } else if (strcmp("#frag",
+    } else if (strcmp("#frag\n",
                       ak_str_ptr_const(
                         &line)) == 0) {
       outline = &o_ss->frag;

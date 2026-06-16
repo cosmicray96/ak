@@ -124,22 +124,8 @@ ak_assetman_unload_gres(ak_assetman* am,
 
   gres_item* gi =
     ak_hmn_at(&am->gres_map, gid);
-  switch (gi->args.type) {
-    case ak_grestype_tex: {
-      ak_astload_gres_unload_tex(
-        am->tp, am->grm, gid);
-      break;
-    }
-    case ak_grestype_shader: {
-      ak_astload_gres_unload_shader(
-        am->tp, am->grm, gid);
-      break;
-    }
-
-    default: {
-      ak_assert(false);
-    }
-  }
+  ak_astload_gres_unload(
+    am->tp, am->grm, gid);
 }
 
 void

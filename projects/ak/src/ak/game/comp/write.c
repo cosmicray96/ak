@@ -174,32 +174,6 @@ ak_stm_read_mat3(ak_stm stm, ak_mat3* o_mat3)
 }
 
 ak_stmerr
-ak_stm_write_tex(ak_stm stm, ak_tex_old tex)
-{
-  ak_stm_try(ak_stm_write_u32(stm, tex.gid));
-  ak_stm_try(
-    ak_stm_write_u32(stm, tex.filter_type));
-  ak_stm_try(
-    ak_stm_write_u32(stm, tex.uv_type));
-
-  return ak_stmerr_ok;
-}
-
-ak_stmerr
-ak_stm_read_tex(ak_stm stm,
-                ak_tex_old* o_tex)
-{
-  ak_stm_try(
-    ak_stm_read_u32(stm, &o_tex->gid));
-  ak_stm_try(ak_stm_read_u32(
-    stm, &o_tex->filter_type));
-  ak_stm_try(
-    ak_stm_read_u32(stm, &o_tex->uv_type));
-
-  return ak_stmerr_ok;
-}
-
-ak_stmerr
 ak_stm_write_qd(ak_stm stm,
                 ak_mtrl_quaddata qd)
 {
@@ -386,7 +360,7 @@ ak_stm_write_mtrl_base(
 {
   ak_stm_try(ak_stm_write_u32(
     stm, mtrl_base.data.shaderid));
-  ak_stm_try(ak_stm_write_tex(
+  ak_stm_try(ak_stm_write_u32(
     stm, mtrl_base.data.tex));
   return ak_stmerr_ok;
 }
@@ -399,7 +373,7 @@ ak_stm_read_mtrl_base(
 
   ak_stm_try(ak_stm_read_u32(
     stm, &o_mtrl_base->data.shaderid));
-  ak_stm_try(ak_stm_read_tex(
+  ak_stm_try(ak_stm_read_u32(
     stm, &o_mtrl_base->data.tex));
   return ak_stmerr_ok;
 }

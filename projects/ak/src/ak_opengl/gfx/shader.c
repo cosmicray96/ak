@@ -1,4 +1,5 @@
 #include "ak/gfx/shader.h"
+#include "ak/debug.h"
 #include "ak/gfx/core.h"
 #include "ak/gfx/gresreg.h"
 #include "ak_opengl/gfx/gfx_impl.h"
@@ -42,16 +43,15 @@ ak_shader_make_from_src(ak_gfx* gfx,
   s->gfx = gfx;
   s->program =
     program_make(vert_src, frag_src);
+
   s->vp_loc =
     glGetUniformLocation(s->program, "u_vp");
-  ak_assert(s->vp_loc != -1);
   s->time_loc =
     glGetUniformLocation(s->program, "u_t");
-  ak_assert(s->time_loc != -1);
 
   s->tex_loc = glGetUniformLocation(
     s->program, "u_tex");
-  ak_assert(s->time_loc != -1);
+
   ak_glerr_check;
   return s;
 }
@@ -77,18 +77,22 @@ ak_shader_begin(ak_shader* s,
 {
   glUseProgram(s->program);
 
-  glUniformMatrix3fv(
-    s->vp_loc, 9, false, id->vp.v);
-  glUniform1f(s->vp_loc, id->time);
+  if (s->vp_loc != -1) {
+    glUniformMatrix3fv(
+      s->vp_loc, 1, GL_FALSE, id->vp.v);
+  }
+  if (s->time_loc != -1) {
+    glUniform1f(s->vp_loc, id->time);
+  }
 
-  ak_tex* t =
-    ak_gresreg_get_tex(grr, bd->tex.gid);
-
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D,
-                ak_tex_get(t));
-  glUniform1i(s->tex_loc, 0);
-
+  if (s->tex_loc != -1) {
+    ak_tex* t =
+      ak_gresreg_get_tex(grr, bd->tex);
+    GLuint id = ak_tex_get(t);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, id);
+    glUniform1i(s->tex_loc, 0);
+  }
   ak_gfx_call_begin(s->gfx);
 }
 
@@ -104,4 +108,5 @@ void
 ak_shader_end(ak_shader* s)
 {
   ak_gfx_call_end(s->gfx);
+  glUseProgram(0);
 }

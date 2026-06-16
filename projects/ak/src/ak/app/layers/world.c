@@ -175,7 +175,7 @@ store(ak_lworld* l)
     }
   }
   ak_world_cb_flush(&l->w_store, &wcb, &ig);
-  ak_stream_print_world(&l->w_store);
+  // ak_stream_print_world(&l->w_store);
 
   ak_stm stm =
     ak_stm_open_file("./world.bin", "wb");
@@ -216,11 +216,7 @@ set_root(ak_lworld* l)
     ak_wcb_ett_new(&l->wcb, root);
   ak_mtrl_base_t base = { 0 };
   base.data.shaderid = l->shader_gid;
-  base.data.tex =
-    (ak_tex_old){ .gid = l->dog_gid,
-                  .uv_type = ak_uv_repeat,
-                  .filter_type =
-                    ak_filter_linear };
+  base.data.tex = l->dog_gid;
   ak_wcb_comp_mtrl_base_add(
     &l->wcb, l->e_mtrl_base, base);
 
@@ -243,7 +239,9 @@ ui_render(ak_lworld* l)
     .qd = { .col = { .r = 0,
                      .g = 0,
                      .b = 1,
-                     .a = 1 } }
+                     .a = 1 },
+            .uv_min = { .x = 0, .y = 0 },
+            .uv_max = { .x = 1, .y = 1 } }
   };
   ak_ui_clear(&l->ui);
   ak_ui_add(
@@ -482,15 +480,15 @@ on_update(void* ctx, ak_dur delta)
     ak_world w =
       ak_resreg_get_world(l->rr, l->wid);
 
-    ak_stream_print_world(&w);
+    // ak_stream_print_world(&w);
     ak_world_graft(&l->w,
                    &w,
                    ak_world_ett_root(&l->w),
                    &l->ig,
                    l->alct);
     l->world_added = true;
-    ak_log("Loaded");
-    ak_stream_print_world(&l->w);
+    ak_log("World Loaded");
+    // ak_stream_print_world(&l->w);
   }
 
   ak_sys_tf_update(
@@ -506,9 +504,9 @@ on_update(void* ctx, ak_dur delta)
   if (loaded(l)) {
     ak_sys_ren_render(
       &l->sys_ren, &l->wv, &l->gcb, delta);
+    ui_render(l);
   }
 
-  ui_render(l);
   ak_renderer_render(l->renderer, &l->gcb);
 }
 

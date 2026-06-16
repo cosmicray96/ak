@@ -60,5 +60,10 @@ ak_gresman_load_tex(ak_gresman* grm,
                     ak_gresid id,
                     const ak_img* img,
                     ak_textype textype);
+void
+ak_gresman_load_shader(
+  ak_gresman* grm,
+  ak_gresid id,
+  const ak_shaderstr* ss);
 
 #endif

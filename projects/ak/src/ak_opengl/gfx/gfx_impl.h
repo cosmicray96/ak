@@ -19,8 +19,8 @@ typedef struct
   } while (0);
 
 GLuint
-program_make(const char* fs_src,
-             const char* vs_src);
+program_make(const char* vs_src,
+             const char* fs_src);
 
 void
 ak_gfx_call_begin(ak_gfx* g);

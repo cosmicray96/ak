@@ -26,7 +26,7 @@ typedef struct
 //===== ak_gfx =====//
 #define s_max_quad_count 512
 #define s_max_ivbo_size                     \
-  s_max_quad_count * sizeof(quad)
+  (s_max_quad_count * sizeof(quad))
 
 //--- private ---//
 
@@ -101,19 +101,22 @@ ak_gfx_call_end(ak_gfx* g)
   ak_assert(g->call_began);
   uint32_t count = ak_da_count(&g->quads);
 
-  glBindVertexArray(g->vao);
+  glBindBuffer(GL_ARRAY_BUFFER, g->ivbo);
   glBufferSubData(GL_ARRAY_BUFFER,
                   0,
                   sizeof(quad) * count,
                   ak_da_ptr(&g->quads));
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
   ak_glerr_check;
 
+  glBindVertexArray(g->vao);
   glDrawElementsInstanced(
     GL_TRIANGLES,
     6,
     GL_UNSIGNED_SHORT,
     0,
     ak_da_count(&g->quads));
+  glBindVertexArray(0);
   ak_glerr_check;
 
   g->call_began = false;

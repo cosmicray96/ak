@@ -64,8 +64,8 @@ res_load(ak_resman* rm,
                          .type = type };
   switch (type) {
     case ak_restype_image: {
-      ak_img img = ak_img_make_from_stm(
-        stm, ak_heap_to_alct(&rm->heap));
+      ak_img img =
+        ak_img_make_from_stm(stm, alct);
 
       loaded.err = ak_stmerr_ok;
       loaded.img = img;
@@ -84,8 +84,8 @@ res_load(ak_resman* rm,
     }
     case ak_restype_shaderstr: {
       ak_shaderstr ss = { 0 };
-      ak_stmerr err =
-        ak_shaderstr_load(stm, &ss, alct);
+      ak_stmerr err = ak_stm_read_shaderstr(
+        stm, &ss, alct);
 
       ak_assert(err == ak_stmerr_ok);
 

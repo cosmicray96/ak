@@ -231,3 +231,17 @@ ak_gresman_load_tex(ak_gresman* grm,
       .tex = { .img = *img,
                .type = textype } });
 }
+
+void
+ak_gresman_load_shader(
+  ak_gresman* grm,
+  ak_gresid id,
+  const ak_shaderstr* ss)
+{
+  ak_gresman_load(
+    grm,
+    id,
+    (ak_gresman_args){ .type =
+                         ak_grestype_shader,
+                       .ss = *ss });
+}

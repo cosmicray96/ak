@@ -15,21 +15,6 @@ typedef struct ak_shader ak_shader;
 
 typedef struct
 {
-  ak_gresid gid;
-  enum
-  {
-    ak_uv_clamp,
-    ak_uv_repeat
-  } uv_type;
-  enum
-  {
-    ak_filter_nearest,
-    ak_filter_linear
-  } filter_type;
-} ak_tex_old;
-
-typedef struct
-{
   ak_vec4f col;
   ak_vec2f uv_min;
   ak_vec2f uv_max;
@@ -38,7 +23,7 @@ typedef struct
 typedef struct
 {
   ak_gresid shaderid;
-  ak_tex_old tex;
+  ak_gresid tex;
 } ak_mtrl_basedata;
 
 typedef struct

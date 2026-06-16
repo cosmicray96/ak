@@ -1,5 +1,6 @@
 #include "ak/gfx/tex.h"
 #include "ak/core/mem/allocator.h"
+#include "ak/debug.h"
 
 #include <glad/glad.h>
 
@@ -45,8 +46,14 @@ ak_tex_make_from_img(ak_gfx* gfx,
                GL_UNSIGNED_BYTE,
                img->pixels);
 
-  glBindTexture(GL_TEXTURE_2D, 0);
+  glTexParameteri(GL_TEXTURE_2D,
+                  GL_TEXTURE_MIN_FILTER,
+                  GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D,
+                  GL_TEXTURE_MAG_FILTER,
+                  GL_LINEAR);
 
+  glBindTexture(GL_TEXTURE_2D, 0);
   return tex;
 }
 

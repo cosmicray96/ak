@@ -37,8 +37,8 @@ compile_shader(GLenum type, const char* src)
 
 //--- public ---//
 GLuint
-program_make(const char* fs_src,
-             const char* vs_src)
+program_make(const char* vs_src,
+             const char* fs_src)
 {
   GLuint vs =
     compile_shader(GL_VERTEX_SHADER, vs_src);

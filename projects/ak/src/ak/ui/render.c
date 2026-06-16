@@ -96,7 +96,8 @@ ak_uirstg_make(ak_alct alct)
   rstg.scissors =
     ak_dq_make(sizeof(ak_vec4f), alct);
   rstg.mtrl_b =
-    (ak_mtrl_basedata){ .shaderid = 16 };
+    (ak_mtrl_basedata){ .shaderid = 16,
+                        .tex = 11 };
   return rstg;
 }
 void

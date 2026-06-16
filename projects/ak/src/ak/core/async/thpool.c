@@ -18,7 +18,6 @@
 typedef struct
 {
   ak_job_fn job;
-  uint32_t input_size;
   uint8_t input[ak_s_job_ctx_size];
   ak_job_status status;
   bool autoremove;
@@ -78,7 +77,7 @@ thpool_next_job(
       ak_sla_at(&jp->jobs, *o_jid);
     *o_jobfn = ji->job;
     ak_p_cpy(
-      o_input, ji->input, ji->input_size);
+      o_input, ji->input, ak_s_job_ctx_size);
     *o_autoremove = ji->autoremove;
   }
   ak_mutex_unlock(&jp->m);
@@ -92,7 +91,8 @@ thpool_repushback(ak_thpool* jp,
 {
   ak_mutex_lock(&jp->m);
   job_item* ji = ak_sla_at(&jp->jobs, id);
-  ak_p_cpy(ji->input, input, ji->input_size);
+  ak_p_cpy(
+    ji->input, input, ak_s_job_ctx_size);
   ak_dq_push(&jp->jidq, &id);
   ak_mutex_unlock(&jp->m);
 }
@@ -195,7 +195,6 @@ ak_thpool_submit(ak_thpool* jp,
 
   job_item j = { 0 };
   j.job = jfunc;
-  j.input_size = inputsize;
   j.status = ak_job_working;
   j.autoremove = job_remove;
   ak_p_cpy(&j.input, input, inputsize);
