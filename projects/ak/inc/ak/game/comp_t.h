@@ -29,14 +29,11 @@ typedef struct
 
 typedef struct
 {
-  ak_ett base_id;
-  ak_mtrl_quaddata data;
-} ak_mtrl_t;
+  ak_ett mtrlid;
+  ak_gfx_quaddata data;
+} ak_mtrlinst_t;
 
-typedef struct
-{
-  ak_mtrl_basedata data;
-} ak_mtrl_base_t;
+typedef ak_gfx_calldata ak_mtrl_t;
 
 typedef struct
 {

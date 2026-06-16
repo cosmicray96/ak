@@ -32,6 +32,9 @@ ak_dur_add(ak_dur a, ak_dur b);
 ak_ex bool
 ak_dur_zero(ak_dur a);
 
+ak_ex bool
+ak_dur_gt(ak_dur a, ak_dur b);
+
 ak_ex float
 ak_dur_as_secs_f(ak_dur d);
 

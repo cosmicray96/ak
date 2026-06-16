@@ -10,17 +10,17 @@
 
 typedef struct
 {
-  ak_mtrl_indata id;
+  ak_gfx_batchdata id;
 } mtrlin_item;
 
 typedef struct
 {
-  ak_mtrl_basedata bd;
+  ak_gfx_calldata bd;
 } mtrl_item;
 
 typedef struct
 {
-  ak_mtrl_quaddata qd;
+  ak_gfx_quaddata qd;
   ak_mat3_f gmat;
 } quad_item;
 typedef struct
@@ -86,7 +86,7 @@ ak_gcb_flush(ak_gcb* gcb,
 
   ak_gfx_frame_begin(gfx);
   uint32_t count = ak_da_count(&gcb->cmds);
-  ak_mtrl_indata id = { 0 };
+  ak_gfx_batchdata id = { 0 };
   bool has_mtrlin = false;
 
   ak_shader* shader = 0;
@@ -179,8 +179,8 @@ ak_gcb_push_resize(ak_gcb* gcb,
 }
 
 void
-ak_gcb_push_mtrlin(ak_gcb* gcb,
-                   const ak_mtrl_indata* id)
+ak_gcb_push_batch(ak_gcb* gcb,
+                  const ak_gfx_batchdata* id)
 {
   cmd_item ci = { .type = cmdtype_mtrlin,
                   .mii = { .id = *id } };
@@ -188,8 +188,8 @@ ak_gcb_push_mtrlin(ak_gcb* gcb,
 }
 
 void
-ak_gcb_push_mtrl(ak_gcb* gcb,
-                 const ak_mtrl_basedata* bd)
+ak_gcb_push_call(ak_gcb* gcb,
+                 const ak_gfx_calldata* bd)
 {
 
   cmd_item ci = { .type = cmdtype_mtrl,
@@ -201,7 +201,7 @@ ak_gcb_push_mtrl(ak_gcb* gcb,
 
 void
 ak_gcb_push_quad(ak_gcb* gcb,
-                 const ak_mtrl_quaddata* qd,
+                 const ak_gfx_quaddata* qd,
                  const ak_mat3_f* gmat)
 {
   cmd_item ci = { .type = cmdtype_quad,

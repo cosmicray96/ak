@@ -28,14 +28,15 @@ void
 ak_gcb_joinback(ak_gcb* dest, ak_gcb* src);
 
 void
-ak_gcb_push_mtrlin(ak_gcb* gcb,
-                   const ak_mtrl_indata* id);
+ak_gcb_push_batch(
+  ak_gcb* gcb,
+  const ak_gfx_batchdata* id);
 void
-ak_gcb_push_mtrl(ak_gcb* gcb,
-                 const ak_mtrl_basedata* bd);
+ak_gcb_push_call(ak_gcb* gcb,
+                 const ak_gfx_calldata* bd);
 void
 ak_gcb_push_quad(ak_gcb* gcb,
-                 const ak_mtrl_quaddata* qd,
+                 const ak_gfx_quaddata* qd,
                  const ak_mat3_f* gmat);
 
 void

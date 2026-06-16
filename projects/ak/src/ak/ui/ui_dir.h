@@ -17,7 +17,7 @@ typedef struct
   ak_uiaxistype axistype;
   bool clipping;
   bool visible;
-  ak_mtrl_quaddata qd;
+  ak_gfx_quaddata qd;
   union
   {
     struct

@@ -13,12 +13,12 @@ typedef struct
   ak_cnst y_cnst;
   bool visible;
   bool clipping;
-  ak_mtrl_quaddata qd;
+  ak_gfx_quaddata qd;
 } ak_uielm_args;
 
 typedef struct
 {
-  ak_mtrl_basedata mtrl_b;
+  ak_gfx_calldata mtrl;
   ak_dq scissors;
 } ak_uirstg;
 

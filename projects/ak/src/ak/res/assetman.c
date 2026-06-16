@@ -42,8 +42,6 @@ ak_assetman_make(ak_thpool* tp,
 void
 ak_assetman_destroy(ak_assetman* am)
 {
-  ak_log("fix assetman");
-
   ak_hmn_destroy(&am->res_map);
   ak_hmn_destroy(&am->gres_map);
   am->rm = 0;

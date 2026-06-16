@@ -8,6 +8,7 @@
 #include "ak/gfx/gresreg.h"
 #include "ak/gfx/shader.h"
 #include "ak/gfx/tex.h"
+#include "ak/program/program.h"
 
 //===== gres_item =====//
 //--- private ---//
@@ -111,6 +112,11 @@ ak_gresman_startup(ak_gresreg* grr,
 void
 ak_gresman_shutdown(ak_gresman* grm)
 {
+  uint32_t count = ak_dq_count(&grm->cmds);
+  if (count > 0) {
+    ak_log("gresman, %d cmds remaining",
+           count);
+  }
 
   ak_mutex_destroy(&grm->m);
 

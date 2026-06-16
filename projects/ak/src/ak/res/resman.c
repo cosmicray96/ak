@@ -10,6 +10,7 @@
 #include "ak/debug.h"
 #include "ak/game/stg/world.h"
 #include "ak/game/world/write.h"
+#include "ak/os/cpu.h"
 #include "ak/os/time.h"
 #include "ak/program/program.h"
 #include "ak/res/reg.h"
@@ -155,7 +156,38 @@ ak_resman_make(ak_resreg* rr,
 void
 ak_resman_destroy(ak_resman* rm)
 {
-  ak_log("Fix Resman");
+  ak_dur start = ak_dur_now();
+
+  while (true) {
+    ak_mutex_lock(&rm->m);
+    uint32_t loadeds_count =
+      ak_dq_count(&rm->loadeds);
+    uint32_t unloads_count =
+      ak_dq_count(&rm->unloads);
+    uint32_t jids_count =
+      ak_da_count(&rm->jids);
+    ak_mutex_unlock(&rm->m);
+
+    if (loadeds_count == 0 &&
+        unloads_count == 0 &&
+        jids_count == 0) {
+      break;
+    }
+    ak_resman_update(rm);
+    ak_this_thread_sleep(
+      ak_dur_from_millis(1));
+
+    ak_dur end = ak_dur_now();
+    ak_dur diff =
+      ak_dur_subtract(end, start);
+    ak_dur timeout = ak_dur_from_secs(2);
+    if (ak_dur_gt(diff, timeout)) {
+      ak_log("resman. timeout reached, "
+             "force destroy.");
+      break;
+    }
+  }
+
   ak_this_thread_sleep(ak_dur_from_secs(1));
 
   ak_dq_destroy(&rm->loadeds);

@@ -50,18 +50,18 @@ ak_comp_ett_offsets_screen(
   return 0;
 }
 uint32_t
-ak_comp_ett_offsets_mtrl(
+ak_comp_ett_offsets_mtrlinst(
   uint32_t o_offsets[16])
 {
   return 0;
 }
 
 uint32_t
-ak_comp_ett_offsets_mtrl_base(
+ak_comp_ett_offsets_mtrl(
   uint32_t o_offsets[16])
 {
   o_offsets[0] =
-    offsetof(ak_mtrl_t, base_id);
+    offsetof(ak_mtrlinst_t, mtrlid);
   return 1;
 }
 

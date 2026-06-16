@@ -175,7 +175,7 @@ ak_stm_read_mat3(ak_stm stm, ak_mat3* o_mat3)
 
 ak_stmerr
 ak_stm_write_qd(ak_stm stm,
-                ak_mtrl_quaddata qd)
+                ak_gfx_quaddata qd)
 {
   ak_stm_try(
     ak_stm_write_vec4f(stm, qd.col));
@@ -188,7 +188,7 @@ ak_stm_write_qd(ak_stm stm,
 
 ak_stmerr
 ak_stm_read_qd(ak_stm stm,
-               ak_mtrl_quaddata* o_qd)
+               ak_gfx_quaddata* o_qd)
 {
 
   ak_stm_try(
@@ -331,13 +331,37 @@ ak_stm_read_screen(ak_stm stm,
 }
 
 ak_stmerr
+ak_stm_write_mtrlinst(ak_stm stm,
+                      ak_mtrlinst_t mtrlinst)
+{
+  ak_stm_try(
+    ak_stm_write_u32(stm, mtrlinst.mtrlid));
+  ak_stm_try(
+    ak_stm_write_qd(stm, mtrlinst.data));
+
+  return ak_stmerr_ok;
+}
+
+ak_stmerr
+ak_stm_read_mtrlinst(
+  ak_stm stm,
+  ak_mtrlinst_t* o_mtrlinst)
+{
+  ak_stm_try(ak_stm_read_u32(
+    stm, &o_mtrlinst->mtrlid));
+  ak_stm_try(
+    ak_stm_read_qd(stm, &o_mtrlinst->data));
+
+  return ak_stmerr_ok;
+}
+
+ak_stmerr
 ak_stm_write_mtrl(ak_stm stm, ak_mtrl_t mtrl)
 {
   ak_stm_try(
-    ak_stm_write_u32(stm, mtrl.base_id));
+    ak_stm_write_u32(stm, mtrl.shaderid));
   ak_stm_try(
-    ak_stm_write_qd(stm, mtrl.data));
-
+    ak_stm_write_u32(stm, mtrl.tex));
   return ak_stmerr_ok;
 }
 
@@ -345,36 +369,11 @@ ak_stmerr
 ak_stm_read_mtrl(ak_stm stm,
                  ak_mtrl_t* o_mtrl)
 {
+
   ak_stm_try(
-    ak_stm_read_u32(stm, &o_mtrl->base_id));
+    ak_stm_read_u32(stm, &o_mtrl->shaderid));
   ak_stm_try(
-    ak_stm_read_qd(stm, &o_mtrl->data));
-
-  return ak_stmerr_ok;
-}
-
-ak_stmerr
-ak_stm_write_mtrl_base(
-  ak_stm stm,
-  ak_mtrl_base_t mtrl_base)
-{
-  ak_stm_try(ak_stm_write_u32(
-    stm, mtrl_base.data.shaderid));
-  ak_stm_try(ak_stm_write_u32(
-    stm, mtrl_base.data.tex));
-  return ak_stmerr_ok;
-}
-
-ak_stmerr
-ak_stm_read_mtrl_base(
-  ak_stm stm,
-  ak_mtrl_base_t* o_mtrl_base)
-{
-
-  ak_stm_try(ak_stm_read_u32(
-    stm, &o_mtrl_base->data.shaderid));
-  ak_stm_try(ak_stm_read_u32(
-    stm, &o_mtrl_base->data.tex));
+    ak_stm_read_u32(stm, &o_mtrl->tex));
   return ak_stmerr_ok;
 }
 

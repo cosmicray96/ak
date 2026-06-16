@@ -18,18 +18,18 @@ typedef struct
   ak_vec4f col;
   ak_vec2f uv_min;
   ak_vec2f uv_max;
-} ak_mtrl_quaddata;
+} ak_gfx_quaddata;
 
 typedef struct
 {
   ak_gresid shaderid;
   ak_gresid tex;
-} ak_mtrl_basedata;
+} ak_gfx_calldata;
 
 typedef struct
 {
   ak_mat3_f vp;
   float time;
-} ak_mtrl_indata;
+} ak_gfx_batchdata;
 
 #endif

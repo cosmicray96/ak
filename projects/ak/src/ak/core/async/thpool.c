@@ -14,6 +14,7 @@
 
 //===== ak_job =====//
 #define ak_s_job_ctx_size 64
+#define ak_s_timeout_secs 2
 //--- private ---//
 typedef struct
 {
@@ -35,6 +36,7 @@ struct ak_thpool
   ak_thread* ts[s_thread_count];
   ak_atomicint shouldclose;
   ak_sla jobs;
+  ak_dur destroy_start;
 };
 
 static void
@@ -106,6 +108,9 @@ thread_fn(void* ctx)
   while (true) {
     ak_dur start = ak_dur_now();
 
+    bool shouldclose =
+      ak_atomicint_load(&jp->shouldclose);
+
     ak_jobid id = 0;
     ak_job_fn jobfn = 0;
     uint8_t input[ak_s_job_ctx_size] = { 0 };
@@ -124,9 +129,21 @@ thread_fn(void* ctx)
       }
     }
 
-    if (!isjob) {
-      if (ak_atomicint_load(
-            &jp->shouldclose)) {
+    if (shouldclose) {
+
+      if (!isjob) {
+        return;
+      }
+
+      ak_dur start = jp->destroy_start;
+      ak_dur end = ak_dur_now();
+      ak_dur diff =
+        ak_dur_subtract(end, start);
+      ak_dur timeout =
+        ak_dur_from_secs(ak_s_timeout_secs);
+      if (ak_dur_gt(diff, timeout)) {
+        ak_log("thpool. timeout reached, "
+               "force destroy.");
         return;
       }
     }
@@ -154,6 +171,7 @@ ak_thpool_startup()
     ak_sla_make(sizeof(job_item),
                 ak_heap_to_alct(&jp->heap));
   jp->m = ak_mutex_make();
+  jp->destroy_start = ak_dur_now();
 
   ak_atomicint_store(&jp->shouldclose, 0);
 
@@ -168,6 +186,7 @@ ak_thpool_startup()
 void
 ak_thpool_shutdown(ak_thpool* jp)
 {
+  jp->destroy_start = ak_dur_now();
   ak_atomicint_store(&jp->shouldclose, 1);
 
   for (uint32_t i = 0; i < s_thread_count;

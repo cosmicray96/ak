@@ -74,10 +74,13 @@ struct ak_lworld
   ak_resid dog_rid;
   ak_gresid dog_gid;
 
-  ak_resid ss_rid;
-  ak_gresid shader_gid;
+  ak_resid ss_tex_rid;
+  ak_gresid shader_tex_gid;
 
-  ak_ett e_mtrl_base;
+  ak_resid ss_ui_rid;
+  ak_gresid shader_ui_gid;
+
+  ak_ett mtrl_e;
 
   bool load;
   bool world_added;
@@ -149,12 +152,12 @@ push_child2(ak_wv* wv,
                  ak_fx_f(size)));
   ak_wcb_comp_tf2d_add(wcb, e, tf);
 
-  ak_mtrl_t mat = { 0 };
-  mat.base_id = mtrl_id;
+  ak_mtrlinst_t mat = { 0 };
+  mat.mtrlid = mtrl_id;
   mat.data.uv_min = ak_vec2f_make(0, 0);
   mat.data.uv_max =
     ak_vec2f_make(1.0f, 1.0f);
-  ak_wcb_comp_mtrl_add(wcb, e, mat);
+  ak_wcb_comp_mtrlinst_add(wcb, e, mat);
 }
 
 static void
@@ -171,7 +174,7 @@ store(ak_lworld* l)
   for (int32_t y = 0; y < 5; y++) {
     for (int32_t x = 0; x < 5; x++) {
       push_child2(
-        &wv, &wcb, l->e_mtrl_base, x, y);
+        &wv, &wcb, l->mtrl_e, x, y);
     }
   }
   ak_world_cb_flush(&l->w_store, &wcb, &ig);
@@ -212,13 +215,12 @@ set_root(ak_lworld* l)
   ak_wcb_comp_camera_add(
     &l->wcb, e_cam, cam);
 
-  l->e_mtrl_base =
-    ak_wcb_ett_new(&l->wcb, root);
-  ak_mtrl_base_t base = { 0 };
-  base.data.shaderid = l->shader_gid;
-  base.data.tex = l->dog_gid;
-  ak_wcb_comp_mtrl_base_add(
-    &l->wcb, l->e_mtrl_base, base);
+  l->mtrl_e = ak_wcb_ett_new(&l->wcb, root);
+  ak_mtrl_t mtrl = { 0 };
+  mtrl.shaderid = l->shader_tex_gid;
+  mtrl.tex = l->dog_gid;
+  ak_wcb_comp_mtrl_add(
+    &l->wcb, l->mtrl_e, mtrl);
 
   ak_ett script_test =
     ak_wcb_ett_new(&l->wcb, root);
@@ -289,8 +291,11 @@ on_startup(void* ctx, ak_app* app)
   l->wid = 5;
   l->dog_rid = 10;
   l->dog_gid = 11;
-  l->ss_rid = 15;
-  l->shader_gid = 16;
+
+  l->ss_tex_rid = 15;
+  l->shader_tex_gid = 16;
+  l->ss_ui_rid = 17;
+  l->shader_ui_gid = 18;
 
   ak_assetman_reg_res(&l->am,
                       l->wid,
@@ -302,9 +307,14 @@ on_startup(void* ctx, ak_app* app)
                       "./dog.png");
   ak_assetman_reg_res(
     &l->am,
-    l->ss_rid,
+    l->ss_tex_rid,
     ak_restype_shaderstr,
-    "./assets/shader.glsl");
+    "./assets/shaders/tex.glsl");
+  ak_assetman_reg_res(
+    &l->am,
+    l->ss_ui_rid,
+    ak_restype_shaderstr,
+    "./assets/shaders/ui.glsl");
 
   {
     ak_assetman_args args = {
@@ -318,15 +328,25 @@ on_startup(void* ctx, ak_app* app)
   {
     ak_assetman_args args = {
       .type = ak_grestype_shader,
-      .rid = l->ss_rid
+      .rid = l->ss_tex_rid
     };
     ak_assetman_reg_gres(
-      &l->am, l->shader_gid, &args);
+      &l->am, l->shader_tex_gid, &args);
+  }
+  {
+    ak_assetman_args args = {
+      .type = ak_grestype_shader,
+      .rid = l->ss_ui_rid
+    };
+    ak_assetman_reg_gres(
+      &l->am, l->shader_ui_gid, &args);
   }
 
   ak_assetman_load_gres(&l->am, l->dog_gid);
   ak_assetman_load_gres(&l->am,
-                        l->shader_gid);
+                        l->shader_tex_gid);
+  ak_assetman_load_gres(&l->am,
+                        l->shader_ui_gid);
 
   l->load = ak_s_load;
   l->world_added = false;
@@ -378,7 +398,6 @@ on_shutdown(void* ctx)
   ak_sys_tf_destroy(&l->sys_tf);
 
   ak_assetman_destroy(&l->am);
-  ak_gresman_shutdown(l->grm);
   ak_resman_destroy(&l->rm);
   ak_thpool_shutdown(l->tp);
 
@@ -440,7 +459,12 @@ loaded(ak_lworld* l)
     return false;
   }
   if (ak_gresman_status(l->grm,
-                        l->shader_gid) !=
+                        l->shader_tex_gid) !=
+      ak_gres_loaded) {
+    return false;
+  }
+  if (ak_gresman_status(l->grm,
+                        l->shader_ui_gid) !=
       ak_gres_loaded) {
     return false;
   }

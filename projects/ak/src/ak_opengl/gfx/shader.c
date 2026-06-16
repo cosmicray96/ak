@@ -37,6 +37,7 @@ ak_shader_make_from_src(ak_gfx* gfx,
                         const char* frag_src,
                         ak_alct alct)
 {
+  ak_log("make it failable, like stm.");
   ak_shader* s =
     ak_alct_alloc(alct, sizeof(ak_shader));
   s->alct = alct;
@@ -72,8 +73,8 @@ ak_shader_destroy(ak_shader* s)
 void
 ak_shader_begin(ak_shader* s,
                 ak_gresreg* grr,
-                const ak_mtrl_indata* id,
-                const ak_mtrl_basedata* bd)
+                const ak_gfx_batchdata* id,
+                const ak_gfx_calldata* bd)
 {
   glUseProgram(s->program);
 
@@ -98,7 +99,7 @@ ak_shader_begin(ak_shader* s,
 
 void
 ak_shader_pushquad(ak_shader* s,
-                   const ak_mtrl_quaddata* q,
+                   const ak_gfx_quaddata* q,
                    const ak_mat3_f* mat3)
 {
   ak_gfx_pushquad(s->gfx, q, mat3);

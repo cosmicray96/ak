@@ -72,7 +72,7 @@ ak_gfx_call_begin(ak_gfx* g)
 
 void
 ak_gfx_pushquad(ak_gfx* g,
-                const ak_mtrl_quaddata* qd,
+                const ak_gfx_quaddata* qd,
                 const ak_mat3_f* mat3)
 {
   ak_assert(g->call_began);

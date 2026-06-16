@@ -88,11 +88,11 @@ ak_sys_ren_render(ak_sys_ren* r,
                         ak_fx_f(1.0));
   }
 
-  ak_mtrl_indata mid = {
+  ak_gfx_batchdata mid = {
 
     .vp = vp, .time = ak_fx_to_f(r->time)
   };
-  ak_gcb_push_mtrlin(gcb, &mid);
+  ak_gcb_push_batch(gcb, &mid);
 
   {
     ak_hmn_iter it =
@@ -109,8 +109,8 @@ ak_sys_ren_render(ak_sys_ren* r,
 
   {
     ak_wv_itcomp it =
-      ak_wv_itcomp_make(wv, ak_mtrl_e);
-    ak_mtrl_t mat = { 0 };
+      ak_wv_itcomp_make(wv, ak_mtrlinst_e);
+    ak_mtrlinst_t mat = { 0 };
     ak_ett e = 0;
     while (1) {
       e = ak_wv_itcomp_next(&it, &mat);
@@ -119,17 +119,17 @@ ak_sys_ren_render(ak_sys_ren* r,
       }
 
       if (!ak_hmn_exist(&r->mtrls,
-                        mat.base_id)) {
+                        mat.mtrlid)) {
         map_item mi = { 0 };
         mi.da = ak_da_make(sizeof(ak_ett),
                            r->alct);
         mi.used = false;
         ak_hmn_insert(
-          &r->mtrls, mat.base_id, &mi);
+          &r->mtrls, mat.mtrlid, &mi);
       }
 
       map_item* mi =
-        ak_hmn_at(&r->mtrls, mat.base_id);
+        ak_hmn_at(&r->mtrls, mat.mtrlid);
       mi->used = true;
       ak_da_pushback(&mi->da, &e);
     }
@@ -145,13 +145,12 @@ ak_sys_ren_render(ak_sys_ren* r,
       ak_ett base_id = key;
       map_item* mi = value;
 
-      ak_assert(ak_wv_comp_mtrl_base_exist(
-        wv, base_id));
-      ak_mtrl_base_t base_t =
-        ak_wv_comp_mtrl_base(wv, base_id);
-      ak_mtrl_basedata bd = base_t.data;
+      ak_assert(
+        ak_wv_comp_mtrl_exist(wv, base_id));
+      ak_mtrl_t mtrl =
+        ak_wv_comp_mtrl(wv, base_id);
 
-      ak_gcb_push_mtrl(gcb, &base_t.data);
+      ak_gcb_push_call(gcb, &mtrl);
 
       uint32_t count = ak_da_count(&mi->da);
       for (uint32_t i = 0; i < count; i++) {
@@ -160,9 +159,9 @@ ak_sys_ren_render(ak_sys_ren* r,
 
         ak_mat3 gmat3 =
           ak_wv_comp_gmat3(wv, e);
-        ak_mtrl_t mat =
-          ak_wv_comp_mtrl(wv, e);
-        ak_mtrl_quaddata qd = mat.data;
+        ak_mtrlinst_t mat =
+          ak_wv_comp_mtrlinst(wv, e);
+        ak_gfx_quaddata qd = mat.data;
 
         ak_mat3_f gmat3f = { 0 };
         ak_mat3_to_f(&gmat3, &gmat3f);

@@ -31,11 +31,11 @@ ak_shader_destroy(ak_shader* s);
 void
 ak_shader_begin(ak_shader* s,
                 ak_gresreg* grr,
-                const ak_mtrl_indata* id,
-                const ak_mtrl_basedata* bd);
+                const ak_gfx_batchdata* id,
+                const ak_gfx_calldata* bd);
 void
 ak_shader_pushquad(ak_shader* s,
-                   const ak_mtrl_quaddata* q,
+                   const ak_gfx_quaddata* q,
                    const ak_mat3_f* mat3);
 void
 ak_shader_end(ak_shader* s);

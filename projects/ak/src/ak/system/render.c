@@ -59,7 +59,8 @@ thread_fn(void* ctx)
     ak_gcb_flush(&r->gcb, r->gfx, r->grr);
     ak_mutex_unlock(&r->m);
   }
-
+  ak_gresman_shutdown(r->grm);
+  ak_gresreg_destroy(r->grr);
   ak_gfx_shutdown(r->gfx);
 }
 

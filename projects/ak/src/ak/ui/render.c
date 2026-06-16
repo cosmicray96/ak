@@ -95,9 +95,8 @@ ak_uirstg_make(ak_alct alct)
   ak_uirstg rstg = { 0 };
   rstg.scissors =
     ak_dq_make(sizeof(ak_vec4f), alct);
-  rstg.mtrl_b =
-    (ak_mtrl_basedata){ .shaderid = 16,
-                        .tex = 11 };
+  rstg.mtrl =
+    (ak_gfx_calldata){ .shaderid = 18 };
   return rstg;
 }
 void
@@ -114,9 +113,9 @@ ak_ui_render(ak_ui* ui, ak_gcb* gcb)
 
   ak_mat3_f vp = ak_gfx_vp_ui_make(
     elm->size.x, elm->size.y);
-  ak_mtrl_indata mid = { .vp = vp };
-  ak_gcb_push_mtrlin(gcb, &mid);
-  ak_gcb_push_mtrl(gcb, &ui->rstg.mtrl_b);
+  ak_gfx_batchdata mid = { .vp = vp };
+  ak_gcb_push_batch(gcb, &mid);
+  ak_gcb_push_call(gcb, &ui->rstg.mtrl);
 
   elm_render_bg(&ui->rstg,
                 gcb,
