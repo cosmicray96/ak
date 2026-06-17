@@ -186,6 +186,16 @@ ak_thpool_startup()
 void
 ak_thpool_shutdown(ak_thpool* jp)
 {
+  ak_mutex_destroy(&jp->m);
+  ak_sla_destroy(&jp->jobs);
+  ak_dq_destroy(&jp->jidq);
+  ak_heap_destroy(&jp->heap);
+  free(jp);
+}
+
+void
+ak_thpool_destroy_jobs(ak_thpool* jp)
+{
   jp->destroy_start = ak_dur_now();
   ak_atomicint_store(&jp->shouldclose, 1);
 
@@ -193,12 +203,6 @@ ak_thpool_shutdown(ak_thpool* jp)
        i++) {
     ak_thread_join(jp->ts[i]);
   }
-
-  ak_mutex_destroy(&jp->m);
-  ak_sla_destroy(&jp->jobs);
-  ak_dq_destroy(&jp->jidq);
-  ak_heap_destroy(&jp->heap);
-  free(jp);
 }
 
 //--- export ---//

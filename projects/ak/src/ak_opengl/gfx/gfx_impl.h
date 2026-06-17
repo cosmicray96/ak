@@ -22,6 +22,11 @@ GLuint
 program_make(const char* vs_src,
              const char* fs_src);
 
+ak_errcode
+program_make_with_err(const char* vs_src,
+                      const char* fs_src,
+                      GLuint* o_program);
+
 void
 ak_gfx_call_begin(ak_gfx* g);
 

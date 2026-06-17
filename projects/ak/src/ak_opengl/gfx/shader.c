@@ -1,5 +1,4 @@
 #include "ak/gfx/shader.h"
-#include "ak/debug.h"
 #include "ak/gfx/core.h"
 #include "ak/gfx/gresreg.h"
 #include "ak_opengl/gfx/gfx_impl.h"
@@ -19,31 +18,29 @@ struct ak_shader
 };
 
 //--- internal ---//
-ak_shader*
-ak_shader_from_shaderstr(
+
+ak_errcode
+ak_shader_from_shaderstr_with_err(
   ak_gfx* gfx,
   const ak_shaderstr* ss,
+  ak_shader** o_shader,
   ak_alct alct)
 {
-  return ak_shader_make_from_src(
-    gfx,
-    ak_shaderstr_vert(ss),
-    ak_shaderstr_frag(ss),
-    alct);
-}
-ak_shader*
-ak_shader_make_from_src(ak_gfx* gfx,
-                        const char* vert_src,
-                        const char* frag_src,
-                        ak_alct alct)
-{
-  ak_log("make it failable, like stm.");
   ak_shader* s =
     ak_alct_alloc(alct, sizeof(ak_shader));
   s->alct = alct;
   s->gfx = gfx;
-  s->program =
-    program_make(vert_src, frag_src);
+  ak_errcode err = program_make_with_err(
+    ak_str_ptr_const(&ss->vert),
+    ak_str_ptr_const(&ss->frag),
+    &s->program);
+
+  if (err != ak_ok) {
+    ak_alct_free(alct, s);
+    ak_log("Opengl. Shader Comp Error, %s",
+           ak_errcode_to_str(err));
+    return err;
+  }
 
   s->vp_loc =
     glGetUniformLocation(s->program, "u_vp");
@@ -54,15 +51,9 @@ ak_shader_make_from_src(ak_gfx* gfx,
     s->program, "u_tex");
 
   ak_glerr_check;
-  return s;
+  *o_shader = s;
+  return ak_ok;
 }
-
-ak_shader*
-ak_shader_make_from_path(
-  ak_gfx* gfx,
-  const char* vert_path,
-  const char* frag_path,
-  ak_alct alct);
 
 void
 ak_shader_destroy(ak_shader* s)

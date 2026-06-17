@@ -1,4 +1,5 @@
 
+#include "ak/core/errcode.h"
 #include "ak/core/io.h"
 #include "ak/debug.h"
 
@@ -12,8 +13,11 @@
 
 //===== program =====//
 //--- private ---//
-static GLuint
-compile_shader(GLenum type, const char* src)
+
+static ak_errcode
+compile_shader_with_err(GLenum type,
+                        const char* src,
+                        GLuint* o_shader)
 {
   GLuint s = glCreateShader(type);
   glShaderSource(s, 1, &src, NULL);
@@ -27,23 +31,30 @@ compile_shader(GLenum type, const char* src)
       s, GL_INFO_LOG_LENGTH, &len);
     char* log = malloc(len);
     glGetShaderInfoLog(s, len, NULL, log);
-    ak_iostream_write_str(ak_iostream_sio(),
-                          log);
+    ak_log("Opengl. Shader Comp Error: %s",
+           log);
     free(log);
-    ak_assert(false);
+    return ak_err_invalid_args;
   }
-  return s;
+  *o_shader = s;
+  return ak_ok;
 }
 
 //--- public ---//
-GLuint
-program_make(const char* vs_src,
-             const char* fs_src)
+
+ak_errcode
+program_make_with_err(const char* vs_src,
+                      const char* fs_src,
+                      GLuint* o_program)
 {
-  GLuint vs =
-    compile_shader(GL_VERTEX_SHADER, vs_src);
-  GLuint fs = compile_shader(
-    GL_FRAGMENT_SHADER, fs_src);
+  GLuint vs = 0;
+  ak_err_try(compile_shader_with_err(
+    GL_VERTEX_SHADER, vs_src, &vs));
+
+  GLuint fs = 0;
+  ak_err_try(compile_shader_with_err(
+    GL_FRAGMENT_SHADER, fs_src, &fs));
+
   GLuint p = glCreateProgram();
   glAttachShader(p, vs);
   glAttachShader(p, fs);
@@ -57,12 +68,16 @@ program_make(const char* vs_src,
       p, GL_INFO_LOG_LENGTH, &len);
     char* log = malloc(len);
     glGetProgramInfoLog(p, len, NULL, log);
-    ak_iostream_write_str(ak_iostream_sio(),
-                          log);
+    ak_log("Opengl. Shader Comp Error: %s",
+           log);
     free(log);
-    ak_assert(false);
+    glDeleteShader(vs);
+    glDeleteShader(fs);
+    return ak_err_invalid_args;
   }
   glDeleteShader(vs);
   glDeleteShader(fs);
-  return p;
+
+  *o_program = p;
+  return ak_ok;
 }

@@ -89,6 +89,7 @@ struct ak_lworld
 
   ak_ui ui;
   float time;
+  uint32_t framecount;
 };
 
 bool
@@ -377,6 +378,7 @@ on_startup(void* ctx, ak_app* app)
     &l->w, &l->wcb_script, &l->ig);
 
   l->time = 0;
+  l->framecount = 0;
 }
 
 static void
@@ -391,11 +393,13 @@ on_shutdown(void* ctx)
   ak_world_cb_flush(
     &l->w, &l->wcb_script, &l->ig);
 
-  ak_renderer_shutdown(l->renderer);
-
   ak_sys_script_destroy(&l->sys_script);
   ak_sys_ren_destroy(&l->sys_ren);
   ak_sys_tf_destroy(&l->sys_tf);
+
+  ak_thpool_destroy_jobs(l->tp);
+
+  ak_renderer_shutdown(l->renderer);
 
   ak_assetman_destroy(&l->am);
   ak_resman_destroy(&l->rm);
@@ -493,6 +497,10 @@ static void
 on_update(void* ctx, ak_dur delta)
 {
   ak_lworld* l = ctx;
+  if (l->framecount > 100) {
+    ak_app_close(l->app);
+  }
+  l->framecount++;
 
   l->time += ak_dur_as_secs_f(delta);
 

@@ -7,5 +7,7 @@ ak_thpool*
 ak_thpool_startup();
 void
 ak_thpool_shutdown(ak_thpool* jp);
+void
+ak_thpool_destroy_jobs(ak_thpool* jp);
 
 #endif

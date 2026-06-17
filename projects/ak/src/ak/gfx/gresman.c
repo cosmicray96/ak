@@ -2,6 +2,7 @@
 #include "ak/coll/dq.h"
 #include "ak/coll/hmn.h"
 #include "ak/core/async/mutex.h"
+#include "ak/core/errcode.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/debug.h"
 #include "ak/gfx/core.h"
@@ -53,6 +54,7 @@ gres_load_unsafe(ak_gresman* grm,
                  const ak_gresman_args* args)
 {
   void* ptr = 0;
+  ak_errcode err = ak_ok;
   switch (args->type) {
     case ak_grestype_tex: {
       ak_tex* tex =
@@ -64,9 +66,14 @@ gres_load_unsafe(ak_gresman* grm,
       break;
     }
     case ak_grestype_shader: {
-      ak_shader* shader =
-        ak_shader_from_shaderstr(
-          grm->gfx, &args->ss, grm->alct);
+
+      ak_shader* shader = 0;
+      err =
+        ak_shader_from_shaderstr_with_err(
+          grm->gfx,
+          &args->ss,
+          &shader,
+          grm->alct);
       ptr = shader;
       break;
     }
@@ -75,10 +82,16 @@ gres_load_unsafe(ak_gresman* grm,
     }
   }
 
-  ak_gresreg_reg(
-    grm->grr, id, args->type, ptr);
   gres_item* gi = ak_hmn_at(&grm->map, id);
-  gi->s = ak_gres_loaded;
+  if (err == ak_ok) {
+    ak_gresreg_reg(
+      grm->grr, id, args->type, ptr);
+    gi->s = ak_gres_loaded;
+  } else {
+    ak_log("gresman. err = %s",
+           ak_errcode_to_str(err));
+    gi->s = ak_gres_loading; // fix
+  }
 }
 
 static void

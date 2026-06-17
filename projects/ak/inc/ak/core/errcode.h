@@ -37,4 +37,12 @@ ak_errcode_to_str(ak_errcode code)
   return ak_errcode_str[code];
 }
 
+#define ak_err_try(x)                       \
+  do {                                      \
+    ak_errcode ak_err_var = x;              \
+    if (ak_err_var != ak_ok) {              \
+      return ak_err_var;                    \
+    }                                       \
+  } while (0)
+
 #endif
