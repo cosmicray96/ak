@@ -1,8 +1,7 @@
-#include "ak/core/shaderstr.h"
+#include "ak/res/reses/shaderstr.h"
 #include "ak/coll/str.h"
 #include "ak/debug.h"
 #include "ak/system/stream.h"
-#include <stdio.h>
 #include <string.h>
 
 ak_stmerr

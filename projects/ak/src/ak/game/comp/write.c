@@ -123,7 +123,7 @@ ak_stm_read_vec2f(ak_stm stm,
   return ak_stmerr_ok;
 }
 
-ak_stmerr
+static ak_stmerr
 ak_stm_write_vec4f(ak_stm stm,
                    ak_vec4f vec4f)
 {
@@ -135,7 +135,7 @@ ak_stm_write_vec4f(ak_stm stm,
   return ak_stmerr_ok;
 }
 
-ak_stmerr
+static ak_stmerr
 ak_stm_read_vec4f(ak_stm stm,
                   ak_vec4f* o_vec4f)
 {
@@ -331,26 +331,27 @@ ak_stm_read_screen(ak_stm stm,
 }
 
 ak_stmerr
-ak_stm_write_mtrlinst(ak_stm stm,
-                      ak_mtrlinst_t mtrlinst)
+ak_stm_write_quadsimple(
+  ak_stm stm,
+  ak_quadsimple_t quadsimple)
 {
+  ak_stm_try(ak_stm_write_u32(
+    stm, quadsimple.mtrlid));
   ak_stm_try(
-    ak_stm_write_u32(stm, mtrlinst.mtrlid));
-  ak_stm_try(
-    ak_stm_write_qd(stm, mtrlinst.data));
+    ak_stm_write_qd(stm, quadsimple.data));
 
   return ak_stmerr_ok;
 }
 
 ak_stmerr
-ak_stm_read_mtrlinst(
+ak_stm_read_quadsimple(
   ak_stm stm,
-  ak_mtrlinst_t* o_mtrlinst)
+  ak_quadsimple_t* o_quadsimple)
 {
   ak_stm_try(ak_stm_read_u32(
-    stm, &o_mtrlinst->mtrlid));
-  ak_stm_try(
-    ak_stm_read_qd(stm, &o_mtrlinst->data));
+    stm, &o_quadsimple->mtrlid));
+  ak_stm_try(ak_stm_read_qd(
+    stm, &o_quadsimple->data));
 
   return ak_stmerr_ok;
 }

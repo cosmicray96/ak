@@ -2,9 +2,9 @@
 #define ak_gfx_tex_h
 
 #include "ak/core/errcode.h"
-#include "ak/core/img.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/gfx/core.h"
+#include "ak/res/reses/img.h"
 
 typedef struct ak_tex ak_tex;
 

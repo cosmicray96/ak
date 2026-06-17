@@ -1,9 +1,9 @@
 #include "ak/res/reg.h"
 #include "ak/coll/hmn.h"
-#include "ak/core/img.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/debug.h"
 #include "ak/game/stg/world.h"
+#include "ak/res/reses/img.h"
 #include <stdint.h>
 
 //--- private ---//

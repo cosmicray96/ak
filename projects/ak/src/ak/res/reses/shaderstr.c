@@ -1,4 +1,4 @@
-#include "ak/core/shaderstr.h"
+#include "ak/res/reses/shaderstr.h"
 
 void
 ak_shaderstr_destroy(ak_shaderstr* ss)

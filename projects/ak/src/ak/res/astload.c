@@ -1,9 +1,9 @@
 #include "ak/res/astload.h"
-#include "ak/core/img.h"
 #include "ak/debug.h"
 #include "ak/gfx/core.h"
 #include "ak/gfx/gresman.h"
 #include "ak/res/reg.h"
+#include "ak/res/reses/img.h"
 #include "ak/res/resman_itn.h"
 
 typedef struct

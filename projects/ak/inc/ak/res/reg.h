@@ -1,10 +1,10 @@
 #ifndef ak_res_reg_h
 #define ak_res_reg_h
 
-#include "ak/core/img.h"
 #include "ak/core/mem/allocator.h"
-#include "ak/core/shaderstr.h"
 #include "ak/game/stg/world.h"
+#include "ak/res/reses/img.h"
+#include "ak/res/reses/shaderstr.h"
 
 #include <stdbool.h>
 #include <stdint.h>

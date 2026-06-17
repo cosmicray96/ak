@@ -66,10 +66,24 @@ ak_stm_read_line(ak_stm stm, ak_str* o_str);
 
 #define ak_stm_try(x)                       \
   do {                                      \
-    ak_stmerr ak_stmerr_ev = x;             \
-    if (ak_stmerr_ev) {                     \
-      return ak_stmerr_ev;                  \
+    ak_stmerr ak_stmerr_var = (x);          \
+    if (ak_stmerr_var) {                    \
+      return ak_stmerr_var;                 \
     }                                       \
+  } while (0)
+
+#define ak_stm_try1(x)                      \
+  do {                                      \
+    ak_stmerr_var = (x);                    \
+    if (ak_stmerr_var) {                    \
+      return ak_stmerr_var;                 \
+    }                                       \
+  } while (0)
+#define ak_stm_try2(x)                      \
+  do {                                      \
+    ak_stmerr_var = (x);                    \
+    if (ak_stmerr_var != ak_stmerr_ok)      \
+      goto ak_stm_crash;                    \
   } while (0)
 
 ak_ex ak_stmerr

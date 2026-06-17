@@ -153,12 +153,11 @@ push_child2(ak_wv* wv,
                  ak_fx_f(size)));
   ak_wcb_comp_tf2d_add(wcb, e, tf);
 
-  ak_mtrlinst_t mat = { 0 };
-  mat.mtrlid = mtrl_id;
-  mat.data.uv_min = ak_vec2f_make(0, 0);
-  mat.data.uv_max =
-    ak_vec2f_make(1.0f, 1.0f);
-  ak_wcb_comp_mtrlinst_add(wcb, e, mat);
+  ak_quadsimple_t qs = { 0 };
+  qs.mtrlid = mtrl_id;
+  qs.data.uv_min = ak_vec2f_make(0, 0);
+  qs.data.uv_max = ak_vec2f_make(1.0f, 1.0f);
+  ak_wcb_comp_quadsimple_add(wcb, e, qs);
 }
 
 static void

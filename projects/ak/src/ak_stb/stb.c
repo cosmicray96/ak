@@ -1,5 +1,5 @@
-#include "ak/core/img.h"
 #include "ak/debug.h"
+#include "ak/res/reses/img.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"

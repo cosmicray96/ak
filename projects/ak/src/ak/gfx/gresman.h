@@ -1,12 +1,12 @@
 #ifndef ak_gfx_gresman_h
 #define ak_gfx_gresman_h
 
-#include "ak/core/img.h"
 #include "ak/core/mem/allocator.h"
-#include "ak/core/shaderstr.h"
 #include "ak/gfx/core.h"
 #include "ak/gfx/gresreg.h"
 #include "ak/gfx/tex.h"
+#include "ak/res/reses/img.h"
+#include "ak/res/reses/shaderstr.h"
 #include <stdint.h>
 
 typedef enum

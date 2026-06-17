@@ -22,16 +22,12 @@ typedef struct
   uint32_t w;
   uint32_t h;
 } ak_screen_t;
-typedef struct
-{
-  bool ph;
-} ak_rect_t;
 
 typedef struct
 {
   ak_ett mtrlid;
   ak_gfx_quaddata data;
-} ak_mtrlinst_t;
+} ak_quadsimple_t;
 
 typedef ak_gfx_calldata ak_mtrl_t;
 

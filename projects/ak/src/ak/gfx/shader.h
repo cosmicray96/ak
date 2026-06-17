@@ -3,9 +3,9 @@
 
 #include "ak/core/errcode.h"
 #include "ak/core/mem/allocator.h"
-#include "ak/core/shaderstr.h"
 #include "ak/gfx/core.h"
 #include "ak/gfx/gresreg.h"
+#include "ak/res/reses/shaderstr.h"
 
 ak_errcode
 ak_shader_from_shaderstr(
