@@ -54,14 +54,15 @@ gres_load_unsafe(ak_gresman* grm,
                  const ak_gresman_args* args)
 {
   void* ptr = 0;
-  ak_errcode err = ak_ok;
+  ak_errcode err = ak_err;
   switch (args->type) {
     case ak_grestype_tex: {
-      ak_tex* tex =
-        ak_tex_make_from_img(grm->gfx,
-                             &args->tex.img,
-                             args->tex.type,
-                             grm->alct);
+      ak_tex* tex = 0;
+      err = ak_tex_from_img(grm->gfx,
+                            &args->tex.img,
+                            args->tex.type,
+                            &tex,
+                            grm->alct);
       ptr = tex;
       break;
     }
@@ -69,11 +70,10 @@ gres_load_unsafe(ak_gresman* grm,
 
       ak_shader* shader = 0;
       err =
-        ak_shader_from_shaderstr_with_err(
-          grm->gfx,
-          &args->ss,
-          &shader,
-          grm->alct);
+        ak_shader_from_shaderstr(grm->gfx,
+                                 &args->ss,
+                                 &shader,
+                                 grm->alct);
       ptr = shader;
       break;
     }

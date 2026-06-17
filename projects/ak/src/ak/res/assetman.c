@@ -57,12 +57,12 @@ ak_assetman_load_res(ak_assetman* am,
   res_item* ri =
     ak_hmn_at(&am->res_map, rid);
 
+  ak_stm stm = { 0 };
+  ak_stmerr err =
+    ak_stm_open_file(ri->path, "rb", &stm);
+  ak_assert(err == ak_stmerr_ok);
   ak_resman_load(
-    am->rm,
-    rid,
-    ri->type,
-    ak_stm_open_file(ri->path, "rb"),
-    true);
+    am->rm, rid, ri->type, stm, true);
 }
 
 void
@@ -85,6 +85,11 @@ ak_assetman_load_gres(ak_assetman* am,
   res_item* ri =
     ak_hmn_at(&am->res_map, gi->args.rid);
 
+  ak_stm stm = { 0 };
+  ak_stmerr err =
+    ak_stm_open_file(ri->path, "rb", &stm);
+  ak_assert(err == ak_stmerr_ok);
+
   switch (gi->args.type) {
     case ak_grestype_tex: {
       ak_astload_gres_load_tex(
@@ -94,7 +99,7 @@ ak_assetman_load_gres(ak_assetman* am,
         gid,
         gi->args.tex.textype,
         gi->args.rid,
-        ak_stm_open_file(ri->path, "rb"));
+        stm);
       break;
     }
     case ak_grestype_shader: {
@@ -104,7 +109,7 @@ ak_assetman_load_gres(ak_assetman* am,
         am->grm,
         gid,
         gi->args.rid,
-        ak_stm_open_file(ri->path, "rb"));
+        stm);
       break;
     }
     default: {

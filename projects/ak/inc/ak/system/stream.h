@@ -11,13 +11,11 @@ typedef enum
 {
   ak_stmerr_ok = 0,
   ak_stmerr_err,
-
-  ak_stmerr_invalid,
   ak_stmerr_end,
-
+  ak_stmerr_invalid,
+  ak_stmerr_notfound,
   ak_stmerr_unsupported,
 
-  ak_stmerr_file_notfound,
 } ak_stmerr;
 
 typedef enum
@@ -29,28 +27,35 @@ typedef enum
 
 typedef struct
 {
+  ak_stmerr err;
+  uint64_t transferred;
+} ak_stmresult;
+
+typedef struct
+{
   ak_stmtype type;
   void* ctx;
 } ak_stm;
 
-ak_ex ak_stm
+ak_ex ak_stmerr
 ak_stm_open_file(const char* path,
-                 const char* mode);
+                 const char* mode,
+                 ak_stm* o_stm);
 
 ak_ex ak_stmerr
 ak_stm_close(ak_stm stm);
 
-ak_ex ak_stmerr
+ak_ex ak_stmresult
 ak_stm_write(ak_stm stm,
              const void* data,
              uint64_t size);
 
-ak_ex ak_stmerr
+ak_ex ak_stmresult
 ak_stm_read(ak_stm stm,
             void* data,
             uint64_t size);
 
-ak_ex ak_stmerr
+ak_ex ak_stmresult
 ak_stm_read_all(ak_stm stm,
                 void** o_data,
                 uint64_t* o_size,

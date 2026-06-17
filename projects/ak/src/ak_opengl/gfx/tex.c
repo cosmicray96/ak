@@ -22,11 +22,12 @@ ak_tex_get(ak_tex* tex)
 }
 
 //--- internal ---//
-ak_tex*
-ak_tex_make_from_img(ak_gfx* gfx,
-                     const ak_img* img,
-                     ak_textype type,
-                     ak_alct alct)
+ak_errcode
+ak_tex_from_img(ak_gfx* gfx,
+                const ak_img* img,
+                ak_textype type,
+                ak_tex** o_tex,
+                ak_alct alct)
 {
   ak_tex* tex =
     ak_alct_alloc(alct, sizeof(ak_tex));
@@ -53,8 +54,16 @@ ak_tex_make_from_img(ak_gfx* gfx,
                   GL_TEXTURE_MAG_FILTER,
                   GL_LINEAR);
 
+  GLenum err = glGetError();
+  if (err != GL_NO_ERROR) {
+    ak_log("Opengl. glerror: %d", err);
+    return ak_err_invalid_args;
+  }
+
   glBindTexture(GL_TEXTURE_2D, 0);
-  return tex;
+
+  *o_tex = tex;
+  return ak_ok;
 }
 
 void

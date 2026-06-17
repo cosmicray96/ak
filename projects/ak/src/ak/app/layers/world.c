@@ -181,9 +181,12 @@ store(ak_lworld* l)
   ak_world_cb_flush(&l->w_store, &wcb, &ig);
   // ak_stream_print_world(&l->w_store);
 
-  ak_stm stm =
-    ak_stm_open_file("./world.bin", "wb");
-  ak_stmerr err = ak_stream_write_world(
+  ak_stm stm = { 0 };
+  ak_stmerr err = ak_stm_open_file(
+    "./world.bin", "wb", &stm);
+  ak_assert(err == ak_stmerr_ok);
+
+  err = ak_stream_write_world(
     stm,
     &l->w_store,
     ak_world_ett_root(&l->w_store),
@@ -302,10 +305,11 @@ on_startup(void* ctx, ak_app* app)
                       l->wid,
                       ak_restype_world,
                       "./world.bin");
-  ak_assetman_reg_res(&l->am,
-                      l->dog_rid,
-                      ak_restype_image,
-                      "./dog.png");
+  ak_assetman_reg_res(
+    &l->am,
+    l->dog_rid,
+    ak_restype_image,
+    "./assets/images/dog.png");
   ak_assetman_reg_res(
     &l->am,
     l->ss_tex_rid,

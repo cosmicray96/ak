@@ -20,7 +20,7 @@ struct ak_shader
 //--- internal ---//
 
 ak_errcode
-ak_shader_from_shaderstr_with_err(
+ak_shader_from_shaderstr(
   ak_gfx* gfx,
   const ak_shaderstr* ss,
   ak_shader** o_shader,
