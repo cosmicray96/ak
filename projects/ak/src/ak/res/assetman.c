@@ -119,24 +119,36 @@ ak_assetman_load_gres(ak_assetman* am,
 
   switch (gi->gargs.type) {
     case ak_grestype_tex: {
+      ak_resman_load(
+        am->rm,
+        gi->gargs.rid,
+        &(ak_resman_args){
+          .type = ak_restype_image,
+          .stm = stm,
+          .stm_close = true });
       ak_astload_gres_load_tex(
         am->tp,
         am->rm,
         am->grm,
         gid,
         gi->gargs.tex.textype,
-        gi->gargs.rid,
-        stm);
+        gi->gargs.rid);
       break;
     }
     case ak_grestype_shader: {
+      ak_resman_load(
+        am->rm,
+        gi->gargs.rid,
+        &(ak_resman_args){
+          .type = ak_restype_shaderstr,
+          .stm = stm,
+          .stm_close = true });
       ak_astload_gres_load_shader(
         am->tp,
         am->rm,
         am->grm,
         gid,
-        gi->gargs.rid,
-        stm);
+        gi->gargs.rid);
       break;
     }
     default: {

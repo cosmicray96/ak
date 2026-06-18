@@ -14,7 +14,6 @@ typedef struct
   ak_stm stm;
   ak_gresid tex_gid;
 } res_texatlas;
-
 bool
 res_texatlas_fn(void* ctx)
 {
@@ -38,7 +37,6 @@ res_texatlas_fn(void* ctx)
   }
   return false;
 }
-
 void
 ak_astload_res_load_texatlas(
   ak_thpool* th,
@@ -100,7 +98,6 @@ typedef struct
   ak_gresid gid;
   ak_textype textype;
   ak_resid rid;
-  ak_stm stm;
   uint8_t phase;
 } gres_tex;
 bool
@@ -109,16 +106,6 @@ gres_tex_fn(void* ctx)
   gres_tex* gt = ctx;
   switch (gt->phase) {
     case 0: {
-      ak_resman_args args = {
-        .type = ak_restype_image,
-        .stm = gt->stm,
-        .stm_close = true
-      };
-      ak_resman_load(gt->rm, gt->rid, &args);
-      gt->phase = 1;
-      return false;
-    }
-    case 1: {
       if (ak_resman_status(gt->rm,
                            gt->rid) !=
           ak_res_loaded) {
@@ -129,10 +116,10 @@ gres_tex_fn(void* ctx)
 
       ak_gresman_load_tex(
         gt->grm, gt->gid, &img, gt->textype);
-      gt->phase = 2;
+      gt->phase = 1;
       return false;
     }
-    case 2: {
+    case 1: {
       if (ak_gresman_status(gt->grm,
                             gt->gid) !=
           ak_gres_loaded) {
@@ -150,17 +137,15 @@ void
 ak_astload_gres_load_tex(ak_thpool* th,
                          ak_resman* rm,
                          ak_gresman* grm,
-                         ak_gresid gid,
+                         ak_gresid tex_gid,
                          ak_textype textype,
-                         ak_resid rid,
-                         ak_stm stm)
+                         ak_resid img_rid)
 {
   gres_tex gt = { .rm = rm,
                   .grm = grm,
-                  .gid = gid,
+                  .gid = tex_gid,
                   .textype = textype,
-                  .rid = rid,
-                  .stm = stm,
+                  .rid = img_rid,
                   .phase = 0 };
   ak_thpool_submit(th,
                    &gres_tex_fn,
@@ -184,16 +169,6 @@ gres_shader_fn(void* ctx)
   gres_shader* gs = ctx;
   switch (gs->phase) {
     case 0: {
-      ak_resman_args args = {
-        .type = ak_restype_shaderstr,
-        .stm = gs->stm,
-        .stm_close = true
-      };
-      ak_resman_load(gs->rm, gs->rid, &args);
-      gs->phase = 1;
-      return false;
-    }
-    case 1: {
       if (ak_resman_status(gs->rm,
                            gs->rid) !=
           ak_res_loaded) {
@@ -205,10 +180,10 @@ gres_shader_fn(void* ctx)
 
       ak_gresman_load_shader(
         gs->grm, gs->gid, &ss);
-      gs->phase = 2;
+      gs->phase = 1;
       return false;
     }
-    case 2: {
+    case 1: {
       if (ak_gresman_status(gs->grm,
                             gs->gid) !=
           ak_gres_loaded) {
@@ -226,15 +201,13 @@ void
 ak_astload_gres_load_shader(ak_thpool* th,
                             ak_resman* rm,
                             ak_gresman* grm,
-                            ak_gresid gid,
-                            ak_resid rid,
-                            ak_stm stm)
+                            ak_gresid s_gid,
+                            ak_resid ss_rid)
 {
   gres_shader gs = { .rm = rm,
                      .grm = grm,
-                     .gid = gid,
-                     .rid = rid,
-                     .stm = stm,
+                     .gid = s_gid,
+                     .rid = ss_rid,
                      .phase = 0 };
   ak_thpool_submit(th,
                    &gres_shader_fn,
