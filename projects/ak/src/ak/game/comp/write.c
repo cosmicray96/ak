@@ -223,3 +223,18 @@ ak_stm_read_script(ak_stm stm,
 {
   return ak_stm_read_u32(stm, &o_script->se);
 }
+
+ak_stmerr
+ak_stm_write_anistate(ak_stm stm,
+                      ak_anistate_t anistate)
+{
+  return ak_stmerr_err;
+}
+
+ak_stmerr
+ak_stm_read_anistate(
+  ak_stm stm,
+  ak_anistate_t* o_anistate)
+{
+  return ak_stmerr_err;
+}

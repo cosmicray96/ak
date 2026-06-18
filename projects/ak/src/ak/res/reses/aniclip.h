@@ -28,6 +28,12 @@ ak_stm_read_aniclip(ak_stm stm,
 void
 ak_aniclip_destroy(ak_aniclip* ac);
 
+static ak_resid
+ak_aniclip_texatlas(const ak_aniclip* ac)
+{
+  return ac->atlasid;
+}
+
 static uint32_t
 ak_aniclip_count(const ak_aniclip* ac)
 {

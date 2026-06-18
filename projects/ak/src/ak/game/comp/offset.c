@@ -71,3 +71,9 @@ ak_comp_ett_offsets_script(
 {
   return 0;
 }
+uint32_t
+ak_comp_ett_offsets_anistate(
+  uint32_t o_offsets[16])
+{
+  return 0;
+}

@@ -13,6 +13,7 @@
 #include "ak/game/comp_t.h"
 #include "ak/game/core.h"
 #include "ak/game/stg/world.h"
+#include "ak/game/sys/ani.h"
 #include "ak/game/sys/ren.h"
 #include "ak/game/sys/script.h"
 #include "ak/game/sys/tf.h"
@@ -41,6 +42,16 @@
 //===== ak_lworld =====//
 //--- private ---//
 
+static void
+store_world(ak_lworld* l);
+static void
+store_taac(ak_lworld* l);
+
+static void
+load_world(ak_lworld* l);
+static void
+load_taac(ak_lworld* l);
+
 #define ak_s_load true
 
 struct ak_lworld
@@ -54,16 +65,13 @@ struct ak_lworld
   ak_world w;
   ak_wv wv;
   ak_wcb wcb;
-
   ak_wcb wcb_script;
 
   ak_thpool* tp;
   ak_resreg* rr;
   ak_resman rm;
-
   ak_gresreg* grr;
   ak_gresman* grm;
-
   ak_assetman am;
 
   ak_gcb gcb;
@@ -72,6 +80,9 @@ struct ak_lworld
   ak_sys_tf sys_tf;
   ak_sys_ren sys_ren;
   ak_sys_script sys_script;
+  ak_sys_ani sys_ani;
+
+  ak_resid wid;
 
   ak_resid dog_rid;
   ak_gresid dog_gid;
@@ -89,14 +100,13 @@ struct ak_lworld
 
   ak_ett mtrl_e;
 
-  bool load;
-  bool world_added;
-  ak_resid wid;
-  ak_world w_store;
-
   ak_ui ui;
   float time;
   uint32_t framecount;
+
+  void (*func)(ak_lworld* l);
+  bool inited;
+  bool loaded;
 };
 
 static void
@@ -141,122 +151,6 @@ ak_lworld_destroy(ak_lworld* l)
 
 //===== ak_applayer =====//
 //--- private ---//
-static void
-push_child2(ak_wv* wv,
-            ak_wcb* wcb,
-            ak_ett mtrl_id,
-            float x,
-            float y)
-{
-  float size = 50;
-  float space = size + 5;
-
-  ak_ett root = ak_wv_ett_root(wv);
-  ak_ett e = ak_wcb_ett_new(wcb, root);
-
-  ak_tf2d_t tf = { 0 };
-  tf = ak_tf2d_make(
-    ak_vec2_make(ak_fx_f(x * space),
-                 ak_fx_f(y * space)),
-    ak_angle_deg(ak_fx_f(0)),
-    ak_vec2_make(ak_fx_f(size),
-                 ak_fx_f(size)));
-  ak_wcb_comp_tf2d_add(wcb, e, tf);
-
-  ak_quadsimple_t qs = { 0 };
-  qs.mtrlid = mtrl_id;
-  qs.data.uv_min = ak_vec2f_make(0, 0);
-  qs.data.uv_max = ak_vec2f_make(1.0f, 1.0f);
-  ak_wcb_comp_quadsimple_add(wcb, e, qs);
-}
-
-static void
-store(ak_lworld* l)
-{
-  l->w_store = ak_world_make(l->alct);
-  ak_idgen ig = ak_idgen_make(l->alct);
-  ak_wv wv = ak_wv_make(&l->w_store);
-  ak_wcb wcb = ak_wcb_make(&ig, l->alct);
-
-  ak_wcb_ett_new(&wcb, 0);
-  ak_world_cb_flush(&l->w_store, &wcb, &ig);
-
-  for (int32_t y = 0; y < 5; y++) {
-    for (int32_t x = 0; x < 5; x++) {
-      push_child2(
-        &wv, &wcb, l->mtrl_e, x, y);
-    }
-  }
-  ak_world_cb_flush(&l->w_store, &wcb, &ig);
-  // ak_stream_print_world(&l->w_store);
-
-  ak_stm stm = { 0 };
-  ak_stmerr err = ak_stm_open_file(
-    "./world.bin", "wb", &stm);
-  ak_assert(err == ak_stmerr_ok);
-
-  err = ak_stream_write_world(
-    stm,
-    &l->w_store,
-    ak_world_ett_root(&l->w_store),
-    l->alct);
-  ak_assert(err == ak_stmerr_ok);
-  ak_stm_close(stm);
-
-  ak_wcb_destroy(&wcb);
-  ak_wv_destroy(&wv);
-  ak_idgen_destroy(&ig);
-  ak_world_destroy(&l->w_store);
-
-  ak_log("Done!");
-  ak_app_close(l->app);
-}
-
-void
-store_taac(ak_lworld* l)
-{
-  {
-    ak_da uv_rects =
-      ak_da_make(sizeof(ak_vec4f), l->alct);
-    for (uint32_t y = 0; y < 4; y++) {
-      for (uint32_t x = 0; x < 4; x++) {
-        ak_vec4f uv_rect = { 0 };
-        uv_rect.x = x / 4.0f;
-        uv_rect.y = y / 4.0f;
-        uv_rect.z = (x + 1) / 4.0f;
-        uv_rect.w = (y + 1) / 4.0f;
-      }
-    }
-    ak_texatlas ta = ak_texatlas_make(
-      l->ta_rid, &uv_rects, l->alct);
-
-    ak_stm stm;
-    ak_stmerr err = ak_stm_open_file(
-      "./assets/ac.ac", "wb", &stm);
-    ak_assert(err == ak_stmerr_ok);
-    ak_stm_write_texatlas(stm, &ta);
-    ak_stm_close(stm);
-  }
-
-  {
-    ak_da frames =
-      ak_da_make(sizeof(uint32_t), l->alct);
-    for (uint32_t y = 0; y < 4; y++) {
-      for (uint32_t x = 0; x < 4; x++) {
-        uint32_t idx = x + (y * 4);
-      }
-    }
-    ak_aniclip ac = ak_aniclip_make(
-      l->ta_rid, &frames, l->alct);
-
-    ak_stm stm;
-    ak_stmerr err = ak_stm_open_file(
-      "./assets/ac.ac", "wb", &stm);
-    ak_assert(err == ak_stmerr_ok);
-    ak_stm_write_aniclip(stm, &ac);
-    ak_stm_close(stm);
-  }
-}
 
 static void
 set_root(ak_lworld* l)
@@ -287,33 +181,6 @@ set_root(ak_lworld* l)
     &l->wcb,
     script_test,
     (ak_script_t){ .se = ak_script_test_e });
-}
-
-static void
-ui_render(ak_lworld* l)
-{
-  ak_uielm_args args = {
-    .x_cnst = { .rel = 0.5f, .abs = 0 },
-    .y_cnst = { .rel = 0.5f, .abs = 0 },
-    .visible = true,
-    .clipping = false,
-    .qd = { .col = { .r = 0,
-                     .g = 0,
-                     .b = 1,
-                     .a = 1 },
-            .uv_min = { .x = 0, .y = 0 },
-            .uv_max = { .x = 1, .y = 1 } }
-  };
-  ak_ui_clear(&l->ui);
-  ak_ui_add(
-    &l->ui, ak_ui_root(&l->ui), &args);
-
-  args.y_cnst.abs = l->time * 30;
-  args.visible = false;
-  ak_ui_add(
-    &l->ui, ak_ui_root(&l->ui), &args);
-  ak_ui_set(&l->ui, 0, 0, 800, 600);
-  ak_ui_render(&l->ui, &l->gcb);
 }
 
 static void
@@ -355,21 +222,17 @@ on_startup(void* ctx, ak_app* app)
   ak_assetman_load_gres(&l->am,
                         l->shader_ui_gid);
 
-  l->load = ak_s_load;
-  l->world_added = false;
-
   l->sys_tf = ak_sys_tf_make(l->alct);
   l->sys_ren = ak_sys_ren_make(l->alct);
   l->sys_script =
     ak_sys_script_make(l->alct);
+  l->sys_ani = ak_sys_ani_make(l->alct);
 
   set_root(l);
 
-  if (l->load) {
-    ak_assetman_load_res(&l->am, l->wid);
-  } else {
-    store(l);
-  }
+  l->func = &load_taac;
+  l->loaded = false;
+  l->inited = false;
 
   l->ui = ak_ui_make(l->alct);
 
@@ -399,6 +262,7 @@ on_shutdown(void* ctx)
   ak_world_cb_flush(
     &l->w, &l->wcb_script, &l->ig);
 
+  ak_sys_ani_destroy(&l->sys_ani);
   ak_sys_script_destroy(&l->sys_script);
   ak_sys_ren_destroy(&l->sys_ren);
   ak_sys_tf_destroy(&l->sys_tf);
@@ -460,6 +324,33 @@ on_event(void* ctx, ak_evt e)
   return false;
 }
 
+static void
+ui_render(ak_lworld* l)
+{
+  ak_uielm_args args = {
+    .x_cnst = { .rel = 0.5f, .abs = 0 },
+    .y_cnst = { .rel = 0.5f, .abs = 0 },
+    .visible = true,
+    .clipping = false,
+    .qd = { .col = { .r = 0,
+                     .g = 0,
+                     .b = 1,
+                     .a = 1 },
+            .uv_min = { .x = 0, .y = 0 },
+            .uv_max = { .x = 1, .y = 1 } }
+  };
+  ak_ui_clear(&l->ui);
+  ak_ui_add(
+    &l->ui, ak_ui_root(&l->ui), &args);
+
+  args.y_cnst.abs = l->time * 30;
+  args.visible = false;
+  ak_ui_add(
+    &l->ui, ak_ui_root(&l->ui), &args);
+  ak_ui_set(&l->ui, 0, 0, 800, 600);
+  ak_ui_render(&l->ui, &l->gcb);
+}
+
 static bool
 loaded(ak_lworld* l)
 {
@@ -503,7 +394,9 @@ static void
 on_update(void* ctx, ak_dur delta)
 {
   ak_lworld* l = ctx;
-  if (l->framecount > 100) {
+  l->func(l);
+
+  if (l->framecount > 500) {
     ak_app_close(l->app);
   }
   l->framecount++;
@@ -512,31 +405,19 @@ on_update(void* ctx, ak_dur delta)
 
   ak_resman_update(&l->rm);
 
-  if (l->load && !l->world_added &&
-      ak_resman_status(&l->rm, l->wid) ==
-        ak_res_loaded) {
-    ak_world w =
-      ak_resreg_get_world(l->rr, l->wid);
-
-    // ak_stream_print_world(&w);
-    ak_world_graft(&l->w,
-                   &w,
-                   ak_world_ett_root(&l->w),
-                   &l->ig,
-                   l->alct);
-    l->world_added = true;
-    ak_log("World Loaded");
-    // ak_stream_print_world(&l->w);
-  }
-
   ak_sys_tf_update(
     &l->sys_tf, &l->wv, &l->wcb);
+  script_flush(l);
 
+  ak_sys_ani_update(&l->sys_ani,
+                    &l->wv,
+                    &l->wcb,
+                    l->rr,
+                    delta);
   script_flush(l);
 
   ak_sys_script_run_update(
     &l->sys_script, delta, &l->wcb);
-
   script_flush(l);
 
   if (loaded(l)) {
@@ -657,6 +538,7 @@ regs(ak_lworld* l)
     l->ta_rid,
     &(ak_assetman_rargs){
       .type = ak_restype_texatlas,
+      .path = "./assets/ta.ta",
       .texatlas = { .tex_gid =
                       l->fire_gid } });
 
@@ -665,6 +547,169 @@ regs(ak_lworld* l)
     l->ac_rid,
     &(ak_assetman_rargs){
       .type = ak_restype_aniclip,
+      .path = "./assets/ac.ac",
       .aniclip = { .atlas_rid =
                      l->ta_rid } });
+}
+
+static void
+load_world(ak_lworld* l)
+{
+  if (!l->inited) {
+    ak_stm stm = { 0 };
+    ak_stmerr err = ak_stm_open_file(
+      "./world.bin", "rb", &stm);
+    ak_resman_load(
+      &l->rm,
+      l->wid,
+      &(ak_resman_args){
+        .type = ak_restype_world,
+        .stm = stm,
+        .stm_close = true });
+    l->inited = true;
+    return;
+  }
+  if (ak_resman_status(&l->rm, l->wid) !=
+      ak_res_loaded) {
+    return;
+  }
+  if (!l->loaded) {
+    ak_world w =
+      ak_resreg_get_world(l->rr, l->wid);
+
+    ak_world_graft(&l->w,
+                   &w,
+                   ak_world_ett_root(&l->w),
+                   &l->ig,
+                   l->alct);
+    ak_log("World Loaded");
+    l->loaded = true;
+  }
+}
+
+static void
+push_child2(ak_wv* wv,
+            ak_wcb* wcb,
+            ak_ett mtrl_id,
+            float x,
+            float y)
+{
+  float size = 50;
+  float space = size + 5;
+
+  ak_ett root = ak_wv_ett_root(wv);
+  ak_ett e = ak_wcb_ett_new(wcb, root);
+
+  ak_tf2d_t tf = { 0 };
+  tf = ak_tf2d_make(
+    ak_vec2_make(ak_fx_f(x * space),
+                 ak_fx_f(y * space)),
+    ak_angle_deg(ak_fx_f(0)),
+    ak_vec2_make(ak_fx_f(size),
+                 ak_fx_f(size)));
+  ak_wcb_comp_tf2d_add(wcb, e, tf);
+
+  ak_quadsimple_t qs = { 0 };
+  qs.mtrlid = mtrl_id;
+  qs.data.uv_min = ak_vec2f_make(0, 0);
+  qs.data.uv_max = ak_vec2f_make(1.0f, 1.0f);
+  ak_wcb_comp_quadsimple_add(wcb, e, qs);
+}
+static void
+store_world(ak_lworld* l)
+{
+  ak_world w = ak_world_make(l->alct);
+  ak_idgen ig = ak_idgen_make(l->alct);
+  ak_wv wv = ak_wv_make(&w);
+  ak_wcb wcb = ak_wcb_make(&ig, l->alct);
+
+  ak_wcb_ett_new(&wcb, 0);
+  ak_world_cb_flush(&w, &wcb, &ig);
+
+  for (int32_t y = 0; y < 5; y++) {
+    for (int32_t x = 0; x < 5; x++) {
+      push_child2(
+        &wv, &wcb, l->mtrl_e, x, y);
+    }
+  }
+  ak_world_cb_flush(&w, &wcb, &ig);
+
+  ak_stm stm = { 0 };
+  ak_stmerr err = ak_stm_open_file(
+    "./world.bin", "wb", &stm);
+  ak_assert(err == ak_stmerr_ok);
+
+  err = ak_stream_write_world(
+    stm, &w, ak_world_ett_root(&w), l->alct);
+  ak_assert(err == ak_stmerr_ok);
+  ak_stm_close(stm);
+
+  ak_wcb_destroy(&wcb);
+  ak_wv_destroy(&wv);
+  ak_idgen_destroy(&ig);
+  ak_world_destroy(&w);
+
+  ak_log("Done!");
+  ak_app_close(l->app);
+}
+
+static void
+load_taac(ak_lworld* l)
+{
+  if (l->inited) {
+    return;
+  }
+  ak_assetman_load_res(&l->am, l->ac_rid);
+  l->inited = true;
+}
+static void
+store_taac(ak_lworld* l)
+{
+  {
+    ak_da uv_rects =
+      ak_da_make(sizeof(ak_vec4f), l->alct);
+    for (uint32_t y = 0; y < 4; y++) {
+      for (uint32_t x = 0; x < 4; x++) {
+        ak_vec4f uv_rect = { 0 };
+        uv_rect.x = x / 4.0f;
+        uv_rect.y = y / 4.0f;
+        uv_rect.z = (x + 1) / 4.0f;
+        uv_rect.w = (y + 1) / 4.0f;
+        ak_da_pushback(&uv_rects, &uv_rect);
+      }
+    }
+    ak_texatlas ta = ak_texatlas_make(
+      l->ta_rid, &uv_rects, l->alct);
+
+    ak_stm stm;
+    ak_stmerr err = ak_stm_open_file(
+      "./assets/ta.ta", "wb", &stm);
+    ak_assert(err == ak_stmerr_ok);
+    ak_stm_write_texatlas(stm, &ta);
+    ak_stm_close(stm);
+    ak_texatlas_destroy(&ta);
+  }
+
+  {
+    ak_da frames =
+      ak_da_make(sizeof(uint32_t), l->alct);
+    for (uint32_t y = 0; y < 4; y++) {
+      for (uint32_t x = 0; x < 4; x++) {
+        uint32_t idx = x + (y * 4);
+        ak_da_pushback(&frames, &idx);
+      }
+    }
+    ak_aniclip ac = ak_aniclip_make(
+      l->ta_rid, &frames, l->alct);
+
+    ak_stm stm;
+    ak_stmerr err = ak_stm_open_file(
+      "./assets/ac.ac", "wb", &stm);
+    ak_assert(err == ak_stmerr_ok);
+    ak_stm_write_aniclip(stm, &ac);
+    ak_stm_close(stm);
+    ak_aniclip_destroy(&ac);
+  }
+  ak_log("taac done.");
+  ak_app_close(l->app);
 }
