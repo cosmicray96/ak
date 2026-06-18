@@ -33,7 +33,9 @@
 #include "ak/res/resman_itn.h"
 #include "ak/system/idgen.h"
 #include "ak/system/render.h"
+#include "ak/system/stream.h"
 #include "ak/ui/ui.h"
+
 #include <stdbool.h>
 
 //===== ak_lworld =====//
@@ -80,6 +82,11 @@ struct ak_lworld
   ak_resid ss_ui_rid;
   ak_gresid shader_ui_gid;
 
+  ak_resid fire_rid;
+  ak_gresid fire_gid;
+  ak_resid ta_rid;
+  ak_resid ac_rid;
+
   ak_ett mtrl_e;
 
   bool load;
@@ -91,6 +98,9 @@ struct ak_lworld
   float time;
   uint32_t framecount;
 };
+
+static void
+regs(ak_lworld* l);
 
 bool
 on_resize(ak_lworld* l, ak_evt e)
@@ -202,6 +212,52 @@ store(ak_lworld* l)
   ak_app_close(l->app);
 }
 
+void
+store_taac(ak_lworld* l)
+{
+  {
+    ak_da uv_rects =
+      ak_da_make(sizeof(ak_vec4f), l->alct);
+    for (uint32_t y = 0; y < 4; y++) {
+      for (uint32_t x = 0; x < 4; x++) {
+        ak_vec4f uv_rect = { 0 };
+        uv_rect.x = x / 4.0f;
+        uv_rect.y = y / 4.0f;
+        uv_rect.z = (x + 1) / 4.0f;
+        uv_rect.w = (y + 1) / 4.0f;
+      }
+    }
+    ak_texatlas ta = ak_texatlas_make(
+      l->ta_rid, &uv_rects, l->alct);
+
+    ak_stm stm;
+    ak_stmerr err = ak_stm_open_file(
+      "./assets/ac.ac", "wb", &stm);
+    ak_assert(err == ak_stmerr_ok);
+    ak_stm_write_texatlas(stm, &ta);
+    ak_stm_close(stm);
+  }
+
+  {
+    ak_da frames =
+      ak_da_make(sizeof(uint32_t), l->alct);
+    for (uint32_t y = 0; y < 4; y++) {
+      for (uint32_t x = 0; x < 4; x++) {
+        uint32_t idx = x + (y * 4);
+      }
+    }
+    ak_aniclip ac = ak_aniclip_make(
+      l->ta_rid, &frames, l->alct);
+
+    ak_stm stm;
+    ak_stmerr err = ak_stm_open_file(
+      "./assets/ac.ac", "wb", &stm);
+    ak_assert(err == ak_stmerr_ok);
+    ak_stm_write_aniclip(stm, &ac);
+    ak_stm_close(stm);
+  }
+}
+
 static void
 set_root(ak_lworld* l)
 {
@@ -291,64 +347,7 @@ on_startup(void* ctx, ak_app* app)
   l->am = ak_assetman_make(
     l->tp, &l->rm, l->grm, l->alct);
 
-  l->wid = 5;
-  l->dog_rid = 10;
-  l->dog_gid = 11;
-
-  l->ss_tex_rid = 15;
-  l->shader_tex_gid = 16;
-  l->ss_ui_rid = 17;
-  l->shader_ui_gid = 18;
-
-  ak_assetman_reg_res(
-    &l->am,
-    l->wid,
-    &(ak_assetman_rargs){
-      .type = ak_restype_world,
-      .path = "./world.bin" });
-
-  ak_assetman_reg_res(
-    &l->am,
-    l->dog_rid,
-    &(ak_assetman_rargs){
-      .type = ak_restype_image,
-      .path = "./assets/images/dog.png" });
-
-  ak_assetman_reg_res(
-    &l->am,
-    l->ss_tex_rid,
-    &(ak_assetman_rargs){
-      .type = ak_restype_shaderstr,
-      .path = "./assets/shaders/tex.glsl" });
-
-  ak_assetman_reg_res(
-    &l->am,
-    l->ss_ui_rid,
-    &(ak_assetman_rargs){
-      .type = ak_restype_shaderstr,
-      .path = "./assets/shaders/ui.glsl" });
-
-  ak_assetman_reg_gres(
-    &l->am,
-    l->dog_gid,
-    &(ak_assetman_gargs){
-      .type = ak_grestype_tex,
-      .rid = l->dog_rid,
-      .tex = { .textype =
-                 ak_textype_rgba8 } });
-
-  ak_assetman_reg_gres(
-    &l->am,
-    l->shader_tex_gid,
-    &(ak_assetman_gargs){
-      .type = ak_grestype_shader,
-      .rid = l->ss_tex_rid });
-  ak_assetman_reg_gres(
-    &l->am,
-    l->shader_ui_gid,
-    &(ak_assetman_gargs){
-      .type = ak_grestype_shader,
-      .rid = l->ss_ui_rid });
+  regs(l);
 
   ak_assetman_load_gres(&l->am, l->dog_gid);
   ak_assetman_load_gres(&l->am,
@@ -568,4 +567,104 @@ ak_lworld_to_applayer(ak_lworld* l)
   appl.on_update = &on_update;
   appl.on_upost = &on_upost;
   return appl;
+}
+
+static void
+regs(ak_lworld* l)
+{
+  l->wid = 5;
+  l->dog_rid = 10;
+  l->dog_gid = 11;
+
+  l->ss_tex_rid = 15;
+  l->shader_tex_gid = 16;
+  l->ss_ui_rid = 17;
+  l->shader_ui_gid = 18;
+
+  l->fire_rid = 20;
+  l->fire_gid = 21;
+  l->ta_rid = 22;
+  l->ac_rid = 23;
+
+  ak_assetman_reg_res(
+    &l->am,
+    l->wid,
+    &(ak_assetman_rargs){
+      .type = ak_restype_world,
+      .path = "./world.bin" });
+
+  ak_assetman_reg_res(
+    &l->am,
+    l->dog_rid,
+    &(ak_assetman_rargs){
+      .type = ak_restype_image,
+      .path = "./assets/images/dog.png" });
+
+  ak_assetman_reg_res(
+    &l->am,
+    l->ss_tex_rid,
+    &(ak_assetman_rargs){
+      .type = ak_restype_shaderstr,
+      .path = "./assets/shaders/tex.glsl" });
+
+  ak_assetman_reg_res(
+    &l->am,
+    l->ss_ui_rid,
+    &(ak_assetman_rargs){
+      .type = ak_restype_shaderstr,
+      .path = "./assets/shaders/ui.glsl" });
+
+  ak_assetman_reg_gres(
+    &l->am,
+    l->dog_gid,
+    &(ak_assetman_gargs){
+      .type = ak_grestype_tex,
+      .rid = l->dog_rid,
+      .tex = { .textype =
+                 ak_textype_rgba8 } });
+
+  ak_assetman_reg_gres(
+    &l->am,
+    l->shader_tex_gid,
+    &(ak_assetman_gargs){
+      .type = ak_grestype_shader,
+      .rid = l->ss_tex_rid });
+  ak_assetman_reg_gres(
+    &l->am,
+    l->shader_ui_gid,
+    &(ak_assetman_gargs){
+      .type = ak_grestype_shader,
+      .rid = l->ss_ui_rid });
+
+  ak_assetman_reg_res(
+    &l->am,
+    l->fire_rid,
+    &(ak_assetman_rargs){
+      .type = ak_restype_image,
+      .path = "./assets/images/fire.png" });
+
+  ak_assetman_reg_gres(
+    &l->am,
+    l->fire_gid,
+    &(ak_assetman_gargs){
+      .type = ak_grestype_tex,
+      .rid = l->fire_rid,
+      .tex = { .textype =
+                 ak_textype_rgba8 } });
+
+  ak_assetman_reg_res(
+    &l->am,
+    l->ta_rid,
+    &(ak_assetman_rargs){
+      .type = ak_restype_texatlas,
+      .texatlas = { .tex_gid =
+                      l->fire_gid } });
+
+  ak_assetman_reg_res(
+    &l->am,
+    l->ac_rid,
+    &(ak_assetman_rargs){
+      .type = ak_restype_aniclip,
+      .aniclip = { .atlas_rid =
+                     l->ta_rid } });
 }

@@ -23,7 +23,6 @@ typedef struct
 {
   ak_resman* rm;
   ak_resid id;
-  ak_alct alct;
   ak_resman_args args;
 } args_item;
 
@@ -56,7 +55,7 @@ res_load(const args_item* ai)
   ak_resid id = ai->id;
   ak_restype type = ai->args.type;
   ak_stm stm = ai->args.stm;
-  ak_alct alct = ai->alct;
+  ak_alct alct = ak_heap_to_alct(&rm->heap);
   bool stm_close = ai->args.stm_close;
 
   loaded_item loaded = { .id = id,
@@ -278,8 +277,6 @@ ak_resman_load(ak_resman* rm,
 
   args_item ai = { .rm = rm,
                    .id = id,
-                   .alct = ak_heap_to_alct(
-                     &rm->heap),
                    .args = *args };
   ak_jobid jid =
     ak_thpool_submit(rm->jp,

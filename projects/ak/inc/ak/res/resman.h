@@ -22,8 +22,8 @@ typedef struct
   ak_restype type;
   ak_resid rid;
   ak_gresid gid;
-  ak_stm stm;
   bool stm_close;
+  ak_stm stm;
 } ak_resman_args;
 
 typedef struct ak_resman ak_resman;
