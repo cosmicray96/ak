@@ -5,6 +5,7 @@
 #include "ak/game/stg/world.h"
 #include "ak/res/reses/img.h"
 #include "ak/res/reses/shaderstr.h"
+#include "ak/res/reses/texatlas.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -16,6 +17,7 @@ typedef enum
   ak_restype_image,
   ak_restype_world,
   ak_restype_shaderstr,
+  ak_restype_texatlas,
   // ak_restype_animation,
   // ak_restype_aniclip,
   ak_restype_count,
@@ -45,5 +47,8 @@ ak_resreg_get_world(ak_resreg* rr,
 ak_shaderstr
 ak_resreg_get_shaderstr(ak_resreg* rr,
                         ak_resid id);
+ak_texatlas
+ak_resreg_get_texatlas(ak_resreg* rr,
+                       ak_resid id);
 
 #endif

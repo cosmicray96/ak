@@ -300,51 +300,55 @@ on_startup(void* ctx, ak_app* app)
   l->ss_ui_rid = 17;
   l->shader_ui_gid = 18;
 
-  ak_assetman_reg_res(&l->am,
-                      l->wid,
-                      ak_restype_world,
-                      "./world.bin");
+  ak_assetman_reg_res(
+    &l->am,
+    l->wid,
+    &(ak_assetman_rargs){
+      .type = ak_restype_world,
+      .path = "./world.bin" });
+
   ak_assetman_reg_res(
     &l->am,
     l->dog_rid,
-    ak_restype_image,
-    "./assets/images/dog.png");
+    &(ak_assetman_rargs){
+      .type = ak_restype_image,
+      .path = "./assets/images/dog.png" });
+
   ak_assetman_reg_res(
     &l->am,
     l->ss_tex_rid,
-    ak_restype_shaderstr,
-    "./assets/shaders/tex.glsl");
+    &(ak_assetman_rargs){
+      .type = ak_restype_shaderstr,
+      .path = "./assets/shaders/tex.glsl" });
+
   ak_assetman_reg_res(
     &l->am,
     l->ss_ui_rid,
-    ak_restype_shaderstr,
-    "./assets/shaders/ui.glsl");
+    &(ak_assetman_rargs){
+      .type = ak_restype_shaderstr,
+      .path = "./assets/shaders/ui.glsl" });
 
-  {
-    ak_assetman_args args = {
+  ak_assetman_reg_gres(
+    &l->am,
+    l->dog_gid,
+    &(ak_assetman_gargs){
       .type = ak_grestype_tex,
       .rid = l->dog_rid,
-      .tex = { .textype = ak_textype_rgba8 }
-    };
-    ak_assetman_reg_gres(
-      &l->am, l->dog_gid, &args);
-  }
-  {
-    ak_assetman_args args = {
+      .tex = { .textype =
+                 ak_textype_rgba8 } });
+
+  ak_assetman_reg_gres(
+    &l->am,
+    l->shader_tex_gid,
+    &(ak_assetman_gargs){
       .type = ak_grestype_shader,
-      .rid = l->ss_tex_rid
-    };
-    ak_assetman_reg_gres(
-      &l->am, l->shader_tex_gid, &args);
-  }
-  {
-    ak_assetman_args args = {
+      .rid = l->ss_tex_rid });
+  ak_assetman_reg_gres(
+    &l->am,
+    l->shader_ui_gid,
+    &(ak_assetman_gargs){
       .type = ak_grestype_shader,
-      .rid = l->ss_ui_rid
-    };
-    ak_assetman_reg_gres(
-      &l->am, l->shader_ui_gid, &args);
-  }
+      .rid = l->ss_ui_rid });
 
   ak_assetman_load_gres(&l->am, l->dog_gid);
   ak_assetman_load_gres(&l->am,

@@ -210,8 +210,8 @@ ak_thpool_destroy_jobs(ak_thpool* jp)
 ak_jobid
 ak_thpool_submit(ak_thpool* jp,
                  ak_job_fn jfunc,
-                 uint32_t inputsize,
                  const void* input,
+                 uint32_t inputsize,
                  bool job_remove)
 {
   ak_assert(inputsize <= ak_s_job_ctx_size);

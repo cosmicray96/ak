@@ -9,6 +9,7 @@
 #include "ak/game/stg/world.h"
 #include "ak/game/world/write.h"
 #include "ak/res/reg.h"
+#include "ak/res/reses/texatlas.h"
 #include "ak/res/resman_itn.h"
 #include "ak/system/stream.h"
 
@@ -21,10 +22,8 @@ typedef struct
 {
   ak_resman* rm;
   ak_resid id;
-  ak_restype type;
-  ak_stm stm;
-  bool stm_close;
   ak_alct alct;
+  ak_resman_args args;
 } args_item;
 
 typedef struct
@@ -37,6 +36,7 @@ typedef struct
     ak_img img;
     ak_world world;
     ak_shaderstr ss;
+    ak_texatlas ta;
   };
 } loaded_item;
 
@@ -44,18 +44,19 @@ typedef struct
 {
   ak_restype type;
   ak_res_status status;
-  ak_stm stm;
   uint32_t load_count;
 } res_item;
 
 static void
-res_load(ak_resman* rm,
-         ak_resid id,
-         ak_restype type,
-         ak_stm stm,
-         bool stm_close,
-         ak_alct alct)
+res_load(const args_item* ai)
 {
+  ak_resman* rm = ai->rm;
+  ak_resid id = ai->id;
+  ak_restype type = ai->args.type;
+  ak_stm stm = ai->args.stm;
+  ak_alct alct = ai->alct;
+  bool stm_close = ai->args.stm_close;
+
   loaded_item loaded = { .id = id,
                          .type = type };
   switch (type) {
@@ -83,6 +84,15 @@ res_load(ak_resman* rm,
 
       loaded.err = err;
       loaded.ss = ss;
+      break;
+    }
+    case ak_restype_texatlas: {
+      ak_texatlas ta = { 0 };
+      ak_stmerr err = ak_stm_read_texatlas(
+        stm, ai->args.tex, &ta, alct);
+
+      loaded.err = err;
+      loaded.ta = ta;
       break;
     }
 
@@ -113,13 +123,7 @@ res_unload_unsafe(ak_resman* rm, ak_resid id)
 static bool
 job_fn(void* input)
 {
-  args_item* in = input;
-  res_load(in->rm,
-           in->id,
-           in->type,
-           in->stm,
-           in->stm_close,
-           in->alct);
+  res_load(input);
   return true;
 }
 //===== ak_resman =====//
@@ -245,9 +249,7 @@ ak_resman_status(ak_resman* rm, ak_resid id)
 void
 ak_resman_load(ak_resman* rm,
                ak_resid id,
-               ak_restype type,
-               ak_stm stm,
-               bool stm_close)
+               const ak_resman_args* args)
 {
   ak_mutex_lock(&rm->m);
 
@@ -258,24 +260,21 @@ ak_resman_load(ak_resman* rm,
     return;
   }
 
-  res_item ri = { .type = type,
+  res_item ri = { .type = args->type,
                   .status = ak_res_loading,
-                  .stm = stm,
                   .load_count = 1 };
   ak_hmn_insert(&rm->map, id, &ri);
 
-  args_item in = { .rm = rm,
+  args_item ai = { .rm = rm,
                    .id = id,
-                   .type = type,
-                   .stm = stm,
-                   .stm_close = stm_close,
                    .alct = ak_heap_to_alct(
-                     &rm->heap) };
+                     &rm->heap),
+                   .args = *args };
   ak_jobid jid =
     ak_thpool_submit(rm->jp,
                      &job_fn,
+                     &ai,
                      sizeof(args_item),
-                     &in,
                      false);
   ak_da_pushback(&rm->jids, &jid);
 

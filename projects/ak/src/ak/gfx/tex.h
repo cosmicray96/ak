@@ -6,8 +6,6 @@
 #include "ak/gfx/core.h"
 #include "ak/res/reses/img.h"
 
-typedef struct ak_tex ak_tex;
-
 typedef enum
 {
   ak_textype_rgba8

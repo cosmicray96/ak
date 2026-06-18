@@ -12,6 +12,7 @@ typedef struct ak_gfx ak_gfx;
 typedef uint32_t ak_gresid;
 
 typedef struct ak_shader ak_shader;
+typedef struct ak_tex ak_tex;
 
 typedef struct
 {

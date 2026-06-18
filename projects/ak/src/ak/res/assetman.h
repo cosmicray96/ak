@@ -13,6 +13,13 @@
 
 typedef struct
 {
+  ak_restype type;
+  const char* path;
+  ak_gresid gid;
+} ak_assetman_rargs;
+
+typedef struct
+{
   ak_grestype type;
   ak_resid rid;
   union
@@ -22,7 +29,7 @@ typedef struct
       ak_textype textype;
     } tex;
   };
-} ak_assetman_args;
+} ak_assetman_gargs;
 
 typedef struct
 {
@@ -56,15 +63,15 @@ ak_assetman_unload_gres(ak_assetman* am,
                         ak_gresid gid);
 
 void
-ak_assetman_reg_res(ak_assetman* am,
-                    ak_resid rid,
-                    ak_restype type,
-                    const char* path);
+ak_assetman_reg_res(
+  ak_assetman* am,
+  ak_resid rid,
+  const ak_assetman_rargs* rargs);
 
 void
 ak_assetman_reg_gres(
   ak_assetman* am,
   ak_gresid gid,
-  const ak_assetman_args* args);
+  const ak_assetman_gargs* gargs);
 
 #endif

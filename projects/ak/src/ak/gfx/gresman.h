@@ -40,6 +40,9 @@ ak_gresman_startup(ak_gresreg* grr,
 void
 ak_gresman_shutdown(ak_gresman* grm);
 
+ak_gresreg*
+ak_gresman_gresreg(ak_gresman* grm);
+
 void
 ak_gresman_update(ak_gresman* grm);
 

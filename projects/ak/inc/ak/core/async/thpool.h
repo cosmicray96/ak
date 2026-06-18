@@ -24,8 +24,8 @@ typedef struct ak_thpool ak_thpool;
 ak_jobid
 ak_thpool_submit(ak_thpool* jp,
                  ak_job_fn jfunc,
-                 uint32_t inputsize,
                  const void* input,
+                 uint32_t inputsize,
                  bool job_remove);
 ak_job_status
 ak_thpool_job_status(ak_thpool* jp,

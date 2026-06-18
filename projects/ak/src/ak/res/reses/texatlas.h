@@ -1,11 +1,10 @@
-#ifndef ak_core_shaderstr_h
-#define ak_core_shaderstr_h
+#ifndef ak_res_reses_texatlas_h
+#define ak_res_reses_texatlas_h
 
-#include "ak/core/math/vec2f.h"
 #include "ak/core/math/vec4f.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/export.h"
-#include "ak/gfx/tex.h"
+#include "ak/gfx/core.h"
 #include "ak/system/stream.h"
 
 typedef struct

@@ -138,6 +138,12 @@ ak_gresman_shutdown(ak_gresman* grm)
   ak_alct_free(grm->alct, grm);
 }
 
+ak_gresreg*
+ak_gresman_gresreg(ak_gresman* grm)
+{
+  return grm->grr;
+}
+
 void
 ak_gresman_update(ak_gresman* grm)
 {

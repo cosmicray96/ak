@@ -2,6 +2,7 @@
 #define ak_system_resman_h
 
 #include "ak/export.h"
+#include "ak/gfx/core.h"
 #include "ak/res/reg.h"
 #include "ak/system/stream.h"
 
@@ -16,6 +17,17 @@ typedef enum
   ak_res_loaded
 } ak_res_status;
 
+typedef struct
+{
+  ak_restype type;
+  ak_stm stm;
+  bool stm_close;
+  union
+  {
+    ak_tex* tex;
+  };
+} ak_resman_args;
+
 typedef struct ak_resman ak_resman;
 
 ak_ex ak_res_status
@@ -24,9 +36,7 @@ ak_resman_status(ak_resman* rm, ak_resid id);
 ak_ex void
 ak_resman_load(ak_resman* rm,
                ak_resid id,
-               ak_restype type,
-               ak_stm stm,
-               bool stm_close);
+               const ak_resman_args* args);
 ak_ex void
 ak_resman_unload(ak_resman* rm, ak_resid id);
 
