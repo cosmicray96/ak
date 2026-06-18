@@ -8,6 +8,7 @@
 #include "ak/gfx/gresman.h"
 #include "ak/gfx/gresreg.h"
 #include "ak/gfx/tex.h"
+#include "ak/res/core.h"
 #include "ak/res/reg.h"
 #include "ak/res/resman.h"
 
@@ -15,7 +16,17 @@ typedef struct
 {
   ak_restype type;
   const char* path;
-  ak_gresid gid;
+  union
+  {
+    struct
+    {
+      ak_gresid tex_gid;
+    } texatlas;
+    struct
+    {
+      ak_resid atlas_rid;
+    } aniclip;
+  };
 } ak_assetman_rargs;
 
 typedef struct

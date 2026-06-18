@@ -4,12 +4,11 @@
 #include "ak/core/math/mat3x3.h"
 #include "ak/core/math/vec2f.h"
 #include "ak/core/math/vec4f.h"
+#include "ak/res/core.h"
 #include <stdint.h>
 
 // typedef uint32_t ak_gresid;
 typedef struct ak_gfx ak_gfx;
-
-typedef uint32_t ak_gresid;
 
 typedef struct ak_shader ak_shader;
 typedef struct ak_tex ak_tex;

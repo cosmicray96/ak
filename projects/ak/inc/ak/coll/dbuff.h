@@ -23,6 +23,12 @@ ak_dbuff_make(uint32_t is,
               float gr,
               uint32_t sc,
               ak_alct alct);
+ak_ex ak_dbuff
+ak_dbuff_from_ptr(void* data,
+                  uint32_t is,
+                  uint32_t count,
+                  float gr,
+                  ak_alct alct);
 ak_ex void
 ak_dbuff_destroy(ak_dbuff* d);
 

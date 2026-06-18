@@ -15,6 +15,11 @@ struct ak_da
 
 ak_ex ak_da
 ak_da_make(uint32_t is, ak_alct alct);
+ak_ex ak_da
+ak_da_from_ptr(void* data,
+               uint32_t is,
+               uint32_t count,
+               ak_alct alct);
 ak_ex void
 ak_da_destroy(ak_da* da);
 

@@ -75,15 +75,26 @@ ak_assetman_load_res(ak_assetman* am,
     }
 
     case ak_restype_texatlas: {
-      ak_assetman_load_gres(am,
-                            ri->rargs.gid);
+      ak_assetman_load_gres(
+        am, ri->rargs.texatlas.tex_gid);
       ak_astload_res_load_texatlas(
         am->tp,
         am->rm,
         am->grm,
         rid,
         stm,
-        ri->rargs.gid);
+        ri->rargs.texatlas.tex_gid);
+      break;
+    }
+    case ak_restype_aniclip: {
+      ak_assetman_load_res(
+        am, ri->rargs.aniclip.atlas_rid);
+      ak_astload_res_load_aniclip(
+        am->tp,
+        am->rm,
+        rid,
+        stm,
+        ri->rargs.aniclip.atlas_rid);
       break;
     }
     default: {
@@ -97,8 +108,7 @@ ak_assetman_unload_res(ak_assetman* am,
                        ak_resid rid)
 {
   ak_assert(ak_hmn_exist(&am->res_map, rid));
-
-  ak_resman_unload(am->rm, rid);
+  ak_astload_res_unload(am->tp, am->rm, rid);
 }
 
 void
@@ -109,9 +119,9 @@ ak_assetman_load_gres(ak_assetman* am,
     ak_hmn_exist(&am->gres_map, gid));
   gres_item* gi =
     ak_hmn_at(&am->gres_map, gid);
+
   res_item* ri =
     ak_hmn_at(&am->res_map, gi->gargs.rid);
-
   ak_stm stm = { 0 };
   ak_stmerr err = ak_stm_open_file(
     ri->rargs.path, "rb", &stm);

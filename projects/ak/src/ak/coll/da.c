@@ -24,6 +24,19 @@ ak_da_make(uint32_t is, ak_alct alct)
   return da;
 }
 
+ak_da
+ak_da_from_ptr(void* data,
+               uint32_t is,
+               uint32_t count,
+               ak_alct alct)
+{
+  ak_da da = { 0 };
+  da.dbuff = ak_dbuff_from_ptr(
+    data, is, count, 1.5f, alct);
+  da.count = count;
+  return da;
+}
+
 void
 ak_da_destroy(ak_da* da)
 {

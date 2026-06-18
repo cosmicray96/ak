@@ -9,6 +9,7 @@
 #include "ak/game/stg/world.h"
 #include "ak/game/world/write.h"
 #include "ak/res/reg.h"
+#include "ak/res/reses/aniclip.h"
 #include "ak/res/reses/texatlas.h"
 #include "ak/res/resman_itn.h"
 #include "ak/system/stream.h"
@@ -37,6 +38,7 @@ typedef struct
     ak_world world;
     ak_shaderstr ss;
     ak_texatlas ta;
+    ak_aniclip ac;
   };
 } loaded_item;
 
@@ -89,10 +91,19 @@ res_load(const args_item* ai)
     case ak_restype_texatlas: {
       ak_texatlas ta = { 0 };
       ak_stmerr err = ak_stm_read_texatlas(
-        stm, ai->args.tex, &ta, alct);
+        stm, ai->args.gid, &ta, alct);
 
       loaded.err = err;
       loaded.ta = ta;
+      break;
+    }
+    case ak_restype_aniclip: {
+      ak_aniclip ac = { 0 };
+      ak_stmerr err = ak_stm_read_aniclip(
+        stm, ai->args.rid, &ac, alct);
+
+      loaded.err = err;
+      loaded.ac = ac;
       break;
     }
 

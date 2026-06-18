@@ -9,6 +9,15 @@
 #include "ak/res/resman.h"
 
 void
+ak_astload_res_unload(ak_thpool* tp,
+                      ak_resman* rm,
+                      ak_resid rid);
+void
+ak_astload_gres_unload(ak_thpool* tp,
+                       ak_gresman* grm,
+                       ak_gresid gid);
+
+void
 ak_astload_res_load_texatlas(
   ak_thpool* th,
   ak_resman* rm,
@@ -18,9 +27,11 @@ ak_astload_res_load_texatlas(
   ak_gresid tex_gid);
 
 void
-ak_astload_gres_unload(ak_thpool* tp,
-                       ak_gresman* grm,
-                       ak_gresid gid);
+ak_astload_res_load_aniclip(ak_thpool* th,
+                            ak_resman* rm,
+                            ak_resid ac_rid,
+                            ak_stm stm,
+                            ak_resid ta_rid);
 
 void
 ak_astload_gres_load_tex(ak_thpool* th,

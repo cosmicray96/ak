@@ -44,6 +44,27 @@ ak_dbuff_make(uint32_t is,
   return d;
 }
 
+ak_dbuff
+ak_dbuff_from_ptr(void* data,
+                  uint32_t is,
+                  uint32_t count,
+                  float gr,
+                  ak_alct alct)
+{
+  ak_assert(gr > 1.0f);
+  ak_assert(is > 0);
+  ak_assert(count > 0);
+  ak_assert(data);
+
+  ak_dbuff d = { 0 };
+  d.alct = alct;
+  d.is = is;
+  d.sc = count;
+  d.gr = gr;
+  d.cap = count;
+  return d;
+}
+
 void
 ak_dbuff_destroy(ak_dbuff* d)
 {

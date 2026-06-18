@@ -3,6 +3,7 @@
 #include "ak/core/mem/allocator.h"
 #include "ak/debug.h"
 #include "ak/game/stg/world.h"
+#include "ak/res/reses/aniclip.h"
 #include "ak/res/reses/img.h"
 #include "ak/res/reses/texatlas.h"
 #include <stdint.h>
@@ -51,6 +52,11 @@ res_destroy(ak_resreg* rr, ak_resid id)
       ak_texatlas_destroy(ta);
       break;
     }
+    case ak_restype_aniclip: {
+      ak_aniclip* ac = p;
+      ak_aniclip_destroy(ac);
+      break;
+    }
     default: {
       ak_assert(false);
     }
@@ -79,6 +85,9 @@ ak_resreg_make(ak_alct alct)
 
   rr->ress[ak_restype_texatlas] =
     ak_sla_make(sizeof(ak_texatlas), alct);
+
+  rr->ress[ak_restype_aniclip] =
+    ak_sla_make(sizeof(ak_aniclip), alct);
 
   return rr;
 }
@@ -170,4 +179,15 @@ ak_resreg_get_texatlas(ak_resreg* rr,
   ak_sla* sla = &rr->ress[itm->type];
   ak_texatlas* ta = ak_sla_at(sla, itm->idx);
   return *ta;
+}
+
+ak_aniclip
+ak_resreg_get_aniclip(ak_resreg* rr,
+                      ak_resid id)
+{
+  item* itm = ak_hmn_at(&rr->map, id);
+  ak_assert(itm->type == ak_restype_aniclip);
+  ak_sla* sla = &rr->ress[itm->type];
+  ak_aniclip* ac = ak_sla_at(sla, itm->idx);
+  return *ac;
 }

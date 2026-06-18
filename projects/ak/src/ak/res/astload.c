@@ -1,6 +1,5 @@
 #include "ak/res/astload.h"
 #include "ak/debug.h"
-#include "ak/gfx/core.h"
 #include "ak/gfx/gresman.h"
 #include "ak/res/reg.h"
 #include "ak/res/reses/img.h"
@@ -9,52 +8,30 @@
 typedef struct
 {
   ak_resman* rm;
-  ak_gresman* grm;
-  ak_resid ta_rid;
-  ak_stm stm;
-  ak_gresid tex_gid;
-} res_texatlas;
+  ak_resid rid;
+} res_unload;
 bool
-res_texatlas_fn(void* ctx)
+res_unload_fn(void* ctx)
 {
-  res_texatlas* rta = ctx;
-  ak_gres_status tex_status =
-    ak_gresman_status(rta->grm,
-                      rta->tex_gid);
-  if (tex_status == ak_gres_loaded) {
-    ak_tex* tex = ak_gresreg_get_tex(
-      ak_gresman_gresreg(rta->grm),
-      rta->tex_gid);
-    ak_resman_load(
-      rta->rm,
-      rta->ta_rid,
-      &(ak_resman_args){
-        .type = ak_restype_texatlas,
-        .stm = rta->stm,
-        .stm_close = true,
-        .tex = tex });
-    return true;
+  res_unload* ru = ctx;
+  ak_res_status status =
+    ak_resman_status(ru->rm, ru->rid);
+  if (status == ak_res_not_exist) {
+    return false;
   }
-  return false;
+  ak_resman_unload(ru->rm, ru->rid);
+  return true;
 }
 void
-ak_astload_res_load_texatlas(
-  ak_thpool* th,
-  ak_resman* rm,
-  ak_gresman* grm,
-  ak_resid ta_rid,
-  ak_stm stm,
-  ak_gresid tex_gid)
+ak_astload_res_unload(ak_thpool* tp,
+                      ak_resman* rm,
+                      ak_resid rid)
 {
   ak_thpool_submit(
-    th,
-    &res_texatlas_fn,
-    &(res_texatlas){ .rm = rm,
-                     .grm = grm,
-                     .ta_rid = ta_rid,
-                     .tex_gid = tex_gid,
-                     .stm = stm },
-    sizeof(res_texatlas),
+    tp,
+    &res_unload_fn,
+    &(res_unload){ .rm = rm, .rid = rid },
+    sizeof(res_unload),
     true);
 }
 
@@ -89,6 +66,103 @@ ak_astload_gres_unload(ak_thpool* tp,
                    &gu,
                    sizeof(gres_unload),
                    true);
+}
+
+typedef struct
+{
+  ak_resman* rm;
+  ak_gresman* grm;
+  ak_resid ta_rid;
+  ak_stm stm;
+  ak_gresid tex_gid;
+} res_texatlas;
+bool
+res_texatlas_fn(void* ctx)
+{
+  ak_log("fix, needs to unload.");
+  res_texatlas* rta = ctx;
+  ak_gres_status tex_status =
+    ak_gresman_status(rta->grm,
+                      rta->tex_gid);
+  if (tex_status == ak_gres_loaded) {
+    ak_resman_load(
+      rta->rm,
+      rta->ta_rid,
+      &(ak_resman_args){
+        .type = ak_restype_texatlas,
+        .stm = rta->stm,
+        .stm_close = true,
+        .gid = rta->tex_gid });
+    return true;
+  }
+  return false;
+}
+void
+ak_astload_res_load_texatlas(
+  ak_thpool* th,
+  ak_resman* rm,
+  ak_gresman* grm,
+  ak_resid ta_rid,
+  ak_stm stm,
+  ak_gresid tex_gid)
+{
+  ak_thpool_submit(
+    th,
+    &res_texatlas_fn,
+    &(res_texatlas){ .rm = rm,
+                     .grm = grm,
+                     .ta_rid = ta_rid,
+                     .tex_gid = tex_gid,
+                     .stm = stm },
+    sizeof(res_texatlas),
+    true);
+}
+
+typedef struct
+{
+  ak_resman* rm;
+  ak_resid ac_rid;
+  ak_stm stm;
+  ak_resid ta_rid;
+  uint8_t phase;
+} res_ac;
+bool
+res_ac_fn(void* ctx)
+{
+  ak_log("fix, needs to unload.");
+  res_ac* rac = ctx;
+  ak_res_status ta_status =
+    ak_resman_status(rac->rm, rac->ta_rid);
+  if (ta_status == ak_res_loaded) {
+    ak_resman_load(
+      rac->rm,
+      rac->ta_rid,
+      &(ak_resman_args){
+        .type = ak_restype_texatlas,
+        .stm = rac->stm,
+        .stm_close = true,
+        .rid = rac->ta_rid });
+    return true;
+  }
+  return false;
+}
+void
+ak_astload_res_load_aniclip(ak_thpool* th,
+                            ak_resman* rm,
+                            ak_resid ac_rid,
+                            ak_stm stm,
+                            ak_resid ta_rid)
+{
+  ak_thpool_submit(
+    th,
+    &res_ac_fn,
+    &(res_ac){ .rm = rm,
+               .ac_rid = ac_rid,
+               .stm = stm,
+               .ta_rid = ta_rid,
+               .phase = 0 },
+    sizeof(res_ac),
+    true);
 }
 
 typedef struct
