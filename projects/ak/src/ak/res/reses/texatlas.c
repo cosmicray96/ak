@@ -6,12 +6,10 @@
 #include "ak/system/stream.h"
 
 ak_texatlas
-ak_texatlas_make(ak_gresid texid,
-                 const ak_da* uv_rects,
+ak_texatlas_make(const ak_da* uv_rects,
                  ak_alct alct)
 {
   ak_texatlas ta = { 0 };
-  ta.texid = texid;
   ta.uv_rects =
     ak_da_make(sizeof(ak_vec4f), alct);
   uint32_t count = ak_da_count(uv_rects);
@@ -31,12 +29,10 @@ ak_stm_write_texatlas(ak_stm stm,
 }
 ak_stmerr
 ak_stm_read_texatlas(ak_stm stm,
-                     ak_gresid texid,
                      ak_texatlas* o_ta,
                      ak_alct alct)
 {
   ak_texatlas ta = { 0 };
-  ta.texid = texid;
   ak_stm_try(
     ak_stm_read_da(stm, &ta.uv_rects, alct));
 
@@ -48,7 +44,6 @@ void
 ak_texatlas_destroy(ak_texatlas* ta)
 {
   ak_da_destroy(&ta->uv_rects);
-  ta->texid = 0;
 }
 
 ak_vec4f
@@ -57,10 +52,4 @@ ak_texatlas_at(const ak_texatlas* ta,
 {
   return *(const ak_vec4f*)ak_da_at_const(
     &ta->uv_rects, idx);
-}
-
-ak_gresid
-ak_texatlas_tex(const ak_texatlas* ta)
-{
-  return ta->texid;
 }

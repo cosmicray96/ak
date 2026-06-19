@@ -89,8 +89,8 @@ res_load(const args_item* ai)
     }
     case ak_restype_texatlas: {
       ak_texatlas ta = { 0 };
-      ak_stmerr err = ak_stm_read_texatlas(
-        stm, ai->args.gid, &ta, alct);
+      ak_stmerr err =
+        ak_stm_read_texatlas(stm, &ta, alct);
 
       loaded.err = err;
       loaded.ta = ta;

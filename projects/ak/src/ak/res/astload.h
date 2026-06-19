@@ -18,15 +18,6 @@ ak_astload_gres_unload(ak_thpool* tp,
                        ak_gresid gid);
 
 void
-ak_astload_res_load_texatlas(
-  ak_thpool* th,
-  ak_resman* rm,
-  ak_gresman* grm,
-  ak_resid ta_rid,
-  ak_stm stm,
-  ak_gresid tex_gid);
-
-void
 ak_astload_res_load_aniclip(ak_thpool* th,
                             ak_resman* rm,
                             ak_resid ac_rid,

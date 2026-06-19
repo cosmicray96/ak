@@ -181,6 +181,29 @@ set_root(ak_lworld* l)
     &l->wcb,
     script_test,
     (ak_script_t){ .se = ak_script_test_e });
+
+  ak_ett ani = ak_wcb_ett_new(&l->wcb, root);
+  ak_wcb_comp_tf2d_add(
+    &l->wcb,
+    ani,
+    (ak_tf2d_t){
+      .pos = { .x = ak_fx_f(-300),
+               .y = ak_fx_f(-300) },
+      .scale = { .x = ak_fx_f(300),
+                 .y = ak_fx_f(300) } });
+  ak_wcb_comp_anistate_add(
+    &l->wcb,
+    ani,
+    (ak_anistate_t){
+      .aniclipid = l->ac_rid,
+      .curtime = 0,
+      .framedur = ak_dur_as_secs_f(
+        ak_dur_from_millis(50)) });
+  ak_wcb_comp_quadsimple_add(
+    &l->wcb,
+    ani,
+    (ak_quadsimple_t){ .mtrlid = l->mtrl_e,
+                       .data = { 0 } });
 }
 
 static void
@@ -369,6 +392,11 @@ loaded(ak_lworld* l)
       ak_gres_loaded) {
     return false;
   }
+  if (ak_resman_status(&l->rm, l->ac_rid) !=
+      ak_res_loaded) {
+    return false;
+  }
+  ak_log("res loaded");
   return true;
 }
 
@@ -409,18 +437,18 @@ on_update(void* ctx, ak_dur delta)
     &l->sys_tf, &l->wv, &l->wcb);
   script_flush(l);
 
-  ak_sys_ani_update(&l->sys_ani,
-                    &l->wv,
-                    &l->wcb,
-                    l->rr,
-                    delta);
-  script_flush(l);
-
   ak_sys_script_run_update(
     &l->sys_script, delta, &l->wcb);
   script_flush(l);
 
   if (loaded(l)) {
+
+    ak_sys_ani_update(&l->sys_ani,
+                      &l->wv,
+                      &l->wcb,
+                      l->rr,
+                      delta);
+    script_flush(l);
     ak_sys_ren_render(
       &l->sys_ren, &l->wv, &l->gcb, delta);
     ui_render(l);
@@ -678,8 +706,8 @@ store_taac(ak_lworld* l)
         ak_da_pushback(&uv_rects, &uv_rect);
       }
     }
-    ak_texatlas ta = ak_texatlas_make(
-      l->ta_rid, &uv_rects, l->alct);
+    ak_texatlas ta =
+      ak_texatlas_make(&uv_rects, l->alct);
 
     ak_stm stm;
     ak_stmerr err = ak_stm_open_file(

@@ -77,13 +77,13 @@ ak_assetman_load_res(ak_assetman* am,
     case ak_restype_texatlas: {
       ak_assetman_load_gres(
         am, ri->rargs.texatlas.tex_gid);
-      ak_astload_res_load_texatlas(
-        am->tp,
+      ak_resman_load(
         am->rm,
-        am->grm,
         rid,
-        stm,
-        ri->rargs.texatlas.tex_gid);
+        &(ak_resman_args){
+          .type = ri->rargs.type,
+          .stm = stm,
+          .stm_close = true });
       break;
     }
     case ak_restype_aniclip: {
