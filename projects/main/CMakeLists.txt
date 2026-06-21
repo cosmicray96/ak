@@ -1,5 +1,5 @@
 set(target_name "main")
-set(targ_path "${cm_proj_root_dir}/projects/${target_name}")
+set(targ_path "${CMAKE_SOURCE_DIR}/projects/${target_name}")
 
 cm_target_get_files_pub(${target_name} ${targ_path} files_pub)
 cm_target_get_files_priv(${target_name} ${targ_path} files_priv)
@@ -34,3 +34,4 @@ target_compile_definitions(${target_name}
 
 
 target_link_libraries(${target_name} PRIVATE "ak")
+

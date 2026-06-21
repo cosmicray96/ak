@@ -1,6 +1,6 @@
 set(target_name "ak")
 set(obj_name "${target_name}_obj")
-set(target_path "${cm_proj_root_dir}/projects/ak")
+set(target_path "${CMAKE_SOURCE_DIR}/projects/ak")
 set(tests "")
 
 
@@ -20,7 +20,7 @@ foreach(t IN LISTS tests)
 
 	target_sources(${test_full_name}
 		PRIVATE
-		"${cm_proj_root_dir}/projects/${target_name}/tests/${t}.c"
+		"${CMAKE_SOURCE_DIR}/projects/${target_name}/tests/${t}.c"
 	)
 
 	target_link_libraries(${test_full_name}
