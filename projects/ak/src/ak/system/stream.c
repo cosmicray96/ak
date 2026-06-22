@@ -1,7 +1,6 @@
 #include "ak/system/stream.h"
 #include "ak/core/mem/ptr.h"
 #include "ak/system/stream_itn.h"
-#include <stdio.h>
 
 ak_stmerr
 ak_stm_close(ak_stm stm)
@@ -10,19 +9,13 @@ ak_stm_close(ak_stm stm)
     case ak_stmtype_file: {
       return ak_stm_file_close(stm.ctx);
     }
+    case ak_stmtype_ast: {
+      return ak_stm_ast_close(stm.ctx);
+    }
     default: {
       return ak_stmerr_unsupported;
     }
   }
-}
-void
-print_hex(const uint8_t* data, size_t len)
-{
-  for (size_t i = 0; i < len; i++) {
-    printf("%02X ",
-           data[i]); // 2-digit uppercase hex
-  }
-  printf("\n");
 }
 
 ak_stmresult
@@ -33,6 +26,10 @@ ak_stm_write(ak_stm stm,
   switch (stm.type) {
     case ak_stmtype_file: {
       return ak_stm_file_write(
+        stm.ctx, data, size);
+    }
+    case ak_stmtype_ast: {
+      return ak_stm_ast_write(
         stm.ctx, data, size);
     }
     default: {
@@ -56,6 +53,11 @@ ak_stm_read(ak_stm stm,
         stm.ctx, data, size);
       break;
     }
+    case ak_stmtype_ast: {
+      err =
+        ak_stm_ast_read(stm.ctx, data, size);
+      break;
+    }
     default: {
       return (ak_stmresult){
         .err = ak_stmerr_unsupported
@@ -76,6 +78,11 @@ ak_stm_read_all(ak_stm stm,
   switch (stm.type) {
     case ak_stmtype_file: {
       err = ak_stm_file_read_all(
+        stm.ctx, o_data, o_size, alct);
+      break;
+    }
+    case ak_stmtype_ast: {
+      err = ak_stm_ast_read_all(
         stm.ctx, o_data, o_size, alct);
       break;
     }

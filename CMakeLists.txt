@@ -3,8 +3,9 @@ project(cmake_proj C)
 
 include("./cmake/cm.cmake")
 
+cm_check()
 cm_c_set()
-cm_output_dirs_set(opengl_posix_x11)
+cm_output_dirs_set("${CMAKE_BUILD_TYPE}_opengl_posix_x11")
 cm_clangd_commands_json()
 
 

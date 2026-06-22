@@ -1,5 +1,6 @@
 _bin/
 _build/
 
+.cache/
 .clang-format
 compile_commands.json

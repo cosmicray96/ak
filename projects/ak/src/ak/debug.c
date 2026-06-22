@@ -1,13 +1,11 @@
 #include "ak/debug.h"
 #include "ak/core/errcode.h"
-#include "ak/core/io.h"
 #include "ak/debug_itn.h"
 
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <string.h>
 
 //--- private ---//
 static const char*
@@ -133,31 +131,21 @@ fmter_len(fmter* f)
 //--- private ---//
 typedef struct
 {
-  ak_iostream s;
-  ak_iostream sraw;
 } debug;
-debug d = { 0 };
 
 //--- public ---//
 void
 ak_debug_startup()
 {
-  d.s = ak_iostream_sio();
-
-  d.sraw = (ak_iostream){ 0 };
-  //    ak_frawstream_make("./lograw.txt",
-  //    "w");
-
   const char* buf = "Debug Startup.\n";
-  ak_iostream_write(d.s, buf, strlen(buf));
+  ak_debug_log_impl(buf);
 }
 
 void
 ak_debug_shutdown(void* ctx)
 {
   const char* buf = "Debug Shutdown.\n";
-  ak_iostream_write(d.s, buf, strlen(buf));
-  // ak_iostream_close(&d.s);
+  ak_debug_log_impl(buf);
 }
 
 //--- export ---//
@@ -182,8 +170,7 @@ ak_log_itn(const char* file,
               get_filename(file),
               line);
 
-  ak_iostream_write(
-    d.s, fmter_buf(&f), fmter_len(&f));
+  ak_debug_log_impl(fmter_buf(&f));
 }
 
 void
@@ -202,8 +189,7 @@ ak_ec_itn(const char* file,
               get_filename(file),
               line);
 
-  ak_iostream_write(
-    d.s, fmter_buf(&f), fmter_len(&f));
+  ak_debug_log_impl(fmter_buf(&f));
 }
 
 void
@@ -222,8 +208,7 @@ ak_assert_itn(const char* file,
               get_filename(file),
               line);
 
-  ak_iostream_write(
-    d.s, fmter_buf(&f), fmter_len(&f));
+  ak_debug_log_impl(fmter_buf(&f));
 }
 
 void
@@ -234,8 +219,7 @@ ak_log_cic_itn()
 
   fmter_str(&f, "[Cic]\n");
 
-  ak_iostream_write(
-    d.s, fmter_buf(&f), fmter_len(&f));
+  ak_debug_log_impl(fmter_buf(&f));
 }
 void
 ak_log_crash_itn()
@@ -245,16 +229,12 @@ ak_log_crash_itn()
 
   fmter_str(&f, "[Crh]\n");
 
-  ak_iostream_write(
-    d.s, fmter_buf(&f), fmter_len(&f));
+  ak_debug_log_impl(fmter_buf(&f));
 }
 
-#define s_fatal_log_size 7
 void
 ak_log_crash_fatal()
 {
-  return;
-  char buf[s_fatal_log_size] = "[Ftl]\n";
-  ak_iostream_write(
-    d.sraw, buf, s_fatal_log_size);
+  const char* buf = "[Ftl]\n";
+  ak_debug_log_impl(buf);
 }

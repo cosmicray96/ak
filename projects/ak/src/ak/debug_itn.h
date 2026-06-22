@@ -7,6 +7,9 @@ void
 ak_debug_shutdown(void* ctx);
 
 void
+ak_debug_log_impl(const char* log);
+
+void
 ak_log_crash_fatal();
 
 #endif

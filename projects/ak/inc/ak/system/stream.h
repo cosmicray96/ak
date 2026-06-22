@@ -22,7 +22,8 @@ typedef enum
 {
   ak_stmtype_none,
   ak_stmtype_file,
-  ak_stmtype_sio
+  ak_stmtype_sio,
+  ak_stmtype_ast
 } ak_stmtype;
 
 typedef struct
@@ -41,6 +42,9 @@ ak_ex ak_stmerr
 ak_stm_open_file(const char* path,
                  const char* mode,
                  ak_stm* o_stm);
+
+ak_ex ak_stmerr
+ak_stm_open_ast(ak_stm* o_stm);
 
 ak_ex ak_stmerr
 ak_stm_close(ak_stm stm);

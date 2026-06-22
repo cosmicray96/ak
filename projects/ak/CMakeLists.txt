@@ -38,6 +38,14 @@ target_compile_definitions(${obj_name}
 #--- math ---#
 target_link_libraries(${obj_name} PRIVATE m)
 
+#--- pc ---#
+
+cm_target_get_files_impl_priv(${target_name} ${targ_path} "pc" files_pc)
+target_sources(${obj_name}
+	PRIVATE
+	${files_pc}
+)
+
 #--- posix ---#
 cm_target_get_files_impl_priv(${target_name} ${targ_path} "posix" files_posix)
 target_sources(${obj_name}

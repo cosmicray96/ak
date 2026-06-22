@@ -108,6 +108,33 @@ ak_assetman_unload_res(ak_assetman* am,
                        ak_resid rid)
 {
   ak_assert(ak_hmn_exist(&am->res_map, rid));
+
+  res_item* ri =
+    ak_hmn_at(&am->res_map, rid);
+
+  switch (ri->rargs.type) {
+    case ak_restype_image:
+    case ak_restype_world: {
+      ak_resman_unload(am->rm, rid);
+      break;
+    }
+    case ak_restype_texatlas: {
+      ak_assetman_unload_gres(
+        am, ri->rargs.texatlas.tex_gid);
+      ak_resman_unload(am->rm, rid);
+      break;
+    }
+    case ak_restype_aniclip: {
+      ak_assetman_unload_res(
+        am, ri->rargs.aniclip.atlas_rid);
+      ak_resman_unload(am->rm, rid);
+      break;
+    }
+    default: {
+      ak_assert(false);
+    }
+  }
+
   ak_astload_res_unload(am->tp, am->rm, rid);
 }
 
