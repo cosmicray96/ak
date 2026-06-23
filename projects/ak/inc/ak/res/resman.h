@@ -20,10 +20,10 @@ typedef enum
 typedef struct
 {
   ak_restype type;
+  ak_stm stm;
+  bool stm_close;
   ak_resid rid;
   ak_gresid gid;
-  bool stm_close;
-  ak_stm stm;
 } ak_resman_args;
 
 typedef struct ak_resman ak_resman;

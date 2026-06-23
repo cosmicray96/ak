@@ -4,7 +4,6 @@
 #include "ak/coll/hmn.h"
 #include "ak/core/async/thpool.h"
 #include "ak/core/mem/allocator.h"
-#include "ak/gfx/core.h"
 #include "ak/gfx/gresman.h"
 #include "ak/gfx/gresreg.h"
 #include "ak/gfx/tex.h"

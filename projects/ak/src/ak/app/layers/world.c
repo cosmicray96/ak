@@ -82,6 +82,8 @@ struct ak_lworld
   ak_sys_script sys_script;
   ak_sys_ani sys_ani;
 
+  bool res_loaded;
+
   ak_resid wid;
 
   ak_resid dog_rid;
@@ -171,7 +173,7 @@ set_root(ak_lworld* l)
   l->mtrl_e = ak_wcb_ett_new(&l->wcb, root);
   ak_mtrl_t mtrl = { 0 };
   mtrl.shaderid = l->shader_tex_gid;
-  mtrl.tex = l->dog_gid;
+  mtrl.tex = l->fire_gid;
   ak_wcb_comp_mtrl_add(
     &l->wcb, l->mtrl_e, mtrl);
 
@@ -187,8 +189,8 @@ set_root(ak_lworld* l)
     &l->wcb,
     ani,
     (ak_tf2d_t){
-      .pos = { .x = ak_fx_f(-300),
-               .y = ak_fx_f(-300) },
+      .pos = { .x = ak_fx_f(0),
+               .y = ak_fx_f(0) },
       .scale = { .x = ak_fx_f(300),
                  .y = ak_fx_f(300) } });
   ak_wcb_comp_anistate_add(
@@ -198,7 +200,7 @@ set_root(ak_lworld* l)
       .aniclipid = l->ac_rid,
       .curtime = 0,
       .framedur = ak_dur_as_secs_f(
-        ak_dur_from_millis(50)) });
+        ak_dur_from_millis(16)) });
   ak_wcb_comp_quadsimple_add(
     &l->wcb,
     ani,
@@ -269,6 +271,7 @@ on_startup(void* ctx, ak_app* app)
   ak_world_cb_flush(
     &l->w, &l->wcb_script, &l->ig);
 
+  l->res_loaded = false;
   l->time = 0;
   l->framecount = 0;
 }
@@ -377,6 +380,10 @@ ui_render(ak_lworld* l)
 static bool
 loaded(ak_lworld* l)
 {
+  if (l->res_loaded) {
+    return true;
+  }
+  ak_log("res loading...");
   if (ak_gresman_status(l->grm,
                         l->dog_gid) !=
       ak_gres_loaded) {
@@ -396,7 +403,9 @@ loaded(ak_lworld* l)
       ak_res_loaded) {
     return false;
   }
-  ak_log("res loaded");
+
+  ak_log("res loaded.");
+  l->res_loaded = true;
   return true;
 }
 
@@ -424,7 +433,7 @@ on_update(void* ctx, ak_dur delta)
   ak_lworld* l = ctx;
   l->func(l);
 
-  if (l->framecount > 500) {
+  if (l->framecount > 5000) {
     ak_app_close(l->app);
   }
   l->framecount++;
@@ -451,7 +460,7 @@ on_update(void* ctx, ak_dur delta)
     script_flush(l);
     ak_sys_ren_render(
       &l->sys_ren, &l->wv, &l->gcb, delta);
-    ui_render(l);
+    //  ui_render(l);
   }
 
   ak_renderer_render(l->renderer, &l->gcb);
@@ -550,7 +559,7 @@ regs(ak_lworld* l)
     l->fire_rid,
     &(ak_assetman_rargs){
       .type = ak_restype_image,
-      .path = "./assets/images/fire.png" });
+      .path = "./assets/images/fire1.png" });
 
   ak_assetman_reg_gres(
     &l->am,
@@ -696,13 +705,18 @@ store_taac(ak_lworld* l)
   {
     ak_da uv_rects =
       ak_da_make(sizeof(ak_vec4f), l->alct);
-    for (uint32_t y = 0; y < 4; y++) {
-      for (uint32_t x = 0; x < 4; x++) {
+    uint32_t f_count = 11;
+    for (uint32_t y = 0; y < f_count; y++) {
+      for (uint32_t x = 0; x < f_count;
+           x++) {
+        if (x == 10 && y == 10) {
+          continue;
+        }
         ak_vec4f uv_rect = { 0 };
-        uv_rect.x = x / 4.0f;
-        uv_rect.y = y / 4.0f;
-        uv_rect.z = (x + 1) / 4.0f;
-        uv_rect.w = (y + 1) / 4.0f;
+        uv_rect.x = x / (float)f_count;
+        uv_rect.y = y / (float)f_count;
+        uv_rect.z = (x + 1) / (float)f_count;
+        uv_rect.w = (y + 1) / (float)f_count;
         ak_da_pushback(&uv_rects, &uv_rect);
       }
     }
@@ -721,9 +735,14 @@ store_taac(ak_lworld* l)
   {
     ak_da frames =
       ak_da_make(sizeof(uint32_t), l->alct);
-    for (uint32_t y = 0; y < 4; y++) {
-      for (uint32_t x = 0; x < 4; x++) {
-        uint32_t idx = x + (y * 4);
+    uint32_t f_count = 11;
+    for (uint32_t y = 0; y < f_count; y++) {
+      for (uint32_t x = 0; x < f_count;
+           x++) {
+        if (x == 10 && y == 10) {
+          continue;
+        }
+        uint32_t idx = x + (y * f_count);
         ak_da_pushback(&frames, &idx);
       }
     }

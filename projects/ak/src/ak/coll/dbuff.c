@@ -62,6 +62,7 @@ ak_dbuff_from_ptr(void* data,
   d.sc = count;
   d.gr = gr;
   d.cap = count;
+  d.buff = data;
   return d;
 }
 

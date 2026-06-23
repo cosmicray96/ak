@@ -77,13 +77,13 @@ ak_assetman_load_res(ak_assetman* am,
     case ak_restype_texatlas: {
       ak_assetman_load_gres(
         am, ri->rargs.texatlas.tex_gid);
-      ak_resman_load(
+      ak_astload_res_load_texatlas(
+        am->tp,
         am->rm,
+        am->grm,
         rid,
-        &(ak_resman_args){
-          .type = ri->rargs.type,
-          .stm = stm,
-          .stm_close = true });
+        stm,
+        ri->rargs.texatlas.tex_gid);
       break;
     }
     case ak_restype_aniclip: {
@@ -108,33 +108,28 @@ ak_assetman_unload_res(ak_assetman* am,
                        ak_resid rid)
 {
   ak_assert(ak_hmn_exist(&am->res_map, rid));
-
   res_item* ri =
     ak_hmn_at(&am->res_map, rid);
-
   switch (ri->rargs.type) {
     case ak_restype_image:
-    case ak_restype_world: {
-      ak_resman_unload(am->rm, rid);
+    case ak_restype_world:
+    case ak_restype_shaderstr: {
       break;
     }
     case ak_restype_texatlas: {
-      ak_assetman_unload_gres(
-        am, ri->rargs.texatlas.tex_gid);
-      ak_resman_unload(am->rm, rid);
+      ak_gresman_unload(
+        am->grm, ri->rargs.texatlas.tex_gid);
       break;
     }
     case ak_restype_aniclip: {
-      ak_assetman_unload_res(
-        am, ri->rargs.aniclip.atlas_rid);
-      ak_resman_unload(am->rm, rid);
-      break;
+      ak_gresman_unload(
+        am->grm,
+        ri->rargs.aniclip.atlas_rid);
     }
     default: {
       ak_assert(false);
     }
   }
-
   ak_astload_res_unload(am->tp, am->rm, rid);
 }
 
@@ -201,8 +196,6 @@ ak_assetman_unload_gres(ak_assetman* am,
   ak_assert(
     ak_hmn_exist(&am->gres_map, gid));
 
-  gres_item* gi =
-    ak_hmn_at(&am->gres_map, gid);
   ak_astload_gres_unload(
     am->tp, am->grm, gid);
 }

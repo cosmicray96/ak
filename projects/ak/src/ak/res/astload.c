@@ -71,6 +71,68 @@ ak_astload_gres_unload(ak_thpool* tp,
 typedef struct
 {
   ak_resman* rm;
+  ak_gresman* grm;
+  ak_resid ta_rid;
+  ak_stm stm;
+  ak_gresid tex_gid;
+  uint8_t phase;
+} res_ta;
+bool
+res_ta_fn(void* ctx)
+{
+  res_ta* rta = ctx;
+  switch (rta->phase) {
+    case 0: {
+      ak_gres_status tex_status =
+        ak_gresman_status(rta->grm,
+                          rta->tex_gid);
+      if (tex_status != ak_gres_loaded) {
+        return false;
+      }
+
+      rta->phase = 1;
+      return false;
+    }
+    case 1: {
+      ak_resman_load(
+        rta->rm,
+        rta->ta_rid,
+        &(ak_resman_args){
+          .type = ak_restype_texatlas,
+          .stm = rta->stm,
+          .stm_close = true,
+          .gid = rta->tex_gid });
+      return true;
+    }
+  }
+  ak_assert(false);
+  return true;
+}
+void
+ak_astload_res_load_texatlas(
+  ak_thpool* th,
+  ak_resman* rm,
+  ak_gresman* grm,
+  ak_resid ta_rid,
+  ak_stm stm,
+  ak_gresid tex_gid)
+{
+  ak_thpool_submit(
+    th,
+    &res_ta_fn,
+    &(res_ta){ .rm = rm,
+               .grm = grm,
+               .ta_rid = ta_rid,
+               .stm = stm,
+               .tex_gid = tex_gid,
+               .phase = 0 },
+    sizeof(res_ta),
+    true);
+}
+
+typedef struct
+{
+  ak_resman* rm;
   ak_resid ac_rid;
   ak_stm stm;
   ak_resid ta_rid;
@@ -79,22 +141,34 @@ typedef struct
 bool
 res_ac_fn(void* ctx)
 {
-  ak_log("fix, needs to unload.");
   res_ac* rac = ctx;
-  ak_res_status ta_status =
-    ak_resman_status(rac->rm, rac->ta_rid);
-  if (ta_status == ak_res_loaded) {
-    ak_resman_load(
-      rac->rm,
-      rac->ac_rid,
-      &(ak_resman_args){
-        .type = ak_restype_aniclip,
-        .stm = rac->stm,
-        .stm_close = true,
-        .rid = rac->ta_rid });
-    return true;
+
+  switch (rac->phase) {
+    case 0: {
+      ak_res_status ta_status =
+        ak_resman_status(rac->rm,
+                         rac->ta_rid);
+      if (ta_status != ak_res_loaded) {
+        return false;
+      }
+      rac->phase = 1;
+      return false;
+    }
+    case 1: {
+      ak_resman_load(
+        rac->rm,
+        rac->ac_rid,
+        &(ak_resman_args){
+          .type = ak_restype_aniclip,
+          .stm = rac->stm,
+          .stm_close = true,
+          .rid = rac->ta_rid });
+      return true;
+    }
   }
-  return false;
+
+  ak_assert(false);
+  return true;
 }
 void
 ak_astload_res_load_aniclip(ak_thpool* th,
