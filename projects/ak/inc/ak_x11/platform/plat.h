@@ -1,17 +1,28 @@
 #ifndef ak_x11_platforn_plat_h
 #define ak_x11_platforn_plat_h
 
-#include "ak/export.h"
-#include "ak/platform/plat_base.h"
+#include "ak/app/eq.h"
+#include "ak/core/mem/allocator.h"
 #include <X11/Xlib.h>
 
-ak_ex Display*
-ak_plat_base_display(ak_plat_base* pr);
+typedef struct ak_plat ak_plat;
+ak_plat*
+ak_plat_startup(Display* d,
+                Window wn,
+                Atom wm_delete,
+                uint32_t init_width,
+                uint32_t init_height,
+                ak_alct alct);
+void
+ak_plat_shutdown(ak_plat* p);
 
-ak_ex Window
-ak_plat_base_window(ak_plat_base* pr);
+int32_t
+ak_plat_width(ak_plat* p);
+int32_t
+ak_plat_height(ak_plat* p);
 
-ak_ex Atom
-ak_plat_base_wm_delete(ak_plat_base* pr);
+void
+ak_plat_eventflush(ak_plat* p,
+                   ak_app_eq* eq);
 
 #endif

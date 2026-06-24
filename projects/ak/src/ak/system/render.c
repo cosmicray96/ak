@@ -52,12 +52,14 @@ thread_fn(void* ctx)
                        ak_renderer_idle);
     ak_thread_sleep(r->th);
 
+    ak_plat_base_render_lock(r->pb);
     ak_mutex_lock(&r->m);
     ak_atomicint_store(
       &r->status, ak_renderer_rendering);
     ak_gresman_update(r->grm);
     ak_gcb_flush(&r->gcb, r->gfx, r->grr);
     ak_mutex_unlock(&r->m);
+    ak_plat_base_render_unlock(r->pb);
   }
   ak_gresman_shutdown(r->grm);
   ak_gresreg_destroy(r->grr);

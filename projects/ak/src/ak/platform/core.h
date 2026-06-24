@@ -2,7 +2,6 @@
 #define ak_platform_core_h
 
 #include <stdint.h>
-typedef struct ak_plat ak_plat;
 
 typedef enum
 {

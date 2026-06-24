@@ -131,8 +131,8 @@ ak_gfx_startup(ak_plat_base* pr,
     ak_alct_alloc(alct, sizeof(ak_gfx));
   r->alct = alct;
   r->pb = pr;
-  r->screen_w = ak_plat_base_init_width(pr);
-  r->screen_h = ak_plat_base_init_height(pr);
+  r->screen_w = ak_plat_base_width(pr);
+  r->screen_h = ak_plat_base_height(pr);
 
   r->quads = ak_da_make(sizeof(quad), alct);
   ak_da_reserve(&r->quads, s_max_quad_count);

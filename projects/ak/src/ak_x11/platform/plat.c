@@ -1,4 +1,4 @@
-#include "ak/platform/plat.h"
+#include "ak_x11/platform/plat.h"
 #include "ak/app/event.h"
 
 #include "ak/core/mem/ptr.h"
@@ -52,19 +52,23 @@ ak_plat_key_set(ak_plat* p,
 
 //--- public ---//
 ak_plat*
-ak_plat_startup(ak_plat_base* pr,
+ak_plat_startup(Display* d,
+                Window wn,
+                Atom wm_delete,
+                uint32_t init_width,
+                uint32_t init_height,
                 ak_alct alct)
 {
   ak_plat* p =
     ak_alct_alloc(alct, sizeof(ak_plat));
   p->alct = alct;
 
-  p->d = ak_plat_base_display(pr);
-  p->wn = ak_plat_base_window(pr);
-  p->wm_delete = ak_plat_base_wm_delete(pr);
+  p->d = d;
+  p->wn = wn;
+  p->wm_delete = wm_delete;
 
-  p->width = ak_plat_base_init_width(pr);
-  p->height = ak_plat_base_init_height(pr);
+  p->width = init_width;
+  p->height = init_height;
 
   ak_p_set_byte(
     p->key_down, false, ak_key_count);

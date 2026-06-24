@@ -8,8 +8,6 @@
 #include "ak/program/core.h"
 #include "ak/program/event.h"
 
-#include "ak/platform/plat.h"
-
 //===== ak_lcore =====//
 //--- private ---//
 struct ak_lcore
@@ -18,7 +16,6 @@ struct ak_lcore
   ak_app* app;
   ak_app_eq* eq;
   ak_plat_base* pr;
-  ak_plat* p;
 
   bool flip;
 };
@@ -67,7 +64,6 @@ on_startup(void* ctx, ak_app* app)
   l->app = app;
   l->eq = 0;
   l->pr = ak_plat_base_startup(l->alct);
-  l->p = ak_plat_startup(l->pr, l->alct);
 
   l->flip = false;
 }
@@ -77,7 +73,6 @@ on_shutdown(void* ctx)
 {
   ak_lcore* l = ctx;
 
-  ak_plat_shutdown(l->p);
   ak_plat_base_shutdown(l->pr);
 }
 
@@ -99,7 +94,7 @@ on_epusher(void* ctx, ak_app_eq* eq)
     pgmevt = ak_pgm_event_pop();
   }
 
-  ak_plat_eventflush(l->p, eq);
+  ak_plat_base_eventflush(l->pr, eq);
 }
 
 static bool

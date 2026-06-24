@@ -1,5 +1,6 @@
 #include "ak/platform/plat_base.h"
 #include "ak/debug.h"
+#include "ak/platform/core.h"
 #include "ak_opengl/gfx/gfx.h"
 #include "ak_x11/platform/plat.h"
 
@@ -19,6 +20,7 @@
 struct ak_plat_base
 {
   ak_alct alct;
+  ak_plat* p;
   Display* d;
   Window wn;
   Atom wm_delete;
@@ -238,12 +240,20 @@ ak_plat_base_startup(ak_alct alct)
   XMapWindow(pb->d, pb->wn);
   XFlush(pb->d);
 
+  pb->p = ak_plat_startup(pb->d,
+                          pb->wn,
+                          pb->wm_delete,
+                          s_init_width,
+                          s_init_height,
+                          alct);
   return pb;
 }
 
 void
 ak_plat_base_shutdown(ak_plat_base* pb)
 {
+  ak_plat_shutdown(pb->p);
+
   glXMakeCurrent(pb->d, None, NULL);
   glXDestroyContext(pb->d, pb->glx_ctx);
 
@@ -260,12 +270,30 @@ ak_plat_base_swapbuffer(ak_plat_base* pb)
 }
 
 uint32_t
-ak_plat_base_init_width(ak_plat_base* pb)
+ak_plat_base_width(ak_plat_base* pb)
 {
-  return s_init_width;
+  return ak_plat_width(pb->p);
 }
 uint32_t
-ak_plat_base_init_height(ak_plat_base* pb)
+ak_plat_base_height(ak_plat_base* pb)
 {
-  return s_init_height;
+  return ak_plat_height(pb->p);
+}
+
+void
+ak_plat_base_eventflush(ak_plat_base* pb,
+                        ak_app_eq* eq)
+{
+  ak_plat_eventflush(pb->p, eq);
+}
+
+void
+ak_plat_base_render_lock(ak_plat_base* pb)
+{
+  // empty
+}
+void
+ak_plat_base_render_unlock(ak_plat_base* pb)
+{
+  // empty
 }
