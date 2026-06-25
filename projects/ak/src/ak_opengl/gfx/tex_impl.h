@@ -2,7 +2,8 @@
 #define ak_gfx_tex_impl_h
 
 #include "ak/gfx/tex.h"
-#include <glad/glad.h>
+
+#include "ak_opengl/gfx/gfx_impl.h"
 
 GLuint
 ak_tex_get(ak_tex* tex);

@@ -1,8 +1,7 @@
 #include "ak/gfx/tex.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/debug.h"
-
-#include <glad/glad.h>
+#include "ak_opengl/gfx/tex_impl.h"
 
 //===== ak_tex =====//
 //--- private ---//

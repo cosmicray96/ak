@@ -2,5 +2,5 @@
 
 set -e
 
-cmake -S . -B _build/
-cmake --build _build/
+bash ./scriptsbuild/android.sh
+

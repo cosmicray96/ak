@@ -11,8 +11,6 @@
 #include "ak_opengl/gfx/gfx.h"
 #include "ak_opengl/gfx/gfx_impl.h"
 
-#include <glad/glad.h>
-
 #include <stddef.h>
 #include <stdint.h>
 

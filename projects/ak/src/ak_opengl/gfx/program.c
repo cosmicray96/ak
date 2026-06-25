@@ -1,11 +1,10 @@
 
 #include "ak/core/errcode.h"
-#include "ak/core/io.h"
 #include "ak/debug.h"
 
-#include <stdlib.h>
+#include "ak_opengl/gfx/gfx_impl.h"
 
-#include <glad/glad.h>
+#include <stdlib.h>
 
 //--- private ---//
 /*

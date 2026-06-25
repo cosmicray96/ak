@@ -3,7 +3,11 @@
 
 #include "ak/gfx/core.h"
 
+#if defined(__ANDROID__)
+#include <GLES3/gl3.h>
+#else
 #include <glad/glad.h>
+#endif
 
 typedef struct
 {
