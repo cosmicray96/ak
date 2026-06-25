@@ -311,13 +311,13 @@ on_shutdown(void* ctx)
   ak_idgen_destroy(&l->ig);
 }
 
-void
+static void
 on_epusher(void* ctx, ak_app_eq* eq)
 {
   ak_lworld* l = ctx;
 }
 
-bool
+static bool
 on_event(void* ctx, ak_evt e)
 {
   ak_lworld* l = ctx;

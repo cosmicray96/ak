@@ -15,6 +15,7 @@ cmake -S . \
 cmake --build _build/android
 
 
+echo "Copying to termux"
 project_dir="/data/data/com.termux/files/home/projects/p02_and"
 mkdir -p "$project_dir"
 mkdir -p "$project_dir/out/lib/arm64-v8a"

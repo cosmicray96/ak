@@ -1,3 +1,4 @@
+#include "ak/ak.h"
 #include "ak_android/android.h"
 #include <EGL/egl.h>
 #include <GLES2/gl2.h>
@@ -6,9 +7,11 @@
 static EGLDisplay display = EGL_NO_DISPLAY;
 static EGLSurface surface = EGL_NO_SURFACE;
 static EGLContext context = EGL_NO_CONTEXT;
+static EGLConfig config;
+static EGLint format;
 
 static void
-init_display(struct android_app* app)
+gfx_startup(struct android_app* app)
 {
   EGLint attribs[] = {
     EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
@@ -18,8 +21,7 @@ init_display(struct android_app* app)
     EGL_NONE
   };
 
-  EGLint w, h, format, numConfigs;
-  EGLConfig config;
+  EGLint numConfigs;
 
   display =
     eglGetDisplay(EGL_DEFAULT_DISPLAY);
@@ -33,23 +35,10 @@ init_display(struct android_app* app)
                      config,
                      EGL_NATIVE_VISUAL_ID,
                      &format);
-
-  ANativeWindow_setBuffersGeometry(
-    app->window, 0, 0, format);
-
-  surface = eglCreateWindowSurface(
-    display, config, app->window, NULL);
-  EGLint ctx_attribs[] = {
-    EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE
-  };
-  context = eglCreateContext(
-    display, config, NULL, ctx_attribs);
-  eglMakeCurrent(
-    display, surface, surface, context);
 }
 
 static void
-term_display()
+gfx_shutdown(struct android_app* app)
 {
   if (display != EGL_NO_DISPLAY) {
     eglMakeCurrent(display,
@@ -67,19 +56,55 @@ term_display()
   context = EGL_NO_CONTEXT;
 }
 
+static void
+display_make(struct android_app* app)
+{
+  ANativeWindow_setBuffersGeometry(
+    app->window, 0, 0, format);
+
+  surface = eglCreateWindowSurface(
+    display, config, app->window, NULL);
+  EGLint ctx_attribs[] = {
+    EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE
+  };
+  context = eglCreateContext(
+    display, config, NULL, ctx_attribs);
+  eglMakeCurrent(
+    display, surface, surface, context);
+}
+
+static void
+display_destroy()
+{
+  eglMakeCurrent(display,
+                 EGL_NO_SURFACE,
+                 EGL_NO_SURFACE,
+                 EGL_NO_CONTEXT);
+  if (surface != EGL_NO_SURFACE) {
+    eglDestroySurface(display, surface);
+    surface = EGL_NO_SURFACE;
+  }
+}
+
 static int ready = 0;
 
 static void
-ak_handle_cmd(struct android_app* app,
-              int32_t cmd)
+ak_handle_cmd_old(struct android_app* app,
+                  int32_t cmd)
 {
   switch (cmd) {
+    case APP_CMD_START:
+      gfx_startup(app);
+      break;
+    case APP_CMD_STOP:
+      gfx_shutdown(app);
+      break;
     case APP_CMD_INIT_WINDOW:
-      init_display(app);
+      display_make(app);
       ready = 1;
       break;
     case APP_CMD_TERM_WINDOW:
-      term_display();
+      display_destroy();
       ready = 0;
       break;
   }
@@ -88,8 +113,10 @@ ak_handle_cmd(struct android_app* app,
 void
 android_main(struct android_app* app)
 {
-  ak_android_app = app;
-  app->onAppCmd = ak_handle_cmd;
+  aks_android_app = app;
+  app->onAppCmd = ak_handle_cmd_old;
+
+  //  ak();
 
   while (1) {
     int events;
@@ -103,7 +130,8 @@ android_main(struct android_app* app)
       if (source)
         source->process(app, source);
       if (app->destroyRequested) {
-        term_display();
+        display_destroy();
+        gfx_shutdown(app);
         return;
       }
     }

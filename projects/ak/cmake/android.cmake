@@ -11,6 +11,9 @@ target_sources(${obj_name}
 	PRIVATE
 	${files_android}
 )
+target_include_directories(${obj_name} PRIVATE
+	"${CMAKE_ANDROID_NDK}/sources/android/native_app_glue"
+)
 target_link_libraries(${obj_name} PRIVATE
 	android
 	EGL

@@ -9,6 +9,7 @@
 #include "ak/platform/plat_base.h"
 
 typedef struct ak_renderer ak_renderer;
+typedef void (*ak_renderer_fn)(void* ctx);
 
 typedef enum
 {
@@ -35,5 +36,13 @@ ak_renderer_render(ak_renderer* r,
 
 ak_renderer_status
 ak_renderer_status_get(ak_renderer* r);
+
+void
+ak_renderer_run_fn(ak_renderer* r,
+                   ak_renderer_fn fn,
+                   void* ctx);
+
+ak_renderer*
+ak_renderer_get();
 
 #endif

@@ -30,7 +30,7 @@ struct ak_plat_base
 
 //--- impl inter ---//
 void
-ak_plat_base_glmakecurrent(ak_plat_base* pb)
+ak_plat_base_glctx_startup(ak_plat_base* pb)
 {
   typedef GLXContext (
     *glXCreateContextAttribsARBProc)(
@@ -75,6 +75,11 @@ ak_plat_base_glmakecurrent(ak_plat_base* pb)
 
   glViewport(
     0, 0, s_init_width, s_init_height);
+}
+
+void
+ak_plat_base_glctx_shutdown(ak_plat_base* pb)
+{
 }
 
 Display*

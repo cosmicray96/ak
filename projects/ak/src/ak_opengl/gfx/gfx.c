@@ -8,7 +8,8 @@
 #include "ak/gfx/core.h"
 
 #include "ak/platform/plat_base.h"
-#include "ak_opengl/gfx/gfx.h"
+#include "ak_opengl/platform/plat_base.h"
+
 #include "ak_opengl/gfx/gfx_impl.h"
 
 #include <stddef.h>
@@ -135,7 +136,7 @@ ak_gfx_startup(ak_plat_base* pr,
   r->quads = ak_da_make(sizeof(quad), alct);
   ak_da_reserve(&r->quads, s_max_quad_count);
 
-  ak_plat_base_glmakecurrent(pr);
+  ak_plat_base_glctx_startup(pr);
 
   r->call_began = false;
 
@@ -264,6 +265,8 @@ ak_gfx_shutdown(ak_gfx* r)
   glDeleteBuffers(1, &r->ebo);
 
   glDeleteBuffers(1, &r->ivbo);
+
+  ak_plat_base_glctx_shutdown(r->pb);
 
   ak_da_destroy(&r->quads);
 

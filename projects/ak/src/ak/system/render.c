@@ -1,5 +1,6 @@
 #include "ak/system/render.h"
 #include "ak/core/async/atomic.h"
+#include "ak/core/async/cond.h"
 #include "ak/core/async/mutex.h"
 #include "ak/core/async/thread.h"
 #include "ak/core/mem/allocator.h"
@@ -33,7 +34,13 @@ struct ak_renderer
   ak_atomicint shouldclose;
 
   ak_mutex m;
+
+  ak_renderer_fn rfn;
+  void* rfn_ctx;
+  ak_cond rfn_completed;
+  bool rfn_pending;
 };
+static ak_renderer* s_r;
 
 void
 thread_fn(void* ctx)
@@ -52,12 +59,22 @@ thread_fn(void* ctx)
                        ak_renderer_idle);
     ak_thread_sleep(r->th);
 
+    ak_mutex_lock(&r->m);
+    if (r->rfn_pending) {
+      r->rfn(r->rfn_ctx);
+      r->rfn_pending = false;
+      ak_cond_signal(&r->rfn_completed);
+    }
+    ak_mutex_unlock(&r->m);
+
     ak_plat_base_render_lock(r->pb);
     ak_mutex_lock(&r->m);
+
     ak_atomicint_store(
       &r->status, ak_renderer_rendering);
     ak_gresman_update(r->grm);
     ak_gcb_flush(&r->gcb, r->gfx, r->grr);
+
     ak_mutex_unlock(&r->m);
     ak_plat_base_render_unlock(r->pb);
   }
@@ -73,10 +90,12 @@ ak_renderer_startup(ak_plat_base* pb,
 {
   ak_renderer* r =
     ak_alct_alloc(alct, sizeof(ak_renderer));
+  s_r = r;
   r->alct = alct;
   r->pb = pb;
   r->gcb = ak_gcb_make(r->alct);
   r->m = ak_mutex_make();
+  r->rfn_completed = ak_cond_make();
 
   ak_atomicint_store(&r->shouldclose, 0);
   ak_atomicint_store(&r->status,
@@ -94,8 +113,15 @@ ak_renderer_shutdown(ak_renderer* r)
   ak_thread_join(r->th);
 
   ak_gcb_destroy(&r->gcb);
+  ak_cond_destroy(&r->rfn_completed);
   ak_mutex_destroy(&r->m);
   ak_alct_free(r->alct, r);
+}
+
+ak_renderer*
+ak_renderer_get()
+{
+  return s_r;
 }
 
 void
@@ -132,4 +158,21 @@ ak_renderer_status
 ak_renderer_status_get(ak_renderer* r)
 {
   return ak_atomicint_load(&r->status);
+}
+
+void
+ak_renderer_run_fn(ak_renderer* r,
+                   ak_renderer_fn fn,
+                   void* ctx)
+{
+  ak_mutex_lock(&r->m);
+  r->rfn = fn;
+  r->rfn_ctx = ctx;
+  r->rfn_pending = true;
+
+  while (r->rfn_pending) {
+    ak_cond_wait(&r->rfn_completed, &r->m);
+  }
+
+  ak_mutex_unlock(&r->m);
 }

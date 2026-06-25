@@ -6,21 +6,14 @@
 #include <pthread.h>
 
 //===== ak_mutex =====//
-//--- private ---//
-typedef struct
-{
-  pthread_mutex_t pm;
-} m_impl;
 
 //--- export ---//
 ak_mutex
 ak_mutex_make()
 {
   ak_mutex m = { 0 };
-  m.m = malloc(sizeof(m_impl));
-
-  m_impl* impl = m.m;
-  pthread_mutex_init(&impl->pm, NULL);
+  m.m = malloc(sizeof(pthread_mutex_t));
+  pthread_mutex_init(m.m, NULL);
 
   return m;
 }
@@ -28,22 +21,18 @@ ak_mutex_make()
 void
 ak_mutex_destroy(ak_mutex* m)
 {
-  m_impl* impl = (m_impl*)m->m;
-  pthread_mutex_destroy(&impl->pm);
-
+  pthread_mutex_destroy(m->m);
   free(m->m);
-  m->m = 0;
 }
+
 void
 ak_mutex_lock(ak_mutex* m)
 {
-  m_impl* impl = (m_impl*)m->m;
-  pthread_mutex_lock(&impl->pm);
+  pthread_mutex_lock(m->m);
 }
 
 void
 ak_mutex_unlock(ak_mutex* m)
 {
-  m_impl* impl = (m_impl*)m->m;
-  pthread_mutex_unlock(&impl->pm);
+  pthread_mutex_unlock(m->m);
 }
