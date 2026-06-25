@@ -1,7 +1,7 @@
 #include "ak/platform/plat_base.h"
 #include "ak/debug.h"
 #include "ak/platform/core.h"
-#include "ak_opengl/gfx/gfx.h"
+#include "ak_opengl/platform/plat_base.h"
 #include "ak_x11/platform/plat.h"
 
 #include <glad/glad.h>
