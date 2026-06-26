@@ -35,9 +35,10 @@ struct ak_renderer
 
   ak_mutex m;
 
+  ak_mutex rfn_m;
   ak_renderer_fn rfn;
   void* rfn_ctx;
-  ak_cond rfn_completed;
+  ak_cond rfn_c;
   bool rfn_pending;
 };
 static ak_renderer* s_r;
@@ -59,24 +60,25 @@ thread_fn(void* ctx)
                        ak_renderer_idle);
     ak_thread_sleep(r->th);
 
-    ak_mutex_lock(&r->m);
+    ak_mutex_lock(&r->rfn_m);
     if (r->rfn_pending) {
       r->rfn(r->rfn_ctx);
       r->rfn_pending = false;
-      ak_cond_signal(&r->rfn_completed);
+      ak_cond_broadcast(&r->rfn_c);
     }
-    ak_mutex_unlock(&r->m);
+    ak_mutex_unlock(&r->rfn_m);
 
-    ak_plat_base_render_lock(r->pb);
-    ak_mutex_lock(&r->m);
+    if (ak_plat_base_render_trylock(r->pb)) {
+      ak_mutex_lock(&r->m);
 
-    ak_atomicint_store(
-      &r->status, ak_renderer_rendering);
-    ak_gresman_update(r->grm);
-    ak_gcb_flush(&r->gcb, r->gfx, r->grr);
+      ak_atomicint_store(
+        &r->status, ak_renderer_rendering);
+      ak_gresman_update(r->grm);
+      ak_gcb_flush(&r->gcb, r->gfx, r->grr);
 
-    ak_mutex_unlock(&r->m);
-    ak_plat_base_render_unlock(r->pb);
+      ak_mutex_unlock(&r->m);
+      ak_plat_base_render_unlock(r->pb);
+    }
   }
   ak_gresman_shutdown(r->grm);
   ak_gresreg_destroy(r->grr);
@@ -95,7 +97,12 @@ ak_renderer_startup(ak_plat_base* pb,
   r->pb = pb;
   r->gcb = ak_gcb_make(r->alct);
   r->m = ak_mutex_make();
-  r->rfn_completed = ak_cond_make();
+
+  r->rfn_pending = false;
+  r->rfn = 0;
+  r->rfn_ctx = 0;
+  r->rfn_m = ak_mutex_make();
+  r->rfn_c = ak_cond_make();
 
   ak_atomicint_store(&r->shouldclose, 0);
   ak_atomicint_store(&r->status,
@@ -113,7 +120,7 @@ ak_renderer_shutdown(ak_renderer* r)
   ak_thread_join(r->th);
 
   ak_gcb_destroy(&r->gcb);
-  ak_cond_destroy(&r->rfn_completed);
+  ak_cond_destroy(&r->rfn_c);
   ak_mutex_destroy(&r->m);
   ak_alct_free(r->alct, r);
 }
@@ -165,14 +172,14 @@ ak_renderer_run_fn(ak_renderer* r,
                    ak_renderer_fn fn,
                    void* ctx)
 {
-  ak_mutex_lock(&r->m);
+  ak_mutex_lock(&r->rfn_m);
   r->rfn = fn;
   r->rfn_ctx = ctx;
   r->rfn_pending = true;
 
   while (r->rfn_pending) {
-    ak_cond_wait(&r->rfn_completed, &r->m);
+    ak_cond_wait(&r->rfn_c, &r->rfn_m);
   }
 
-  ak_mutex_unlock(&r->m);
+  ak_mutex_unlock(&r->rfn_m);
 }

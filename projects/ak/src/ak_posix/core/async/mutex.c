@@ -36,3 +36,14 @@ ak_mutex_unlock(ak_mutex* m)
 {
   pthread_mutex_unlock(m->m);
 }
+
+bool
+ak_mutex_trylock(ak_mutex* m)
+{
+  int n = pthread_mutex_trylock(m->m);
+
+  if (n == 0) {
+    return true;
+  }
+  return false;
+}

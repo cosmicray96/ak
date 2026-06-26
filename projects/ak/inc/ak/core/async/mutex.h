@@ -2,6 +2,7 @@
 #define ak_core_async_mutex_h
 
 #include "ak/export.h"
+#include <stdbool.h>
 
 typedef struct
 {
@@ -17,5 +18,8 @@ ak_ex void
 ak_mutex_lock(ak_mutex* m);
 ak_ex void
 ak_mutex_unlock(ak_mutex* m);
+
+ak_ex bool
+ak_mutex_trylock(ak_mutex* m);
 
 #endif

@@ -30,3 +30,9 @@ ak_cond_signal(ak_cond* c)
 {
   pthread_cond_signal(c->c);
 }
+
+void
+ak_cond_broadcast(ak_cond* c)
+{
+  pthread_cond_broadcast(c->c);
+}

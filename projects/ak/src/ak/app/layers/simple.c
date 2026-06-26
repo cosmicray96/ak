@@ -295,8 +295,7 @@ on_update(void* ctx, ak_dur delta)
     &l->sys_ren, &l->wv, &l->gcb, delta);
   //  ui_render(l);
 
-  //  ak_renderer_render(l->renderer,
-  //  &l->gcb);
+  ak_renderer_render(l->renderer, &l->gcb);
 }
 
 static void

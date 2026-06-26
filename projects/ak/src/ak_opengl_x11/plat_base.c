@@ -292,6 +292,11 @@ ak_plat_base_eventflush(ak_plat_base* pb,
   ak_plat_eventflush(pb->p, eq);
 }
 
+bool
+ak_plat_base_render_trylock(ak_plat_base* pb)
+{
+  return true;
+}
 void
 ak_plat_base_render_lock(ak_plat_base* pb)
 {
