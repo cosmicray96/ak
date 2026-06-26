@@ -1,4 +1,5 @@
 #include "ak/platform/plat_base.h"
+#include "ak/core/async/cond.h"
 #include "ak/core/async/mutex.h"
 #include "ak/system/render.h"
 #include "ak_android/android.h"
@@ -18,6 +19,7 @@ struct ak_plat_base
 
   uint32_t width;
   uint32_t height;
+  bool inited;
 };
 static ak_plat_base* s_pb = 0;
 
@@ -30,8 +32,7 @@ ak_plat_base_startup(ak_alct alct)
   pb->alct = alct;
 
   pb->m = ak_mutex_make();
-
-  ak_plat_base_render_lock(pb);
+  pb->inited = false;
 
   return pb;
 }
@@ -95,7 +96,6 @@ ak_plat_base_render_unlock(ak_plat_base* pb)
 void
 ak_plat_base_glctx_startup(ak_plat_base* pb)
 {
-  ak_mutex_lock(&pb->m);
   EGLint attribs[] = {
     EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
     EGL_BLUE_SIZE,    8,
@@ -127,14 +127,11 @@ ak_plat_base_glctx_startup(ak_plat_base* pb)
                      pb->config,
                      NULL,
                      ctx_attribs);
-
-  ak_mutex_unlock(&pb->m);
 }
 
 void
 ak_plat_base_glctx_shutdown(ak_plat_base* pb)
 {
-  ak_mutex_lock(&pb->m);
   if (pb->display != EGL_NO_DISPLAY) {
     eglMakeCurrent(pb->display,
                    EGL_NO_SURFACE,
@@ -151,7 +148,6 @@ ak_plat_base_glctx_shutdown(ak_plat_base* pb)
   pb->display = EGL_NO_DISPLAY;
   pb->surface = EGL_NO_SURFACE;
   pb->context = EGL_NO_CONTEXT;
-  ak_mutex_unlock(&pb->m);
 }
 
 static void
@@ -199,6 +195,10 @@ ak_handle_cmd(struct android_app* app,
       ak_renderer* r = ak_renderer_get();
       ak_renderer_run_fn(
         r, &surface_make, s_pb);
+      if (!s_pb->inited) {
+        ak_plat_base_render_lock(s_pb);
+        s_pb->inited = true;
+      }
       ak_plat_base_render_unlock(s_pb);
       break;
     }
