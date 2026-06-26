@@ -20,7 +20,7 @@ struct ak_plat_base
   uint32_t width;
   uint32_t height;
 
-  ak_mutex m_sfc;
+  ak_mutex sfc_m;
   bool sfc_inited;
   bool sfc_ready;
 };
@@ -34,24 +34,22 @@ ak_plat_base_startup(ak_alct alct)
   s_pb = pb;
   pb->alct = alct;
 
-  pb->m_sfc = ak_mutex_make();
+  pb->sfc_m = ak_mutex_make();
   pb->sfc_inited = false;
 
-  ak_plat_base_render_lock(s_pb);
   return pb;
 }
 
 void
 ak_plat_base_shutdown(ak_plat_base* pb)
 {
-  ak_mutex_destroy(&pb->m_sfc);
+  ak_mutex_destroy(&pb->sfc_m);
   ak_alct_free(pb->alct, pb);
 }
 
 void
 ak_plat_base_swapbuffer(ak_plat_base* pb)
 {
-  return;
   eglSwapBuffers(pb->display, pb->surface);
 }
 
@@ -69,9 +67,9 @@ ak_plat_base_eventflush(ak_plat_base* pb,
          0) {
 
     if (source)
-      source->process(aks_android_app,
+      source->process(ak_android_app(),
                       source);
-    if (aks_android_app->destroyRequested) {
+    if (ak_android_app()->destroyRequested) {
       ak_evt e = { .type = ak_evt_type_pgm,
                    .pgm = ak_pgm_exit_req };
       ak_app_eq_push(eq, e);
@@ -93,20 +91,17 @@ ak_plat_base_height(ak_plat_base* pb)
 bool
 ak_plat_base_render_trylock(ak_plat_base* pb)
 {
-  return false;
-  return ak_mutex_trylock(&pb->m_sfc);
+  return ak_mutex_trylock(&pb->sfc_m);
 }
 void
 ak_plat_base_render_lock(ak_plat_base* pb)
 {
-  return;
-  ak_mutex_lock(&pb->m_sfc);
+  ak_mutex_lock(&pb->sfc_m);
 }
 void
 ak_plat_base_render_unlock(ak_plat_base* pb)
 {
-  return;
-  ak_mutex_unlock(&pb->m_sfc);
+  ak_mutex_unlock(&pb->sfc_m);
 }
 
 void
@@ -177,7 +172,7 @@ surface_make(void* ctx)
 {
   ak_plat_base* pb = ctx;
   ANativeWindow_setBuffersGeometry(
-    aks_android_app->window,
+    ak_android_app()->window,
     0,
     0,
     pb->format);
@@ -185,7 +180,7 @@ surface_make(void* ctx)
   pb->surface = eglCreateWindowSurface(
     pb->display,
     pb->config,
-    aks_android_app->window,
+    ak_android_app()->window,
     NULL);
   eglMakeCurrent(pb->display,
                  pb->surface,

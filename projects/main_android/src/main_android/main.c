@@ -113,11 +113,9 @@ ak_handle_cmd_old(struct android_app* app,
 void
 android_main(struct android_app* app)
 {
-  aks_android_app = app;
-  app->onAppCmd = ak_handle_cmd;
+  ak_android_app_set(app);
 
   ak();
-  return;
 
   while (1) {
     int events;

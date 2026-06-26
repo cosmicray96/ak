@@ -43,6 +43,8 @@ if(cm_plat STREQUAL "linux")
 	include(cmake/linux.cmake)
 elseif(cm_plat STREQUAL "android")
 	include(cmake/android.cmake)
+else()
+	message(FATAL "crash")
 endif()
 
 #--- target ---#

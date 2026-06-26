@@ -3,9 +3,14 @@
 static struct android_app* aks_android_app =
   0;
 
-static EGLDisplay aks_android_dyp =
-  EGL_NO_DISPLAY;
-static EGLSurface aks_android_sfc =
-  EGL_NO_SURFACE;
-static EGLContext aks_android_ctx =
-  EGL_NO_CONTEXT;
+void
+ak_android_app_set(struct android_app* app)
+{
+  aks_android_app = app;
+}
+
+struct android_app*
+ak_android_app()
+{
+  return aks_android_app;
+}

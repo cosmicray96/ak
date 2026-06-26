@@ -7,8 +7,7 @@
 typedef struct ak_lsimple ak_lsimple;
 
 ak_lsimple*
-ak_lsimple_make(ak_lcore* lcore,
-                ak_alct alct);
+ak_lsimple_make(ak_alct alct);
 void
 ak_lsimple_destroy(ak_lsimple* l);
 

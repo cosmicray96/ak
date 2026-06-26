@@ -12,7 +12,7 @@ ak_debug_log_impl(const char* log)
     path,
     sizeof(path),
     "%s/app.log",
-    aks_android_app->activity->obbPath);
+    ak_android_app()->activity->obbPath);
 
   FILE* f = fopen(path, "a");
   fwrite(log, 1, strlen(log), f);
