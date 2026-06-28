@@ -4,7 +4,7 @@
 #include "ak/export.h"
 #include "ak/program/core.h"
 
-ak_ex ak_pgmevt
+ak_ex ak_evtpgm
 ak_pgm_event_pop();
 
 #endif

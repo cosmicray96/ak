@@ -1,3 +1,4 @@
+/*
 #include "ak/app/layers/core.h"
 #include "ak/app/app.h"
 #include "ak/app/eq.h"
@@ -26,7 +27,7 @@ on_win_close(ak_lcore* l, ak_evt e)
   if (e.type != ak_evt_type_win) {
     return false;
   }
-  if (e.win.type != ak_winevt_close) {
+  if (e.win.type != ak_evtwintype_close) {
     return false;
   }
   ak_app_close(l->app);
@@ -84,8 +85,8 @@ on_epusher(void* ctx, ak_app_eq* eq)
     l->eq = eq;
   }
 
-  ak_pgmevt pgmevt = ak_pgm_event_pop();
-  while (pgmevt != ak_pgm_none) {
+  ak_evtpgm pgmevt = ak_pgm_event_pop();
+  while (pgmevt != ak_evtpgm_none) {
     ak_evt e = { 0 };
     e.type = ak_evt_type_pgm;
     e.pgm = pgmevt;
@@ -109,7 +110,7 @@ on_event(void* ctx, ak_evt e)
   if (e.type != ak_evt_type_win) {
     return false;
   }
-  if (e.win.type != ak_winevt_key) {
+  if (e.win.type != ak_evtwintpye_key) {
     return false;
   }
   if (e.win.key.code != ak_key_f) {
@@ -122,7 +123,7 @@ on_event(void* ctx, ak_evt e)
   {
     ak_evt e = { 0 };
     e.type = ak_evt_type_win;
-    e.win.type = ak_winevt_resize;
+    e.win.type = ak_evtwintype_resize;
     e.win.resize.w = l->flip ? 800 : 400;
     e.win.resize.h = l->flip ? 600 : 300;
     l->flip = !l->flip;
@@ -130,17 +131,8 @@ on_event(void* ctx, ak_evt e)
     ak_app_eq_push(l->eq, e);
   }
 
-  /*
-ak_log("key: %d", e.win.key.code);
-ak_log("mode: %d", e.win.key.mode);
-ak_log("action: %s",
-   e.win.key.action ==
-       ak_keyaction_pressed
-     ? "pressed"
-     : "released");
-  */
 
-  return false;
+return false;
 }
 
 static void
@@ -170,3 +162,4 @@ ak_lcore_to_applayer(ak_lcore* l)
   appl.on_upost = &on_upost;
   return appl;
 }
+*/

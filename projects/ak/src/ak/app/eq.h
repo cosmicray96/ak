@@ -16,8 +16,10 @@ void
 ak_app_eq_destroy(ak_app_eq* eq);
 
 void
-ak_app_eq_push(ak_app_eq* eq, ak_evt e);
-ak_evt
-ak_app_eq_pop(ak_app_eq* eq);
+ak_app_eq_push(ak_app_eq* eq,
+               const ak_evt* e);
+
+bool
+ak_app_eq_pop(ak_app_eq* eq, ak_evt* o_e);
 
 #endif

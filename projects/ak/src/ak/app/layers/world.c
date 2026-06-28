@@ -1,3 +1,4 @@
+/*
 #include "ak/app/layers/world.h"
 #include "ak/app/app.h"
 #include "ak/app/eq.h"
@@ -760,3 +761,4 @@ store_taac(ak_lworld* l)
   ak_log("taac done.");
   ak_app_close(l->app);
 }
+*/

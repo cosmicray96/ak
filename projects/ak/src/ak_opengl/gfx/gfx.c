@@ -126,6 +126,8 @@ ak_gfx*
 ak_gfx_startup(ak_plat_base* pr,
                ak_alct alct)
 {
+  ak_plat_base_glctx_startup(pr);
+
   ak_gfx* r =
     ak_alct_alloc(alct, sizeof(ak_gfx));
   r->alct = alct;
@@ -135,8 +137,6 @@ ak_gfx_startup(ak_plat_base* pr,
 
   r->quads = ak_da_make(sizeof(quad), alct);
   ak_da_reserve(&r->quads, s_max_quad_count);
-
-  ak_plat_base_glctx_startup(pr);
 
   r->call_began = false;
 

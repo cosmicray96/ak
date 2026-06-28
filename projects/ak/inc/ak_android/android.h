@@ -11,8 +11,4 @@ ak_android_app_set(struct android_app* app);
 ak_ex struct android_app*
 ak_android_app();
 
-ak_ex void
-ak_handle_cmd(struct android_app* app,
-              int32_t cmd);
-
 #endif

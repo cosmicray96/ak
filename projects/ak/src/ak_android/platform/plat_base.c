@@ -1,12 +1,18 @@
 #include "ak/platform/plat_base.h"
 #include "ak/app/event.h"
-#include "ak/core/async/cond.h"
 #include "ak/core/async/mutex.h"
 #include "ak/system/render.h"
 #include "ak_android/android.h"
+#include "ak_opengl/platform/plat_base.h"
+
 #include <EGL/egl.h>
 #include <android/native_window.h>
 
+//===== ak_plat_base =====//
+#define akd_width_init 100
+#define akd_height_init 100
+
+//--- private ---//
 struct ak_plat_base
 {
   ak_alct alct;
@@ -21,11 +27,91 @@ struct ak_plat_base
   uint32_t height;
 
   ak_mutex sfc_m;
-  bool sfc_inited;
-  bool sfc_ready;
+
+  ak_app_eq* eq;
 };
+
 static ak_plat_base* s_pb = 0;
 
+static void
+surface_make(void* ctx)
+{
+  ak_plat_base* pb = ctx;
+  ANativeWindow_setBuffersGeometry(
+    ak_android_app()->window,
+    0,
+    0,
+    pb->format);
+
+  pb->surface = eglCreateWindowSurface(
+    pb->display,
+    pb->config,
+    ak_android_app()->window,
+    NULL);
+  eglMakeCurrent(pb->display,
+                 pb->surface,
+                 pb->surface,
+                 pb->context);
+
+  EGLint width, height;
+  eglQuerySurface(pb->display,
+                  pb->surface,
+                  EGL_WIDTH,
+                  &width);
+  eglQuerySurface(pb->display,
+                  pb->surface,
+                  EGL_HEIGHT,
+                  &height);
+  pb->width = width;
+  pb->height = height;
+
+  ak_evt e = {
+    .type = ak_evttype_win,
+    .win = { .type = ak_evtwintype_resize,
+             .resize = { .w = width,
+                         .h = height } }
+  };
+  ak_app_eq_push(pb->eq, &e);
+}
+
+static void
+surface_destroy(void* ctx)
+{
+  ak_plat_base* pb = ctx;
+  eglMakeCurrent(pb->display,
+                 EGL_NO_SURFACE,
+                 EGL_NO_SURFACE,
+                 EGL_NO_CONTEXT);
+  if (pb->surface != EGL_NO_SURFACE) {
+    eglDestroySurface(pb->display,
+                      pb->surface);
+    pb->surface = EGL_NO_SURFACE;
+  }
+}
+static void
+handle_cmd(struct android_app* app,
+           int32_t cmd)
+{
+  return;
+  switch (cmd) {
+    case APP_CMD_INIT_WINDOW: {
+      ak_renderer* r = ak_renderer_get();
+      ak_renderer_run_fn(
+        r, &surface_make, s_pb);
+      ak_plat_base_render_unlock(s_pb);
+      break;
+    }
+    case APP_CMD_TERM_WINDOW: {
+      ak_renderer* r = ak_renderer_get();
+      ak_plat_base_render_lock(s_pb);
+      ak_renderer_run_fn(
+        r, &surface_destroy, s_pb);
+      break;
+    }
+  }
+}
+
+//--- internal ---//
 ak_plat_base*
 ak_plat_base_startup(ak_alct alct)
 {
@@ -34,8 +120,16 @@ ak_plat_base_startup(ak_alct alct)
   s_pb = pb;
   pb->alct = alct;
 
+  ak_android_app()->onAppCmd = &handle_cmd;
+
   pb->sfc_m = ak_mutex_make();
-  pb->sfc_inited = false;
+
+  pb->width = akd_width_init;
+  pb->height = akd_height_init;
+
+  pb->eq = 0;
+
+  ak_plat_base_render_lock(s_pb);
 
   return pb;
 }
@@ -43,6 +137,7 @@ ak_plat_base_startup(ak_alct alct)
 void
 ak_plat_base_shutdown(ak_plat_base* pb)
 {
+  pb->eq = 0;
   ak_mutex_destroy(&pb->sfc_m);
   ak_alct_free(pb->alct, pb);
 }
@@ -57,6 +152,7 @@ void
 ak_plat_base_eventflush(ak_plat_base* pb,
                         ak_app_eq* eq)
 {
+  pb->eq = eq;
   int timeout = 0;
   int events;
   struct android_poll_source* source;
@@ -70,9 +166,9 @@ ak_plat_base_eventflush(ak_plat_base* pb,
       source->process(ak_android_app(),
                       source);
     if (ak_android_app()->destroyRequested) {
-      ak_evt e = { .type = ak_evt_type_pgm,
-                   .pgm = ak_pgm_exit_req };
-      ak_app_eq_push(eq, e);
+      ak_evt e = { .type = ak_evttype_pgm,
+                   .pgm = ak_evtpgm_exit };
+      ak_app_eq_push(eq, &e);
     }
   }
 }
@@ -165,65 +261,4 @@ ak_plat_base_glctx_shutdown(ak_plat_base* pb)
   pb->display = EGL_NO_DISPLAY;
   pb->surface = EGL_NO_SURFACE;
   pb->context = EGL_NO_CONTEXT;
-}
-
-static void
-surface_make(void* ctx)
-{
-  ak_plat_base* pb = ctx;
-  ANativeWindow_setBuffersGeometry(
-    ak_android_app()->window,
-    0,
-    0,
-    pb->format);
-
-  pb->surface = eglCreateWindowSurface(
-    pb->display,
-    pb->config,
-    ak_android_app()->window,
-    NULL);
-  eglMakeCurrent(pb->display,
-                 pb->surface,
-                 pb->surface,
-                 pb->context);
-}
-
-static void
-surface_destroy(void* ctx)
-{
-  ak_plat_base* pb = ctx;
-  eglMakeCurrent(pb->display,
-                 EGL_NO_SURFACE,
-                 EGL_NO_SURFACE,
-                 EGL_NO_CONTEXT);
-  if (pb->surface != EGL_NO_SURFACE) {
-    eglDestroySurface(pb->display,
-                      pb->surface);
-    pb->surface = EGL_NO_SURFACE;
-  }
-}
-
-void
-ak_handle_cmd(struct android_app* app,
-              int32_t cmd)
-{
-  return;
-  switch (cmd) {
-    case APP_CMD_INIT_WINDOW: {
-      ak_renderer* r = ak_renderer_get();
-      ak_renderer_run_fn(
-        r, &surface_make, s_pb);
-      s_pb->sfc_ready = true;
-      ak_plat_base_render_unlock(s_pb);
-      break;
-    }
-    case APP_CMD_TERM_WINDOW: {
-      ak_renderer* r = ak_renderer_get();
-      ak_plat_base_render_lock(s_pb);
-      s_pb->sfc_ready = false;
-      ak_renderer_run_fn(
-        r, &surface_destroy, s_pb);
-      break;
-    }
-  }
 }

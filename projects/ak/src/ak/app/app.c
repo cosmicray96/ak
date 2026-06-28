@@ -1,3 +1,4 @@
+/*
 #include "ak/app/app.h"
 #include "ak/app/eq.h"
 #include "ak/app/event.h"
@@ -186,10 +187,10 @@ ak_app_run(ak_app* a)
     run_epusher(a);
 
     ak_evt e = ak_app_eq_pop(&a->eq);
-    while (e.type != ak_evt_none) {
+    while (e.type != ak_evttype_none) {
       // ak_log("event: %d", e.type);
-      if (e.type == ak_evt_type_pgm &&
-          e.pgm == ak_pgm_exit_req) {
+      if (e.type == ak_evttype_pgm &&
+          e.pgm == ak_evtpgm_exit) {
         a->should_close = true;
       }
 
@@ -218,3 +219,4 @@ ak_app_close(ak_app* a)
 {
   a->should_close = true;
 }
+*/

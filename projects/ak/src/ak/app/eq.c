@@ -16,19 +16,14 @@ ak_app_eq_destroy(ak_app_eq* eq)
 }
 
 void
-ak_app_eq_push(ak_app_eq* eq, ak_evt e)
+ak_app_eq_push(ak_app_eq* eq,
+               const ak_evt* e)
 {
-  ak_dq_push(&eq->events, &e);
+  ak_dq_push(&eq->events, e);
 }
 
-ak_evt
-ak_app_eq_pop(ak_app_eq* eq)
+bool
+ak_app_eq_pop(ak_app_eq* eq, ak_evt* o_e)
 {
-  ak_evt e = { 0 };
-  bool success = ak_dq_pop(&eq->events, &e);
-  if (success) {
-    return e;
-  }
-  e.type = ak_evt_none;
-  return e;
+  return ak_dq_pop(&eq->events, o_e);
 }

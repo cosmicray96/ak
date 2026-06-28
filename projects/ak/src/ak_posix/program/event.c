@@ -80,11 +80,11 @@ ak_pgm_event_shutdown(void* ctx)
 }
 
 //--- export ---//
-ak_pgmevt
+ak_evtpgm
 ak_pgm_event_pop()
 {
   if (sq.read_pos == sq.write_pos) {
-    return ak_pgm_none; // empty queue
+    return ak_evtpgm_none; // empty queue
   }
 
   int signal = sq.signals[sq.read_pos];
@@ -95,13 +95,13 @@ ak_pgm_event_pop()
     case SIGINT:
     case SIGTERM:
     case SIGWINCH:
-      return ak_pgm_exit_req;
+      return ak_evtpgm_exit;
       break;
     default:
-      return ak_pgm_unknown;
+      return ak_evtpgm_unknown;
       break;
   }
-  return ak_pgm_unknown;
+  return ak_evtpgm_unknown;
 }
 
 /*

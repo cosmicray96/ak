@@ -5,16 +5,16 @@
 
 typedef enum
 {
-  ak_winevt_none,
-  ak_winevt_close,
-  ak_winevt_resize,
-  ak_winevt_mouse,
-  ak_winevt_key,
-  ak_winevt_visible,
-  ak_winevt_invisible,
-  ak_winevt_focus_gained,
-  ak_winevt_focus_lost,
-} ak_winevt_type;
+  ak_evtwintype_none,
+  ak_evtwintype_close,
+  ak_evtwintype_resize,
+  ak_evtwintpye_mouse,
+  ak_evtwintpye_key,
+  ak_evtwintype_visible,
+  ak_evtwintype_invisible,
+  ak_evtwintype_focus_gained,
+  ak_evtwintype_focus_lost,
+} ak_evtwintype;
 
 typedef enum
 {
@@ -193,7 +193,7 @@ typedef struct
 
 typedef struct
 {
-  ak_winevt_type type;
+  ak_evtwintype type;
   union
   {
     ak_mouseevt mouse;
@@ -204,6 +204,6 @@ typedef struct
       uint32_t h;
     } resize;
   };
-} ak_winevt;
+} ak_evtwin;
 
 #endif

@@ -3,10 +3,9 @@
 
 typedef enum
 {
-  ak_pgm_none,
-  ak_pgm_unknown,
-  ak_pgm_exit_req,
-  ak_pgm_exit_fatal
-} ak_pgmevt;
+  ak_evtpgm_none,
+  ak_evtpgm_unknown,
+  ak_evtpgm_exit,
+} ak_evtpgm;
 
 #endif

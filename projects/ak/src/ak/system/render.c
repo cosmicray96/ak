@@ -9,7 +9,6 @@
 #include "ak/gfx/gfx.h"
 #include "ak/gfx/gresman.h"
 #include "ak/gfx/gresreg.h"
-#include "ak/os/cpu.h"
 #include "ak/os/time.h"
 #include "ak/platform/plat_base.h"
 #include <stdbool.h>
@@ -20,6 +19,8 @@ struct ak_renderer
 {
   ak_alct alct;
   ak_thread* th;
+
+  bool inited;
 
   ak_plat_base* pb;
   ak_gfx* gfx;
@@ -34,6 +35,7 @@ struct ak_renderer
   ak_atomicint shouldclose;
 
   ak_mutex m;
+  ak_cond c;
 
   ak_mutex rfn_m;
   ak_renderer_fn rfn;
@@ -43,15 +45,31 @@ struct ak_renderer
 };
 static ak_renderer* s_r;
 
-void
+static void
+run_rfn(ak_renderer* r)
+{
+  ak_mutex_lock(&r->rfn_m);
+  if (r->rfn_pending) {
+    r->rfn(r->rfn_ctx);
+    r->rfn_pending = false;
+    ak_cond_broadcast(&r->rfn_c);
+  }
+  ak_mutex_unlock(&r->rfn_m);
+}
+
+static void
 thread_fn(void* ctx)
 {
   ak_renderer* r = ctx;
 
+  ak_mutex_lock(&r->m);
   r->gfx = ak_gfx_startup(r->pb, r->alct);
   r->grr = ak_gresreg_make(r->gfx, r->alct);
   r->grm = ak_gresman_startup(
     r->grr, r->gfx, r->alct);
+  r->inited = true;
+  ak_cond_broadcast(&r->c);
+  ak_mutex_unlock(&r->m);
 
   while (
     !ak_atomicint_load(&r->shouldclose)) {
@@ -60,25 +78,21 @@ thread_fn(void* ctx)
                        ak_renderer_idle);
     ak_thread_sleep(r->th);
 
-    ak_mutex_lock(&r->rfn_m);
-    if (r->rfn_pending) {
-      r->rfn(r->rfn_ctx);
-      r->rfn_pending = false;
-      ak_cond_broadcast(&r->rfn_c);
-    }
-    ak_mutex_unlock(&r->rfn_m);
-
+    ak_mutex_lock(&r->m);
     if (ak_plat_base_render_trylock(r->pb)) {
-      ak_mutex_lock(&r->m);
-
       ak_atomicint_store(
         &r->status, ak_renderer_rendering);
+
+      run_rfn(r);
+
       ak_gresman_update(r->grm);
       ak_gcb_flush(&r->gcb, r->gfx, r->grr);
 
-      ak_mutex_unlock(&r->m);
       ak_plat_base_render_unlock(r->pb);
+    } else {
+      ak_gcb_clear(&r->gcb);
     }
+    ak_mutex_unlock(&r->m);
   }
   ak_gresman_shutdown(r->grm);
   ak_gresreg_destroy(r->grr);
@@ -94,9 +108,11 @@ ak_renderer_startup(ak_plat_base* pb,
     ak_alct_alloc(alct, sizeof(ak_renderer));
   s_r = r;
   r->alct = alct;
+  r->inited = false;
   r->pb = pb;
   r->gcb = ak_gcb_make(r->alct);
   r->m = ak_mutex_make();
+  r->c = ak_cond_make();
 
   r->rfn_pending = false;
   r->rfn = 0;
@@ -109,6 +125,11 @@ ak_renderer_startup(ak_plat_base* pb,
                      ak_renderer_initing);
 
   r->th = ak_thread_make(&thread_fn, r);
+
+  ak_mutex_lock(&r->m);
+  while (!r->inited)
+    ak_cond_wait(&r->c, &r->m);
+  ak_mutex_unlock(&r->m);
   return r;
 }
 
@@ -121,6 +142,8 @@ ak_renderer_shutdown(ak_renderer* r)
 
   ak_gcb_destroy(&r->gcb);
   ak_cond_destroy(&r->rfn_c);
+
+  ak_cond_destroy(&r->c);
   ak_mutex_destroy(&r->m);
   ak_alct_free(r->alct, r);
 }
@@ -144,20 +167,12 @@ ak_renderer_render(ak_renderer* r,
 ak_gresman*
 ak_renderer_gresman_get(ak_renderer* r)
 {
-  while (ak_atomicint_load(&r->status) ==
-         ak_renderer_initing) {
-    ak_cpu_yield();
-  }
   return r->grm;
 }
 
 ak_gresreg*
 ak_renderer_gresreg_get(ak_renderer* r)
 {
-  while (ak_atomicint_load(&r->status) ==
-         ak_renderer_initing) {
-    ak_cpu_yield();
-  }
   return r->grr;
 }
 

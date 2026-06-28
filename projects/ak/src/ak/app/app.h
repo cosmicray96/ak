@@ -1,3 +1,4 @@
+/*
 #ifndef ak_app_app_h
 #define ak_app_app_h
 
@@ -73,3 +74,4 @@ void
 ak_app_close(ak_app* a);
 
 #endif
+*/

@@ -116,6 +116,7 @@ android_main(struct android_app* app)
   ak_android_app_set(app);
 
   ak();
+  return;
 
   while (1) {
     int events;

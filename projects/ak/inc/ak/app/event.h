@@ -6,18 +6,18 @@
 
 typedef enum
 {
-  ak_evt_none,
-  ak_evt_type_pgm,
-  ak_evt_type_win,
-} ak_evt_type;
+  ak_evttype_none,
+  ak_evttype_pgm,
+  ak_evttype_win,
+} ak_evttype;
 
 typedef struct
 {
-  ak_evt_type type;
+  ak_evttype type;
   union
   {
-    ak_winevt win;
-    ak_pgmevt pgm;
+    ak_evtwin win;
+    ak_evtpgm pgm;
   };
 } ak_evt;
 

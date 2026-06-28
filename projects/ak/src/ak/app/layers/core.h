@@ -1,3 +1,4 @@
+/*
 #ifndef ak_app_layers_core_h
 #define ak_app_layers_core_h
 
@@ -18,3 +19,4 @@ ak_applayer
 ak_lcore_to_applayer(ak_lcore* l);
 
 #endif
+*/
