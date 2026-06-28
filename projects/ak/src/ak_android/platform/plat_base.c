@@ -92,7 +92,6 @@ static void
 handle_cmd(struct android_app* app,
            int32_t cmd)
 {
-  return;
   switch (cmd) {
     case APP_CMD_INIT_WINDOW: {
       ak_renderer* r = ak_renderer_get();

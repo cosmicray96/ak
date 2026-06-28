@@ -79,11 +79,12 @@ thread_fn(void* ctx)
     ak_thread_sleep(r->th);
 
     ak_mutex_lock(&r->m);
+
+    run_rfn(r);
+
     if (ak_plat_base_render_trylock(r->pb)) {
       ak_atomicint_store(
         &r->status, ak_renderer_rendering);
-
-      run_rfn(r);
 
       ak_gresman_update(r->grm);
       ak_gcb_flush(&r->gcb, r->gfx, r->grr);
@@ -191,6 +192,7 @@ ak_renderer_run_fn(ak_renderer* r,
   r->rfn = fn;
   r->rfn_ctx = ctx;
   r->rfn_pending = true;
+  ak_thread_wake(r->th);
 
   while (r->rfn_pending) {
     ak_cond_wait(&r->rfn_c, &r->rfn_m);

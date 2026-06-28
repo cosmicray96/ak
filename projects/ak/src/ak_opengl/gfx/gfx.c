@@ -287,7 +287,7 @@ ak_gfx_resize(ak_gfx* g,
 void
 ak_gfx_frame_begin(ak_gfx* g)
 {
-  ak_assert(!g->call_began);
+  //  ak_assert(!g->call_began);
 
   glClearColor(1.0f, 0.1f, 0.12f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);

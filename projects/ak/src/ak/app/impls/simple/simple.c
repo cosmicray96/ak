@@ -4,7 +4,6 @@
 #include "ak/core/mem/heap.h"
 #include "ak/platform/plat_base.h"
 #include "ak/system/render.h"
-#include "ak_opengl/platform/plat_base.h"
 
 //--- export ---//
 ak_lsimple*

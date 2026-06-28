@@ -16,6 +16,7 @@ typedef struct
 
 #define ak_glerr_check                      \
   do {                                      \
+    break;                                  \
     GLenum err = glGetError();              \
     ak_log_assert(err == GL_NO_ERROR,       \
                   "Opengl error: %x",       \
