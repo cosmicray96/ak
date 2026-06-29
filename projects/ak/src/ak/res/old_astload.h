@@ -1,3 +1,4 @@
+/*
 #ifndef ak_res_astload_h
 #define ak_res_astload_h
 
@@ -47,3 +48,4 @@ ak_astload_gres_load_shader(ak_thpool* th,
                             ak_resid ss_rid);
 
 #endif
+*/

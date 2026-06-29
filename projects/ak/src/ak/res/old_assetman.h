@@ -1,3 +1,4 @@
+/*
 #ifndef ak_res_assetman_h
 #define ak_res_assetman_h
 
@@ -85,3 +86,4 @@ ak_assetman_reg_gres(
   const ak_assetman_gargs* gargs);
 
 #endif
+*/

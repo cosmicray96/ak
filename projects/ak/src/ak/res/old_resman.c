@@ -1,4 +1,4 @@
-#include "ak/res/resman.h"
+/*
 #include "ak/coll/da.h"
 #include "ak/coll/hmn.h"
 #include "ak/core/async/mutex.h"
@@ -11,6 +11,7 @@
 #include "ak/res/reg.h"
 #include "ak/res/reses/aniclip.h"
 #include "ak/res/reses/texatlas.h"
+#include "ak/res/resman.h"
 #include "ak/res/resman_itn.h"
 #include "ak/system/stream.h"
 
@@ -305,3 +306,5 @@ ak_resman_unload(ak_resman* rm, ak_resid id)
 
   ak_mutex_unlock(&rm->m);
 }
+
+*/

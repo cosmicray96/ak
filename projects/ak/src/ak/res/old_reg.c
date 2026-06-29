@@ -1,8 +1,9 @@
-#include "ak/res/reg.h"
+/*
 #include "ak/coll/hmn.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/debug.h"
 #include "ak/game/stg/world.h"
+#include "ak/res/reg.h"
 #include "ak/res/reses/aniclip.h"
 #include "ak/res/reses/img.h"
 #include "ak/res/reses/texatlas.h"
@@ -191,3 +192,4 @@ ak_resreg_get_aniclip(ak_resreg* rr,
   ak_aniclip* ac = ak_sla_at(sla, itm->idx);
   return *ac;
 }
+*/

@@ -1,3 +1,4 @@
+/*
 #ifndef ak_system_resman_itn_h
 #define ak_system_resman_itn_h
 
@@ -41,3 +42,4 @@ void
 ak_resman_update(ak_resman* rm);
 
 #endif
+*/

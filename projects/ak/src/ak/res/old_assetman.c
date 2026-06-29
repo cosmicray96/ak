@@ -1,7 +1,8 @@
-#include "ak/res/assetman.h"
+/*
 #include "ak/debug.h"
 #include "ak/gfx/gresman.h"
 #include "ak/gfx/gresreg.h"
+#include "ak/res/assetman.h"
 #include "ak/res/astload.h"
 #include "ak/res/reg.h"
 #include "ak/system/stream.h"
@@ -219,3 +220,4 @@ ak_assetman_reg_gres(
   gres_item gi = { .gargs = *gargs };
   ak_hmn_insert(&am->gres_map, gid, &gi);
 }
+*/

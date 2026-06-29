@@ -1,6 +1,7 @@
-#include "ak/res/astload.h"
+/*
 #include "ak/debug.h"
 #include "ak/gfx/gresman.h"
+#include "ak/res/astload.h"
 #include "ak/res/reg.h"
 #include "ak/res/reses/img.h"
 #include "ak/res/resman_itn.h"
@@ -313,3 +314,4 @@ ak_astload_gres_load_shader(ak_thpool* th,
                    sizeof(gres_shader),
                    true);
 }
+*/

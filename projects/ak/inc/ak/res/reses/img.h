@@ -1,7 +1,8 @@
-#ifndef ak_core_img_h
-#define ak_core_img_h
+#ifndef ak_res_reses_img_h
+#define ak_res_reses_img_h
 
 #include "ak/export.h"
+#include "ak/res/core.h"
 #include "ak/system/stream.h"
 #include <stdint.h>
 
@@ -27,5 +28,8 @@ ak_img_make_from_stm(ak_stm stm,
 
 void
 ak_img_destroy(ak_img* img);
+
+ak_res
+ak_img_into_res(const ak_img* img);
 
 #endif
