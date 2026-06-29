@@ -13,20 +13,24 @@
 #include <stdlib.h>
 
 //===== ak_job =====//
-#define ak_s_job_ctx_size 64
 #define ak_s_timeout_secs 2
+#define s_thread_count 2
 //--- private ---//
 typedef struct
 {
-  ak_job_fn job;
+  ak_job_fn jobfn;
   uint8_t input[ak_s_job_ctx_size];
-  ak_job_status status;
   bool autoremove;
+  ak_jobid next;
+} job;
+typedef struct
+{
+  ak_job_status s;
+  job j;
 } job_item;
 
 //===== ak_jobpool =====//
 //--- private ---//
-#define s_thread_count 2
 
 struct ak_thpool
 {
@@ -46,7 +50,7 @@ status_set(ak_thpool* jp,
 {
   ak_mutex_lock(&jp->m);
   job_item* ji = ak_sla_at(&jp->jobs, jid);
-  ji->status = status;
+  ji->s = status;
   ak_mutex_unlock(&jp->m);
 }
 
@@ -59,42 +63,43 @@ status_get(ak_thpool* jp, ak_jobid jid)
     return ak_job_not_exist;
   }
   job_item* ji = ak_sla_at(&jp->jobs, jid);
-  ak_job_status s = ji->status;
+  ak_job_status s = ji->s;
   ak_mutex_unlock(&jp->m);
   return s;
 }
 
 static bool
-thpool_next_job(
-  ak_thpool* jp,
-  ak_jobid* o_jid,
-  ak_job_fn* o_jobfn,
-  uint8_t o_input[ak_s_job_ctx_size],
-  bool* o_autoremove)
+job_next(ak_thpool* jp,
+         ak_jobid* o_jid,
+         job* o_job)
 {
   ak_mutex_lock(&jp->m);
   bool success = ak_dq_pop(&jp->jidq, o_jid);
   if (success) {
     job_item* ji =
       ak_sla_at(&jp->jobs, *o_jid);
-    *o_jobfn = ji->job;
-    ak_p_cpy(
-      o_input, ji->input, ak_s_job_ctx_size);
-    *o_autoremove = ji->autoremove;
+    *o_job = ji->j;
   }
   ak_mutex_unlock(&jp->m);
   return success;
 }
 
 static void
-thpool_repushback(ak_thpool* jp,
-                  ak_jobid id,
-                  const void* input)
+repushback(ak_thpool* jp,
+           ak_jobid id,
+           const job* job)
 {
   ak_mutex_lock(&jp->m);
   job_item* ji = ak_sla_at(&jp->jobs, id);
-  ak_p_cpy(
-    ji->input, input, ak_s_job_ctx_size);
+  ji->j = *job;
+  ak_dq_push(&jp->jidq, &id);
+  ak_mutex_unlock(&jp->m);
+}
+
+static void
+job_push(ak_thpool* jp, ak_jobid id)
+{
+  ak_mutex_lock(&jp->m);
   ak_dq_push(&jp->jidq, &id);
   ak_mutex_unlock(&jp->m);
 }
@@ -112,20 +117,20 @@ thread_fn(void* ctx)
       ak_atomicint_load(&jp->shouldclose);
 
     ak_jobid id = 0;
-    ak_job_fn jobfn = 0;
-    uint8_t input[ak_s_job_ctx_size] = { 0 };
-    bool autoremove = false;
-    bool isjob = thpool_next_job(
-      jp, &id, &jobfn, input, &autoremove);
+    job job = { 0 };
+    bool isjob = job_next(jp, &id, &job);
     if (isjob) {
-      bool finished = jobfn(input);
+      bool finished = job.jobfn(job.input);
       if (finished) {
         status_set(jp, id, ak_job_done);
-        if (autoremove) {
+        if (job.autoremove) {
           ak_thpool_job_remove(jp, id);
         }
+        if (job.next) {
+          job_push(jp, job.next);
+        }
       } else {
-        thpool_repushback(jp, id, input);
+        repushback(jp, id, &job);
       }
     }
 
@@ -157,6 +162,13 @@ thread_fn(void* ctx)
   }
 }
 
+static void
+add_dummy(ak_thpool* tp)
+{
+  uint32_t idx =
+    ak_sla_insert_empty(&tp->jobs);
+  ak_assert(idx == 0);
+}
 //--- internal ---//
 ak_thpool*
 ak_thpool_startup()
@@ -174,6 +186,8 @@ ak_thpool_startup()
   jp->destroy_start = ak_dur_now();
 
   ak_atomicint_store(&jp->shouldclose, 0);
+
+  add_dummy(jp);
 
   for (uint32_t i = 0; i < s_thread_count;
        i++) {
@@ -209,22 +223,23 @@ ak_thpool_destroy_jobs(ak_thpool* jp)
 
 ak_jobid
 ak_thpool_submit(ak_thpool* jp,
-                 ak_job_fn jfunc,
+                 ak_job_fn jobfn,
                  const void* input,
                  uint32_t inputsize,
-                 bool job_remove)
+                 bool autoremove)
 {
   ak_assert(inputsize <= ak_s_job_ctx_size);
 
-  job_item j = { 0 };
-  j.job = jfunc;
-  j.status = ak_job_working;
-  j.autoremove = job_remove;
-  ak_p_cpy(&j.input, input, inputsize);
+  job_item ji = { .s = ak_job_working,
+                  .j = { .jobfn = jobfn,
+                         .autoremove =
+                           autoremove,
+                         .next = 0 } };
+  ak_p_cpy(&ji.j.input, input, inputsize);
 
   ak_mutex_lock(&jp->m);
   ak_jobid jid =
-    ak_sla_insert(&jp->jobs, &j);
+    ak_sla_insert(&jp->jobs, &ji);
   ak_dq_push(&jp->jidq, &jid);
   ak_mutex_unlock(&jp->m);
   return jid;
@@ -268,6 +283,49 @@ ak_thpool_clear_done(ak_thpool* jp,
       i++;
     }
   }
+}
+
+ak_jobid
+ak_thpool_submit_array(
+  ak_thpool* jp,
+  const ak_job_args* jobs,
+  uint32_t count,
+  bool autoremove)
+{
+  ak_jobid first_id = 0;
+  ak_jobid jid = 0;
+  ak_mutex_lock(&jp->m);
+
+  for (uint32_t i = 0; i < count; i++) {
+    const ak_job_args* job_arg = &jobs[i];
+
+    job_item ji = {
+      .s = ak_job_working,
+      .j = { .jobfn = job_arg->jfunc,
+             .autoremove = i == count - 1
+                             ? autoremove
+                             : true,
+             .next = 0 }
+    };
+    ak_p_cpy(&ji.j.input,
+             job_arg->ctx,
+             ak_s_job_ctx_size);
+
+    ak_jobid last_id = jid;
+    jid = ak_sla_insert(&jp->jobs, &ji);
+
+    if (i == 0) {
+      first_id = jid;
+    } else {
+      job_item* last_ji =
+        ak_sla_at(&jp->jobs, last_id);
+      last_ji->j.next = jid;
+    }
+  }
+  ak_dq_push(&jp->jidq, &first_id);
+  ak_mutex_unlock(&jp->m);
+
+  return jid;
 }
 
 /*

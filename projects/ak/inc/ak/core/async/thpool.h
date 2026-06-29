@@ -6,6 +6,7 @@
 #include <stdint.h>
 
 //===== ak_job =====//
+#define ak_s_job_ctx_size 64
 typedef uint32_t ak_jobid;
 typedef bool (*ak_job_fn)(void* input);
 typedef enum
@@ -38,5 +39,17 @@ ak_thpool_job_remove(ak_thpool* jp,
 void
 ak_thpool_clear_done(ak_thpool* jp,
                      ak_da* jids);
+
+typedef struct
+{
+  ak_job_fn jfunc;
+  uint8_t ctx[ak_s_job_ctx_size];
+} ak_job_args;
+ak_jobid
+ak_thpool_submit_array(
+  ak_thpool* jp,
+  const ak_job_args* jobs,
+  uint32_t count,
+  bool job_remove);
 
 #endif
