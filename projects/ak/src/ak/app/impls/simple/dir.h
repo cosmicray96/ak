@@ -6,6 +6,7 @@
 #include "ak/core/mem/heap.h"
 #include "ak/gfx/gcb.h"
 #include "ak/platform/plat_base.h"
+#include "ak/res/reg_itn.h"
 #include "ak/system/render.h"
 
 //--- private ---//
@@ -16,6 +17,8 @@ struct ak_lsimple
   bool should_close;
 
   ak_plat_base* pb;
+
+  ak_resreg rr;
   ak_renderer* r;
   ak_gcb gcb;
 };

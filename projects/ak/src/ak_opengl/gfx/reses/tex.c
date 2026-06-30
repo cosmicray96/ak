@@ -1,14 +1,13 @@
-#include "ak/gfx/tex.h"
+#include "ak/gfx/reses/tex.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/debug.h"
-#include "ak_opengl/gfx/tex_impl.h"
+#include "ak_opengl/gfx/reses/tex_impl.h"
 
 //===== ak_tex =====//
 //--- private ---//
 struct ak_tex
 {
   ak_alct alct;
-  ak_gfx* gfx;
   ak_textype type;
   GLuint id;
 };
@@ -20,7 +19,7 @@ ak_tex_get(ak_tex* tex)
   return tex->id;
 }
 
-//--- internal ---//
+//--- private ---//
 ak_errcode
 ak_tex_from_img(ak_gfx* gfx,
                 const ak_img* img,
@@ -31,7 +30,6 @@ ak_tex_from_img(ak_gfx* gfx,
   ak_tex* tex =
     ak_alct_alloc(alct, sizeof(ak_tex));
   tex->alct = alct;
-  tex->gfx = gfx;
 
   glGenTextures(1, &tex->id);
   glBindTexture(GL_TEXTURE_2D, tex->id);
@@ -68,6 +66,7 @@ ak_tex_from_img(ak_gfx* gfx,
 void
 ak_tex_destroy(ak_tex* tex)
 {
+  glDeleteTextures(1, &tex->id);
   ak_alct_free(tex->alct, tex);
 }
 

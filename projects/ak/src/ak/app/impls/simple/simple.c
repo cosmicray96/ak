@@ -27,7 +27,9 @@ ak_lsimple_make()
   l->eq = ak_app_eq_make(alct);
 
   l->pb = ak_plat_base_startup(alct);
-  l->r = ak_renderer_startup(l->pb, alct);
+  l->rr = ak_resreg_make(alct);
+  l->r =
+    ak_renderer_startup(l->pb, &l->rr, alct);
   l->gcb = ak_gcb_make(alct);
 
   ak_pgm_crashfn_reg(&crash_fn, l);
@@ -39,6 +41,7 @@ ak_lsimple_destroy(ak_lsimple* l)
 {
   ak_gcb_destroy(&l->gcb);
   ak_renderer_shutdown(l->r);
+  ak_resreg_destroy(&l->rr);
   ak_plat_base_shutdown(l->pb);
 
   ak_app_eq_destroy(&l->eq);

@@ -1,8 +1,8 @@
-#include "ak/gfx/shader.h"
+#include "ak/gfx/reses/shader.h"
 #include "ak/gfx/core.h"
-#include "ak/gfx/gresreg.h"
+#include "ak/res/reg.h"
 #include "ak_opengl/gfx/gfx_impl.h"
-#include "ak_opengl/gfx/tex_impl.h"
+#include "ak_opengl/gfx/reses/tex_impl.h"
 
 //===== ak_shader =====//
 //--- private ---//
@@ -63,7 +63,7 @@ ak_shader_destroy(ak_shader* s)
 
 void
 ak_shader_begin(ak_shader* s,
-                ak_gresreg* grr,
+                ak_resreg* rr,
                 const ak_gfx_batchdata* id,
                 const ak_gfx_calldata* bd)
 {
@@ -78,8 +78,7 @@ ak_shader_begin(ak_shader* s,
   }
 
   if (s->tex_loc != -1) {
-    ak_tex* t =
-      ak_gresreg_get_tex(grr, bd->tex);
+    ak_tex* t = ak_resreg_get(rr, bd->tex);
     GLuint id = ak_tex_get(t);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, id);

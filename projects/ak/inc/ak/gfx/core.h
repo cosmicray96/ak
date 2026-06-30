@@ -5,9 +5,9 @@
 #include "ak/core/math/vec2f.h"
 #include "ak/core/math/vec4f.h"
 #include "ak/res/core.h"
+
 #include <stdint.h>
 
-typedef uint32_t ak_gresid;
 typedef struct ak_gfx ak_gfx;
 
 typedef struct ak_shader ak_shader;
@@ -22,8 +22,8 @@ typedef struct
 
 typedef struct
 {
-  ak_gresid shaderid;
-  ak_gresid tex;
+  ak_resid shaderid;
+  ak_resid tex;
 } ak_gfx_calldata;
 
 typedef struct
