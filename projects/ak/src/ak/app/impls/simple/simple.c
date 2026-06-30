@@ -5,6 +5,14 @@
 #include "ak/platform/plat_base.h"
 #include "ak/system/render.h"
 
+//--- private ---//
+static void
+crash_fn(void* ctx)
+{
+  ak_lsimple* l = ctx;
+  ak_lsimple_destroy(l);
+}
+
 //--- export ---//
 ak_lsimple*
 ak_lsimple_make()
@@ -22,6 +30,7 @@ ak_lsimple_make()
   l->r = ak_renderer_startup(l->pb, alct);
   l->gcb = ak_gcb_make(alct);
 
+  ak_pgm_crashfn_reg(&crash_fn, l);
   return l;
 }
 

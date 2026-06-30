@@ -5,4 +5,5 @@ void
 ak_debug_log_impl(const char* log)
 {
   printf("%s", log);
+  fflush(stdout);
 }

@@ -98,7 +98,7 @@ void
 ak_plat_eventflush(ak_plat* p, ak_app_eq* eq)
 {
   ak_evt e = { 0 };
-  e.type = ak_evt_type_win;
+  e.type = ak_evttype_win;
   Display* d = p->d;
   XEvent ex11 = { 0 };
   XEvent nextx11 = { 0 };
@@ -114,8 +114,8 @@ ak_plat_eventflush(ak_plat* p, ak_app_eq* eq)
 
         if ((Atom)ex11.xclient.data.l[0] ==
             p->wm_delete) {
-          e.win.type = ak_winevt_close;
-          ak_app_eq_push(eq, e);
+          e.win.type = ak_evtwintype_close;
+          ak_app_eq_push(eq, &e);
         }
         break;
       }
@@ -124,7 +124,7 @@ ak_plat_eventflush(ak_plat* p, ak_app_eq* eq)
         if (p->wn != ex11.xkey.window) {
           break;
         }
-        e.win.type = ak_winevt_key;
+        e.win.type = ak_evtwintpye_key;
         e.win.key.code =
           ak_keycode_from_x11(&ex11.xkey);
         e.win.key.action =
@@ -137,7 +137,7 @@ ak_plat_eventflush(ak_plat* p, ak_app_eq* eq)
 
         if (!ak_plat_key_pressed(
               p, e.win.key.code)) {
-          ak_app_eq_push(eq, e);
+          ak_app_eq_push(eq, &e);
         }
         ak_plat_key_set(
           p, e.win.key.code, true);
@@ -164,7 +164,7 @@ ak_plat_eventflush(ak_plat* p, ak_app_eq* eq)
           }
         }
 
-        e.win.type = ak_winevt_key;
+        e.win.type = ak_evtwintpye_key;
         e.win.key.code =
           ak_keycode_from_x11(&ex11.xkey);
         e.win.key.action =
@@ -175,7 +175,7 @@ ak_plat_eventflush(ak_plat* p, ak_app_eq* eq)
           continue;
         }
 
-        ak_app_eq_push(eq, e);
+        ak_app_eq_push(eq, &e);
         ak_plat_key_set(
           p, e.win.key.code, false);
         break;
@@ -185,9 +185,10 @@ ak_plat_eventflush(ak_plat* p, ak_app_eq* eq)
         if (p->wn != ex11.xkey.window) {
           break;
         }
-        e.win.type = ak_winevt_focus_gained;
+        e.win.type =
+          ak_evtwintype_focus_gained;
         if (!ak_plat_visible(p)) {
-          ak_app_eq_push(eq, e);
+          ak_app_eq_push(eq, &e);
         }
         ak_plat_visible_set(p, true);
         break;
@@ -197,9 +198,10 @@ ak_plat_eventflush(ak_plat* p, ak_app_eq* eq)
         if (p->wn != ex11.xkey.window) {
           break;
         }
-        e.win.type = ak_winevt_focus_lost;
+        e.win.type =
+          ak_evtwintype_focus_lost;
         if (ak_plat_visible(p)) {
-          ak_app_eq_push(eq, e);
+          ak_app_eq_push(eq, &e);
         }
         ak_plat_visible_set(p, false);
         break;
@@ -209,9 +211,9 @@ ak_plat_eventflush(ak_plat* p, ak_app_eq* eq)
         if (p->wn != ex11.xkey.window) {
           break;
         }
-        e.win.type = ak_winevt_visible;
+        e.win.type = ak_evtwintype_visible;
         if (!ak_plat_visible(p)) {
-          ak_app_eq_push(eq, e);
+          ak_app_eq_push(eq, &e);
         }
         ak_plat_visible_set(p, true);
         break;
@@ -220,9 +222,9 @@ ak_plat_eventflush(ak_plat* p, ak_app_eq* eq)
         if (p->wn != ex11.xkey.window) {
           break;
         }
-        e.win.type = ak_winevt_invisible;
+        e.win.type = ak_evtwintype_invisible;
         if (ak_plat_visible(p)) {
-          ak_app_eq_push(eq, e);
+          ak_app_eq_push(eq, &e);
         }
         ak_plat_visible_set(p, false);
         break;
@@ -234,22 +236,23 @@ ak_plat_eventflush(ak_plat* p, ak_app_eq* eq)
         }
         if (ex11.xvisibility.state ==
             VisibilityFullyObscured) {
-          e.win.type = ak_winevt_invisible;
+          e.win.type =
+            ak_evtwintype_invisible;
           if (ak_plat_visible(p)) {
-            ak_app_eq_push(eq, e);
+            ak_app_eq_push(eq, &e);
           }
           ak_plat_visible_set(p, false);
         } else {
-          e.win.type = ak_winevt_visible;
+          e.win.type = ak_evtwintype_visible;
           if (!ak_plat_visible(p)) {
-            ak_app_eq_push(eq, e);
+            ak_app_eq_push(eq, &e);
           }
           ak_plat_visible_set(p, true);
         }
         break;
       }
       case ConfigureNotify: {
-        e.win.type = ak_winevt_resize;
+        e.win.type = ak_evtwintype_resize;
         XWindowAttributes attrs;
         XGetWindowAttributes(
           p->d,
@@ -264,10 +267,10 @@ ak_plat_eventflush(ak_plat* p, ak_app_eq* eq)
         p->height =
           x11_height > 0 ? x11_height : 1;
 
-        e.win.type = ak_winevt_resize;
+        e.win.type = ak_evtwintype_resize;
         e.win.resize.w = p->width;
         e.win.resize.h = p->height;
-        ak_app_eq_push(eq, e);
+        ak_app_eq_push(eq, &e);
         break;
       }
       default: {

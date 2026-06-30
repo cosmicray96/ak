@@ -7,7 +7,7 @@
 #include "ak/res/core.h"
 #include <stdint.h>
 
-// typedef uint32_t ak_gresid;
+typedef uint32_t ak_gresid;
 typedef struct ak_gfx ak_gfx;
 
 typedef struct ak_shader ak_shader;

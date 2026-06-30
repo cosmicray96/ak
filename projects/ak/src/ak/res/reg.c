@@ -9,10 +9,10 @@
 ak_resreg
 ak_resreg_make(ak_alct alct)
 {
-  return (
-    ak_resreg){ .m = ak_mutex_make(),
-                .reses = ak_hmn_make(
-                  sizeof(ak_res), alct) };
+  return (ak_resreg){
+    .m = ak_mutex_make(),
+    .reses = ak_hmn_make(sizeof(void*), alct)
+  };
 }
 void
 ak_resreg_destroy(ak_resreg* rr)
@@ -22,15 +22,16 @@ ak_resreg_destroy(ak_resreg* rr)
 }
 
 //--- export ---//
-ak_res
+void*
 ak_resreg_get(ak_resreg* rr, ak_resid id)
 {
   ak_mutex_lock(&rr->m);
   if (!ak_hmn_exist(&rr->reses, id)) {
-    return (ak_res){ 0 };
+    return 0;
   }
-  ak_res r =
-    *(ak_res*)ak_hmn_at(&rr->reses, id);
+  void* r =
+    *(void**)ak_hmn_at(&rr->reses, id);
+
   ak_mutex_unlock(&rr->m);
   return r;
 }
@@ -38,7 +39,7 @@ ak_resreg_get(ak_resreg* rr, ak_resid id)
 void
 ak_resreg_add(ak_resreg* rr,
               ak_resid id,
-              ak_res res)
+              void* res)
 {
   ak_mutex_lock(&rr->m);
   ak_assert(!ak_hmn_exist(&rr->reses, id));

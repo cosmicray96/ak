@@ -3,12 +3,13 @@
 
 #include "ak/res/core.h"
 
-ak_res
+void*
 ak_resreg_get(ak_resreg* rr, ak_resid id);
+
 void
 ak_resreg_add(ak_resreg* rr,
               ak_resid id,
-              ak_res res);
+              void* res);
 void
 ak_resreg_remove(ak_resreg* rr, ak_resid id);
 

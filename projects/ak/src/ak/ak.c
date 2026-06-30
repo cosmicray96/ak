@@ -2,7 +2,6 @@
 #include "ak/app/impls/simple.h"
 #include "ak/app/runner.h"
 #include "ak/program/program.h"
-#include "ak_android/android.h"
 
 void
 ak()

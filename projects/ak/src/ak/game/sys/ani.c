@@ -1,3 +1,4 @@
+/*
 #include "ak/game/sys/ani.h"
 #include "ak/core/math/vec4f.h"
 #include "ak/game/comp.h"
@@ -72,3 +73,4 @@ ak_sys_ani_update(ak_sys_ani* a,
     ak_wcb_comp_quadsimple_add(wcb, e, qs);
   }
 }
+*/

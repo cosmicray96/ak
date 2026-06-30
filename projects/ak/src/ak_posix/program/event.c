@@ -13,11 +13,8 @@
 //--- private ---//
 typedef struct
 {
-  ak_crash_fatal_fn fn;
   struct sigaction sigint_old;
   struct sigaction sigterm_old;
-  struct sigaction sigwinch_old;
-  struct sigaction sigsegv_old;
 } event;
 static event e;
 
@@ -45,19 +42,11 @@ signal_handler(int signum)
   }
 }
 
-static void
-signal_handler_fatal(int signum)
-{
-  e.fn();
-}
-
 //===== ak_pmg_event =====//
 //--- public ---//
 void
-ak_pgm_event_startup(ak_crash_fatal_fn fn)
+ak_pgm_event_startup()
 {
-  e.fn = fn;
-
   struct sigaction sa;
   memset(&sa, 0, sizeof(sa));
   sa.sa_handler = signal_handler;
@@ -66,9 +55,6 @@ ak_pgm_event_startup(ak_crash_fatal_fn fn)
 
   sigaction(SIGINT, &sa, &e.sigint_old);
   sigaction(SIGTERM, &sa, &e.sigterm_old);
-
-  sa.sa_handler = signal_handler_fatal;
-  sigaction(SIGSEGV, &sa, &e.sigsegv_old);
 }
 
 void
@@ -76,7 +62,6 @@ ak_pgm_event_shutdown(void* ctx)
 {
   sigaction(SIGINT, &e.sigint_old, NULL);
   sigaction(SIGTERM, &e.sigterm_old, NULL);
-  sigaction(SIGSEGV, &e.sigsegv_old, NULL);
 }
 
 //--- export ---//

@@ -56,12 +56,9 @@ ak_program_startup()
   ak_time_startup();
   ak_pgm_crashfn_reg(&ak_time_shutdown, 0);
 
-  /*
-ak_pgm_event_startup(
-&ak_program_crash_fatal);
-ak_pgm_crashfn_reg(&ak_pgm_event_shutdown,
-               0);
-  */
+  ak_pgm_event_startup();
+  ak_pgm_crashfn_reg(&ak_pgm_event_shutdown,
+                     0);
 }
 
 void
