@@ -1,6 +1,7 @@
 #include "ak/gfx/reses/tex.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/debug.h"
+#include "ak/gfx/gfx.h"
 #include "ak_opengl/gfx/reses/tex_impl.h"
 
 //===== ak_tex =====//
@@ -8,28 +9,21 @@
 struct ak_tex
 {
   ak_alct alct;
+  ak_gfx* gfx;
   ak_textype type;
   GLuint id;
 };
-
-//--- impl ---//
-GLuint
-ak_tex_get(ak_tex* tex)
-{
-  return tex->id;
-}
-
-//--- private ---//
 ak_errcode
-ak_tex_from_img(ak_gfx* gfx,
-                const ak_img* img,
-                ak_textype type,
-                ak_tex** o_tex,
-                ak_alct alct)
+tex_from_img(ak_gfx* gfx,
+             const ak_img* img,
+             ak_textype type,
+             ak_tex** o_tex,
+             ak_alct alct)
 {
   ak_tex* tex =
     ak_alct_alloc(alct, sizeof(ak_tex));
   tex->alct = alct;
+  tex->gfx = gfx;
 
   glGenTextures(1, &tex->id);
   glBindTexture(GL_TEXTURE_2D, tex->id);
@@ -64,10 +58,70 @@ ak_tex_from_img(ak_gfx* gfx,
 }
 
 void
-ak_tex_destroy(ak_tex* tex)
+tex_destroy(ak_tex* tex)
 {
   glDeleteTextures(1, &tex->id);
   ak_alct_free(tex->alct, tex);
+}
+
+//--- impl ---//
+GLuint
+ak_tex_get(ak_tex* tex)
+{
+  return tex->id;
+}
+
+//--- internal ---//
+typedef struct
+{
+  ak_errcode err;
+  ak_gfx* gfx;
+  const ak_img* img;
+  ak_textype type;
+  ak_tex** o_tex;
+  ak_alct alct;
+} tex_make;
+static void
+tex_make_fn(void* ctx)
+{
+  tex_make* t = ctx;
+  t->err = tex_from_img(t->gfx,
+                        t->img,
+                        t->type,
+                        t->o_tex,
+                        t->alct);
+}
+ak_errcode
+ak_tex_from_img(ak_gfx* gfx,
+                const ak_img* img,
+                ak_textype type,
+                ak_tex** o_tex,
+                ak_alct alct)
+{
+  tex_make t = { .gfx = gfx,
+                 .img = img,
+                 .type = type,
+                 .o_tex = o_tex,
+                 .alct = alct };
+  ak_dispatcher_run(ak_gfx_dispatcher(gfx),
+                    &tex_make_fn,
+                    &t);
+  return t.err;
+}
+
+static void
+tex_destroy_fn(void* ctx)
+{
+  ak_tex* tex = ctx;
+  tex_destroy(tex);
+}
+void
+ak_tex_destroy(ak_tex* tex)
+{
+  ak_dispatcher_run(
+    ak_gfx_dispatcher(tex->gfx),
+    &tex_destroy_fn,
+    tex);
 }
 
 ak_textype

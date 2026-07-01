@@ -6,8 +6,6 @@
 #include "ak/system/idgen.h"
 
 void
-ak_world_cb_flush(ak_world* w,
-                  ak_wcb* wcb,
-                  ak_idgen* ig);
+ak_world_cb_flush(ak_world* w, ak_wcb* wcb);
 
 #endif

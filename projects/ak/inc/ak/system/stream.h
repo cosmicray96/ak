@@ -44,7 +44,8 @@ ak_stm_open_file(const char* path,
                  ak_stm* o_stm);
 
 ak_ex ak_stmerr
-ak_stm_open_ast(ak_stm* o_stm);
+ak_stm_open_ast(const char* path,
+                ak_stm* o_stm);
 
 ak_ex ak_stmerr
 ak_stm_close(ak_stm stm);

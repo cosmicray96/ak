@@ -35,6 +35,12 @@ ak_wcb_make(ak_idgen* ig, ak_alct alct);
 void
 ak_wcb_destroy(ak_wcb* gc);
 
+static ak_idgen*
+ak_wcb_idgen(ak_wcb* gc)
+{
+  return gc->ig;
+}
+
 uint32_t
 ak_wcb_count(ak_wcb* wcb);
 bool

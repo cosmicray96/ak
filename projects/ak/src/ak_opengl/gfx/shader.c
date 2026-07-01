@@ -1,5 +1,6 @@
 #include "ak/gfx/reses/shader.h"
 #include "ak/gfx/core.h"
+#include "ak/gfx/gfx.h"
 #include "ak/res/reg.h"
 #include "ak_opengl/gfx/gfx_impl.h"
 #include "ak_opengl/gfx/reses/tex_impl.h"
@@ -17,14 +18,11 @@ struct ak_shader
   GLint tex_loc;
 };
 
-//--- internal ---//
-
-ak_errcode
-ak_shader_from_shaderstr(
-  ak_gfx* gfx,
-  const ak_shaderstr* ss,
-  ak_shader** o_shader,
-  ak_alct alct)
+static ak_errcode
+shader_from_shaderstr(ak_gfx* gfx,
+                      const ak_shaderstr* ss,
+                      ak_shader** o_shader,
+                      ak_alct alct)
 {
   ak_shader* s =
     ak_alct_alloc(alct, sizeof(ak_shader));
@@ -55,11 +53,59 @@ ak_shader_from_shaderstr(
   return ak_ok;
 }
 
-void
-ak_shader_destroy(ak_shader* s)
+static void
+shader_destroy(ak_shader* s)
 {
   glDeleteProgram(s->program);
 }
+
+typedef struct
+{
+  ak_errcode err;
+  ak_gfx* gfx;
+  const ak_shaderstr* ss;
+  ak_shader** o_shader;
+  ak_alct alct;
+} shader_make_t;
+static void
+shader_make_fn(void* ctx)
+{
+  shader_make_t* sm = ctx;
+  sm->err = shader_from_shaderstr(
+    sm->gfx, sm->ss, sm->o_shader, sm->alct);
+}
+ak_errcode
+ak_shader_from_shaderstr(
+  ak_gfx* gfx,
+  const ak_shaderstr* ss,
+  ak_shader** o_shader,
+  ak_alct alct)
+{
+  ak_dispatcher* d = ak_gfx_dispatcher(gfx);
+  shader_make_t sm = { .gfx = gfx,
+                       .ss = ss,
+                       .o_shader = o_shader,
+                       .alct = alct };
+  ak_dispatcher_run(d, &shader_make_fn, &sm);
+  return sm.err;
+}
+
+static void
+shader_destroy_fn(void* ctx)
+{
+  ak_shader* s = ctx;
+  shader_destroy(s);
+}
+void
+ak_shader_destroy(ak_shader* s)
+{
+  ak_dispatcher* d =
+    ak_gfx_dispatcher(s->gfx);
+  ak_dispatcher_run(
+    d, &shader_destroy_fn, s);
+}
+
+//--- internal ---//
 
 void
 ak_shader_begin(ak_shader* s,

@@ -21,28 +21,26 @@ ak_lsimple_make()
   ak_lsimple* l =
     ak_heap_alloc(&heap, sizeof(ak_lsimple));
   l->heap = heap;
-  ak_alct alct = ak_heap_to_alct(&l->heap);
+  l->alct = ak_heap_to_alct(&l->heap);
 
   l->should_close = false;
-  l->eq = ak_app_eq_make(alct);
+  l->eq = ak_app_eq_make(l->alct);
 
-  l->pb = ak_plat_base_startup(alct);
-  l->rr = ak_resreg_make(alct);
-  l->r =
-    ak_renderer_startup(l->pb, &l->rr, alct);
-  l->gcb = ak_gcb_make(alct);
+  world_make(l);
+  render_make(l);
+  pg_make(l);
 
   ak_pgm_crashfn_reg(&crash_fn, l);
+
   return l;
 }
 
 void
 ak_lsimple_destroy(ak_lsimple* l)
 {
-  ak_gcb_destroy(&l->gcb);
-  ak_renderer_shutdown(l->r);
-  ak_resreg_destroy(&l->rr);
-  ak_plat_base_shutdown(l->pb);
+  pg_destroy(l);
+  world_destroy(l);
+  render_destroy(l);
 
   ak_app_eq_destroy(&l->eq);
 
@@ -58,6 +56,9 @@ ak_lsimple_tick(void* ctx)
   event_collect(l);
   event_drain(l);
 
-  ak_renderer_render(l->r, &l->gcb);
+  pg_update(l);
+  world_update(l);
+  render_update(l);
+
   return l->should_close;
 }

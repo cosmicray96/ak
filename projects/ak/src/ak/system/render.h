@@ -35,6 +35,8 @@ ak_dispatcher*
 ak_renderer_dispatcher_pre(ak_renderer* r);
 ak_dispatcher*
 ak_renderer_dispatcher(ak_renderer* r);
+ak_gfx*
+ak_renderer_gfx(ak_renderer* r);
 
 ak_renderer*
 ak_renderer_get();

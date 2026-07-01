@@ -33,6 +33,7 @@ struct ak_gfx
 {
   ak_alct alct;
   ak_plat_base* pb;
+  ak_dispatcher* d;
 
   uint32_t screen_w;
   uint32_t screen_h;
@@ -124,6 +125,7 @@ ak_gfx_call_end(ak_gfx* g)
 //--- public ---//
 ak_gfx*
 ak_gfx_startup(ak_plat_base* pr,
+               ak_dispatcher* d,
                ak_alct alct)
 {
   ak_plat_base_glctx_startup(pr);
@@ -132,6 +134,8 @@ ak_gfx_startup(ak_plat_base* pr,
     ak_alct_alloc(alct, sizeof(ak_gfx));
   r->alct = alct;
   r->pb = pr;
+  r->d = d;
+
   r->screen_w = ak_plat_base_width(pr);
   r->screen_h = ak_plat_base_height(pr);
 
@@ -271,6 +275,12 @@ ak_gfx_shutdown(ak_gfx* r)
   ak_da_destroy(&r->quads);
 
   ak_alct_free(r->alct, r);
+}
+
+ak_dispatcher*
+ak_gfx_dispatcher(ak_gfx* r)
+{
+  return r->d;
 }
 
 void

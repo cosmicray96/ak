@@ -14,10 +14,9 @@ ett_remove_cb(void* ig, ak_ett e)
 }
 
 void
-ak_world_cb_flush(ak_world* w,
-                  ak_wcb* wcb,
-                  ak_idgen* ig)
+ak_world_cb_flush(ak_world* w, ak_wcb* wcb)
 {
+  ak_idgen* ig = ak_wcb_idgen(wcb);
   ak_wcbitem item = { 0 };
   ak_tf2d_t tf2d = ak_tf2d_identity();
   ak_gmat3_t mat3 = ak_mat3_identity();

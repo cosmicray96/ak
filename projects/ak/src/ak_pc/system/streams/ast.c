@@ -1,16 +1,24 @@
+#include "ak/system/stream.h"
 #include "ak/system/stream_itn.h"
+#include <stdio.h>
 
 ak_ex ak_stmerr
-ak_stm_open_ast(ak_stm* o_stm)
+ak_stm_open_ast(const char* path,
+                ak_stm* o_stm)
 {
-  return ak_stmerr_err;
+  char p[1024];
+  int n = snprintf(
+    p, sizeof(p), "assets/%s", path);
+  if (n < 0 || (size_t)n >= sizeof(p)) {
+    return ak_stmerr_invalid;
+  }
+  return ak_stm_open_file(p, "rb", o_stm);
 }
 
-ak_ex ak_stmerr
+ak_stmerr
 ak_stm_ast_close(void* ast)
 {
-
-  return ak_stmerr_err;
+  return ak_stm_file_close(ast);
 }
 
 ak_stmresult
@@ -18,9 +26,7 @@ ak_stm_ast_write(void* ast,
                  const void* data,
                  uint64_t size)
 {
-
-  return (ak_stmresult){ .err =
-                           ak_stmerr_err };
+  return ak_stm_file_write(ast, data, size);
 }
 
 ak_stmresult
@@ -28,9 +34,7 @@ ak_stm_ast_read(void* ast,
                 void* data,
                 uint64_t size)
 {
-
-  return (ak_stmresult){ .err =
-                           ak_stmerr_err };
+  return ak_stm_file_read(ast, data, size);
 }
 ak_stmresult
 ak_stm_ast_read_all(void* ast,
@@ -38,7 +42,6 @@ ak_stm_ast_read_all(void* ast,
                     uint64_t* o_size,
                     ak_alct alct)
 {
-
-  return (ak_stmresult){ .err =
-                           ak_stmerr_err };
+  return ak_stm_file_read_all(
+    ast, o_data, o_size, alct);
 }

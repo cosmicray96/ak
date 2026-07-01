@@ -1,6 +1,7 @@
 #ifndef ak_gfx_gfx_h
 #define ak_gfx_gfx_h
 
+#include "ak/core/async/dispatcher.h"
 #include "ak/core/math/mat3x3.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/gfx/core.h"
@@ -9,9 +10,13 @@
 
 ak_gfx*
 ak_gfx_startup(ak_plat_base* pr,
+               ak_dispatcher* d,
                ak_alct alct);
 void
 ak_gfx_shutdown(ak_gfx* r);
+
+ak_dispatcher*
+ak_gfx_dispatcher(ak_gfx* r);
 
 void
 ak_gfx_resize(ak_gfx* r,
