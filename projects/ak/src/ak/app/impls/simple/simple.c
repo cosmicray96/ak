@@ -26,8 +26,8 @@ ak_lsimple_make()
   l->should_close = false;
   l->eq = ak_app_eq_make(l->alct);
 
-  world_make(l);
   render_make(l);
+  world_make(l);
   pg_make(l);
 
   ak_pgm_crashfn_reg(&crash_fn, l);

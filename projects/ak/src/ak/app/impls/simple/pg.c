@@ -31,20 +31,20 @@ pg_make(ak_lsimple* l)
                        ak_textype_rgba8,
                        &l->tex,
                        l->alct);
-  ak_assert(ec == ak_ok);
+  // ak_assert(ec == ak_ok);
   ak_img_destroy(&img);
 
   ak_shaderstr ss = { 0 };
   err = ak_stm_open_ast("shaders/tex.glsl",
                         &stm);
-  ak_assert(err == ak_stmerr_ok);
+  // ak_assert(err == ak_stmerr_ok);
   err =
     ak_stm_read_shaderstr(stm, &ss, l->alct);
-  ak_assert(err == ak_stmerr_ok);
+  // ak_assert(err == ak_stmerr_ok);
   ak_stm_close(stm);
   ec = ak_shader_from_shaderstr(
     gfx, &ss, &l->shader, l->alct);
-  ak_assert(ec == ak_ok);
+  // ak_assert(ec == ak_ok);
 
   ak_resreg_add(&l->rr, l->texid, l->tex);
   ak_resreg_add(

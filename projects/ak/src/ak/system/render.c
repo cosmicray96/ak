@@ -46,8 +46,6 @@ thread_fn(void* ctx)
   ak_renderer* r = ctx;
 
   ak_mutex_lock(&r->m);
-  r->d = ak_dispatcher_make(r->th);
-  r->d_pre = ak_dispatcher_make(r->th);
   r->gfx =
     ak_gfx_startup(r->pb, &r->d, r->alct);
   r->inited = true;
@@ -80,8 +78,6 @@ thread_fn(void* ctx)
     ak_mutex_unlock(&r->m);
   }
   ak_gfx_shutdown(r->gfx);
-  ak_dispatcher_destroy(&r->d);
-  ak_dispatcher_destroy(&r->d_pre);
 }
 
 //--- internal ---//
@@ -110,6 +106,10 @@ ak_renderer_startup(ak_plat_base* pb,
   r->th = ak_thread_make(&thread_fn, r);
   while (!r->inited)
     ak_cond_wait(&r->c, &r->m);
+
+  r->d = ak_dispatcher_make(r->th);
+  r->d_pre = ak_dispatcher_make(r->th);
+
   ak_mutex_unlock(&r->m);
   return r;
 }
@@ -120,6 +120,9 @@ ak_renderer_shutdown(ak_renderer* r)
   ak_atomicint_store(&r->shouldclose, 1);
   ak_thread_wake(r->th);
   ak_thread_join(r->th);
+
+  ak_dispatcher_destroy(&r->d);
+  ak_dispatcher_destroy(&r->d_pre);
 
   ak_gcb_destroy(&r->gcb);
 

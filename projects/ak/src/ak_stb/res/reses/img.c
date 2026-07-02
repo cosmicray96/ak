@@ -1,6 +1,6 @@
 #include "ak/res/reses/img.h"
 
-#include <stb/stb_image.h>
+#include <stb_image.h>
 
 ak_stmerr
 ak_stm_read_img(ak_stm stm,

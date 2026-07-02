@@ -41,12 +41,3 @@ target_sources(${obj_name}
 	${files_opengl_x11}
 )
 
-#--- stb ---#
-cm_target_get_files_impl_priv(${target_name} ${targ_path} "stb" files_stb)
-list(APPEND files_stb "${CMAKE_SOURCE_DIR}/thirdparty/stb/stb_image.h")
-target_sources(${obj_name}
-	PRIVATE
-	${files_stb}
-)
-target_include_directories(${obj_name} PRIVATE "${CMAKE_SOURCE_DIR}/thirdparty/")
-

@@ -2,5 +2,5 @@
 
 set -e
 
-bash ./scriptsbuild/linux.sh
+bash ./scriptsbuild/android.sh
 

@@ -7,6 +7,7 @@
 #include "ak/os/time_itn.h"
 #include "ak/program/event_itn.h"
 
+#include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -92,9 +93,9 @@ ak_program_crash()
   ak_log_crash_itn();
   if (p.in_crash) { // crash in crash
     ak_log_cic_itn();
-    exit(1);
+    assert(false);
   }
   p.in_crash = true;
   run_crashfns();
-  exit(1);
+  assert(false);
 }

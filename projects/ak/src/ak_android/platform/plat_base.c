@@ -28,6 +28,8 @@ struct ak_plat_base
 
   ak_mutex sfc_m;
 
+  ak_dispatcher* d;
+
   ak_app_eq* eq;
 };
 
@@ -94,17 +96,15 @@ handle_cmd(struct android_app* app,
 {
   switch (cmd) {
     case APP_CMD_INIT_WINDOW: {
-      ak_renderer* r = ak_renderer_get();
-      ak_renderer_run_fn(
-        r, &surface_make, s_pb);
+      ak_dispatcher_run(
+        s_pb->d, &surface_make, s_pb);
       ak_plat_base_render_unlock(s_pb);
       break;
     }
     case APP_CMD_TERM_WINDOW: {
-      ak_renderer* r = ak_renderer_get();
       ak_plat_base_render_lock(s_pb);
-      ak_renderer_run_fn(
-        r, &surface_destroy, s_pb);
+      ak_dispatcher_run(
+        s_pb->d, &surface_destroy, s_pb);
       break;
     }
   }
@@ -139,6 +139,14 @@ ak_plat_base_shutdown(ak_plat_base* pb)
   pb->eq = 0;
   ak_mutex_destroy(&pb->sfc_m);
   ak_alct_free(pb->alct, pb);
+}
+
+void
+ak_plat_base_render_dispatch_set(
+  ak_plat_base* pb,
+  ak_dispatcher* d)
+{
+  pb->d = d;
 }
 
 void

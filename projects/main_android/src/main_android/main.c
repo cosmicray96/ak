@@ -1,9 +1,16 @@
 #include "ak/ak.h"
+
 #include "ak_android/android.h"
-#include <EGL/egl.h>
-#include <GLES2/gl2.h>
 #include <android_native_app_glue.h>
 
+void
+android_main(struct android_app* app)
+{
+  ak_android_app_set(app);
+  ak();
+}
+
+/*
 static EGLDisplay display = EGL_NO_DISPLAY;
 static EGLSurface surface = EGL_NO_SURFACE;
 static EGLContext context = EGL_NO_CONTEXT;
@@ -109,15 +116,9 @@ ak_handle_cmd_old(struct android_app* app,
       break;
   }
 }
+*/
 
-void
-android_main(struct android_app* app)
-{
-  ak_android_app_set(app);
-
-  ak();
-  return;
-
+/*
   while (1) {
     int events;
     struct android_poll_source* source;
@@ -144,3 +145,4 @@ android_main(struct android_app* app)
     }
   }
 }
+*/
