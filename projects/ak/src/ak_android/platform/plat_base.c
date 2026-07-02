@@ -135,10 +135,6 @@ ak_plat_base_startup(ak_app_eq* eq,
 
   ak_plat_base_render_lock(s_pb);
 
-  while (!pb->inited) {
-    ak_plat_base_eventflush(pb);
-  }
-
   return pb;
 }
 
@@ -217,6 +213,9 @@ ak_plat_base_render_unlock(ak_plat_base* pb)
 void
 ak_plat_base_glctx_startup(ak_plat_base* pb)
 {
+  while (!pb->inited) {
+    ak_plat_base_eventflush(pb);
+  }
   EGLint attribs[] = { EGL_SURFACE_TYPE,
                        EGL_WINDOW_BIT,
                        EGL_RENDERABLE_TYPE,

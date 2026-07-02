@@ -6,12 +6,16 @@
 #include "ak/core/mem/allocator.h"
 
 typedef struct ak_plat_base ak_plat_base;
+typedef struct ak_rctx ak_rctx;
 
 ak_plat_base*
 ak_plat_base_startup(ak_app_eq* eq,
                      ak_alct alct);
 void
 ak_plat_base_shutdown(ak_plat_base* pb);
+
+ak_rctx*
+ak_plat_base_rctx(ak_plat_base* pb);
 
 void
 ak_plat_base_render_dispatch_set(
