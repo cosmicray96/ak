@@ -1,9 +1,12 @@
 #ifndef ak_opengl_gcore_h
 #define ak_opengl_gcore_h
 
+#include "ak/coll/da.h"
 #include "ak/core/mem/allocator.h"
+#include "ak/gfx/core.h"
 #include "ak_opengl/gfx/gfx_impl.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 
 typedef struct ak_gcore ak_gcore;

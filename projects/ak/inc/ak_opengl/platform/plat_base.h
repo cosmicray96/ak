@@ -10,4 +10,8 @@ void
 ak_opengl_plat_base_glctx_shutdown(
   ak_plat_base* pb);
 
+void
+ak_opengl_plat_base_swapbuffer(
+  ak_plat_base* pb);
+
 #endif

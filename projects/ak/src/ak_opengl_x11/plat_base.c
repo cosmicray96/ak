@@ -1,5 +1,11 @@
 #include "ak/platform/plat_base.h"
+
+#include "ak/res/core.h"
+#include "ak_opengl_x11/gfx/rctx.h"
+
+#include "ak/app/eq.h"
 #include "ak/debug.h"
+#include "ak/gfx/core.h"
 #include "ak/platform/core.h"
 #include "ak_opengl/platform/plat_base.h"
 #include "ak_x11/platform/plat.h"
@@ -20,17 +26,22 @@
 struct ak_plat_base
 {
   ak_alct alct;
+  ak_app_eq* eq;
+
   ak_plat* p;
   Display* d;
   Window wn;
   Atom wm_delete;
   GLXContext glx_ctx;
   GLXFBConfig fb;
+
+  ak_rctx* rctx;
 };
 
 //--- impl inter ---//
 void
-ak_plat_base_glctx_startup(ak_plat_base* pb)
+ak_opengl_plat_base_glctx_startup(
+  ak_plat_base* pb)
 {
   typedef GLXContext (
     *glXCreateContextAttribsARBProc)(
@@ -78,8 +89,18 @@ ak_plat_base_glctx_startup(ak_plat_base* pb)
 }
 
 void
-ak_plat_base_glctx_shutdown(ak_plat_base* pb)
+ak_opengl_plat_base_glctx_shutdown(
+  ak_plat_base* pb)
 {
+  glXMakeCurrent(pb->d, None, NULL);
+  glXDestroyContext(pb->d, pb->glx_ctx);
+}
+
+void
+ak_opengl_plat_base_swapbuffer(
+  ak_plat_base* pb)
+{
+  glXSwapBuffers(pb->d, pb->wn);
 }
 
 Display*
@@ -100,11 +121,14 @@ ak_plat_base_wm_delete(ak_plat_base* pb)
 
 //--- public ---//
 ak_plat_base*
-ak_plat_base_startup(ak_alct alct)
+ak_plat_base_startup(ak_app_eq* eq,
+                     ak_resreg* rr,
+                     ak_alct alct)
 {
   ak_plat_base* pb = ak_alct_alloc(
     alct, sizeof(ak_plat_base));
   pb->alct = alct;
+  pb->eq = eq;
 
   pb->d = XOpenDisplay(NULL);
   ak_log_assert(pb->d,
@@ -251,12 +275,18 @@ ak_plat_base_startup(ak_alct alct)
                           s_init_width,
                           s_init_height,
                           alct);
+
+  pb->rctx =
+    ak_opengl_x11_rctx_startup(pb, rr, alct);
+
   return pb;
 }
 
 void
 ak_plat_base_shutdown(ak_plat_base* pb)
 {
+  ak_opengl_x11_rctx_shutdown(pb->rctx);
+
   ak_plat_shutdown(pb->p);
 
   glXMakeCurrent(pb->d, None, NULL);
@@ -268,10 +298,10 @@ ak_plat_base_shutdown(ak_plat_base* pb)
   ak_alct_free(pb->alct, pb);
 }
 
-void
-ak_plat_base_swapbuffer(ak_plat_base* pb)
+ak_rctx*
+ak_plat_base_rctx(ak_plat_base* pb)
 {
-  glXSwapBuffers(pb->d, pb->wn);
+  return pb->rctx;
 }
 
 uint32_t
@@ -286,24 +316,7 @@ ak_plat_base_height(ak_plat_base* pb)
 }
 
 void
-ak_plat_base_eventflush(ak_plat_base* pb,
-                        ak_app_eq* eq)
+ak_plat_base_eventflush(ak_plat_base* pb)
 {
-  ak_plat_eventflush(pb->p, eq);
-}
-
-bool
-ak_plat_base_render_trylock(ak_plat_base* pb)
-{
-  return true;
-}
-void
-ak_plat_base_render_lock(ak_plat_base* pb)
-{
-  // empty
-}
-void
-ak_plat_base_render_unlock(ak_plat_base* pb)
-{
-  // empty
+  ak_plat_eventflush(pb->p, pb->eq);
 }

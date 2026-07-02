@@ -12,7 +12,7 @@ typedef enum
 } ak_textype;
 
 ak_errcode
-ak_tex_from_img(ak_gfx* gfx,
+ak_tex_from_img(ak_rctx* rctx,
                 const ak_img* img,
                 ak_textype type,
                 ak_tex** o_tex,

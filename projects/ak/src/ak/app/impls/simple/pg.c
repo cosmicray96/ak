@@ -14,7 +14,6 @@ pg_make(ak_lsimple* l)
   l->texid = 10;
   l->shaderid = 11;
 
-  ak_gfx* gfx = ak_renderer_gfx(l->r);
   ak_img img = { 0 };
   ak_stm stm = { 0 };
   ak_stmerr err = 0;
@@ -26,7 +25,7 @@ pg_make(ak_lsimple* l)
   err = ak_stm_read_img(stm, &img, l->alct);
   ak_assert(err == ak_stmerr_ok);
   ak_stm_close(stm);
-  ec = ak_tex_from_img(gfx,
+  ec = ak_tex_from_img(l->rctx,
                        &img,
                        ak_textype_rgba8,
                        &l->tex,
@@ -43,7 +42,7 @@ pg_make(ak_lsimple* l)
   // ak_assert(err == ak_stmerr_ok);
   ak_stm_close(stm);
   ec = ak_shader_from_shaderstr(
-    gfx, &ss, &l->shader, l->alct);
+    l->rctx, &ss, &l->shader, l->alct);
   // ak_assert(ec == ak_ok);
 
   ak_resreg_add(&l->rr, l->texid, l->tex);

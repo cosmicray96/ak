@@ -9,7 +9,7 @@
 
 ak_errcode
 ak_shader_from_shaderstr(
-  ak_gfx* gfx,
+  ak_rctx* rctx,
   const ak_shaderstr* ss,
   ak_shader** o_shader,
   ak_alct alct);

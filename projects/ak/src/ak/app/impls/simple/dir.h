@@ -17,7 +17,6 @@
 #include "ak/res/reg_itn.h"
 #include "ak/res/reses/img.h"
 #include "ak/system/idgen.h"
-#include "ak/system/render.h"
 
 //--- private ---//
 struct ak_lsimple
@@ -30,7 +29,7 @@ struct ak_lsimple
   ak_plat_base* pb;
 
   ak_resreg rr;
-  ak_renderer* r;
+  ak_rctx* rctx;
   ak_gcb gcb;
 
   // world

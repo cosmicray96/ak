@@ -1,8 +1,8 @@
 #include "ak/gfx/reses/shader.h"
 #include "ak/gfx/core.h"
-#include "ak/gfx/gfx.h"
 #include "ak/res/reg.h"
 #include "ak_opengl/gfx/gfx_impl.h"
+#include "ak_opengl/gfx/rctx.h"
 #include "ak_opengl/gfx/reses/tex_impl.h"
 
 //===== ak_shader =====//
@@ -11,7 +11,7 @@
 struct ak_shader
 {
   ak_alct alct;
-  ak_gfx* gfx;
+  ak_rctx* rctx;
   GLuint program;
   GLint vp_loc;
   GLint time_loc;
@@ -19,7 +19,7 @@ struct ak_shader
 };
 
 static ak_errcode
-shader_from_shaderstr(ak_gfx* gfx,
+shader_from_shaderstr(ak_rctx* rctx,
                       const ak_shaderstr* ss,
                       ak_shader** o_shader,
                       ak_alct alct)
@@ -27,7 +27,7 @@ shader_from_shaderstr(ak_gfx* gfx,
   ak_shader* s =
     ak_alct_alloc(alct, sizeof(ak_shader));
   s->alct = alct;
-  s->gfx = gfx;
+  s->rctx = rctx;
   ak_errcode err = program_make_with_err(
     ak_str_ptr_const(&ss->vert),
     ak_str_ptr_const(&ss->frag),
@@ -62,7 +62,7 @@ shader_destroy(ak_shader* s)
 typedef struct
 {
   ak_errcode err;
-  ak_gfx* gfx;
+  ak_rctx* rctx;
   const ak_shaderstr* ss;
   ak_shader** o_shader;
   ak_alct alct;
@@ -71,18 +71,22 @@ static void
 shader_make_fn(void* ctx)
 {
   shader_make_t* sm = ctx;
-  sm->err = shader_from_shaderstr(
-    sm->gfx, sm->ss, sm->o_shader, sm->alct);
+  sm->err =
+    shader_from_shaderstr(sm->rctx,
+                          sm->ss,
+                          sm->o_shader,
+                          sm->alct);
 }
 ak_errcode
 ak_shader_from_shaderstr(
-  ak_gfx* gfx,
+  ak_rctx* rctx,
   const ak_shaderstr* ss,
   ak_shader** o_shader,
   ak_alct alct)
 {
-  ak_dispatcher* d = ak_gfx_dispatcher(gfx);
-  shader_make_t sm = { .gfx = gfx,
+  ak_dispatcher* d =
+    ak_opengl_rctx_dispatcher(rctx);
+  shader_make_t sm = { .rctx = rctx,
                        .ss = ss,
                        .o_shader = o_shader,
                        .alct = alct };
@@ -100,7 +104,7 @@ void
 ak_shader_destroy(ak_shader* s)
 {
   ak_dispatcher* d =
-    ak_gfx_dispatcher(s->gfx);
+    ak_opengl_rctx_dispatcher(s->rctx);
   ak_dispatcher_run(
     d, &shader_destroy_fn, s);
 }
@@ -130,7 +134,7 @@ ak_shader_begin(ak_shader* s,
     glBindTexture(GL_TEXTURE_2D, id);
     glUniform1i(s->tex_loc, 0);
   }
-  ak_gfx_call_begin(s->gfx);
+  ak_opengl_rctx_call_begin(s->rctx);
 }
 
 void
@@ -138,12 +142,12 @@ ak_shader_pushquad(ak_shader* s,
                    const ak_gfx_quaddata* q,
                    const ak_mat3_f* mat3)
 {
-  ak_gfx_pushquad(s->gfx, q, mat3);
+  ak_opengl_rctx_pushquad(s->rctx, q, mat3);
 }
 
 void
 ak_shader_end(ak_shader* s)
 {
-  ak_gfx_call_end(s->gfx);
+  ak_opengl_rctx_call_end(s->rctx);
   glUseProgram(0);
 }

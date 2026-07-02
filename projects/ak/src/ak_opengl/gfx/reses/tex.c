@@ -1,7 +1,8 @@
 #include "ak/gfx/reses/tex.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/debug.h"
-#include "ak/gfx/gfx.h"
+#include "ak/gfx/core.h"
+#include "ak_opengl/gfx/rctx.h"
 #include "ak_opengl/gfx/reses/tex_impl.h"
 
 //===== ak_tex =====//
@@ -9,12 +10,12 @@
 struct ak_tex
 {
   ak_alct alct;
-  ak_gfx* gfx;
+  ak_rctx* rctx;
   ak_textype type;
   GLuint id;
 };
 ak_errcode
-tex_from_img(ak_gfx* gfx,
+tex_from_img(ak_rctx* rctx,
              const ak_img* img,
              ak_textype type,
              ak_tex** o_tex,
@@ -23,7 +24,7 @@ tex_from_img(ak_gfx* gfx,
   ak_tex* tex =
     ak_alct_alloc(alct, sizeof(ak_tex));
   tex->alct = alct;
-  tex->gfx = gfx;
+  tex->rctx = rctx;
 
   glGenTextures(1, &tex->id);
   glBindTexture(GL_TEXTURE_2D, tex->id);
@@ -75,7 +76,7 @@ ak_tex_get(ak_tex* tex)
 typedef struct
 {
   ak_errcode err;
-  ak_gfx* gfx;
+  ak_rctx* rctx;
   const ak_img* img;
   ak_textype type;
   ak_tex** o_tex;
@@ -85,27 +86,28 @@ static void
 tex_make_fn(void* ctx)
 {
   tex_make* t = ctx;
-  t->err = tex_from_img(t->gfx,
+  t->err = tex_from_img(t->rctx,
                         t->img,
                         t->type,
                         t->o_tex,
                         t->alct);
 }
 ak_errcode
-ak_tex_from_img(ak_gfx* gfx,
+ak_tex_from_img(ak_rctx* rctx,
                 const ak_img* img,
                 ak_textype type,
                 ak_tex** o_tex,
                 ak_alct alct)
 {
-  tex_make t = { .gfx = gfx,
+  tex_make t = { .rctx = rctx,
                  .img = img,
                  .type = type,
                  .o_tex = o_tex,
                  .alct = alct };
-  ak_dispatcher_run(ak_gfx_dispatcher(gfx),
-                    &tex_make_fn,
-                    &t);
+  ak_dispatcher_run(
+    ak_opengl_rctx_dispatcher(rctx),
+    &tex_make_fn,
+    &t);
   return t.err;
 }
 
@@ -119,7 +121,7 @@ void
 ak_tex_destroy(ak_tex* tex)
 {
   ak_dispatcher_run(
-    ak_gfx_dispatcher(tex->gfx),
+    ak_opengl_rctx_dispatcher(tex->rctx),
     &tex_destroy_fn,
     tex);
 }

@@ -5,7 +5,6 @@
 #include "ak/core/math/mat3x3.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/gfx/core.h"
-#include "ak/res/core.h"
 
 typedef enum
 {
@@ -60,11 +59,6 @@ void
 ak_gcb_destroy(ak_gcb* gcb);
 void
 ak_gcb_clear(ak_gcb* gcb);
-
-void
-ak_gcb_flush(ak_gcb* gcb,
-             ak_gfx* gfx,
-             ak_resreg* rr);
 
 void
 ak_gcb_joinback(ak_gcb* dest, ak_gcb* src);

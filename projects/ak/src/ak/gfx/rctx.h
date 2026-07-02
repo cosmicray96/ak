@@ -1,8 +1,8 @@
 #ifndef ak_gfx_rctx_h
 #define ak_gfx_rctx_h
 
+#include "ak/gfx/core.h"
 #include "ak/gfx/gcb.h"
-typedef struct ak_rctx ak_rctx;
 
 void
 ak_rctx_render(ak_rctx* rctx, ak_gcb* gcb);

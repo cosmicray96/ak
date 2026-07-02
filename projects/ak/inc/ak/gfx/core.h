@@ -8,7 +8,7 @@
 
 #include <stdint.h>
 
-typedef struct ak_gfx ak_gfx;
+typedef struct ak_rctx ak_rctx;
 
 typedef struct ak_shader ak_shader;
 typedef struct ak_tex ak_tex;

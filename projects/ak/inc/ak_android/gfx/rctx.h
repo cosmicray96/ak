@@ -3,6 +3,7 @@
 
 #include "ak/core/async/dispatcher.h"
 #include "ak/core/mem/allocator.h"
+#include "ak/gfx/core.h"
 #include "ak/platform/plat_base.h"
 #include "ak/res/core.h"
 
