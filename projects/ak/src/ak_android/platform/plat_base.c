@@ -1,7 +1,6 @@
 #include "ak/platform/plat_base.h"
 #include "ak/app/event.h"
 #include "ak/core/async/mutex.h"
-#include "ak/system/render.h"
 #include "ak_android/android.h"
 #include "ak_opengl/platform/plat_base.h"
 
@@ -27,6 +26,7 @@ struct ak_plat_base
   uint32_t height;
 
   ak_mutex sfc_m;
+  bool inited;
 
   ak_dispatcher* d;
 
@@ -98,6 +98,7 @@ handle_cmd(struct android_app* app,
     case APP_CMD_INIT_WINDOW: {
       ak_dispatcher_run(
         s_pb->d, &surface_make, s_pb);
+      s_pb->inited = true;
       ak_plat_base_render_unlock(s_pb);
       break;
     }
@@ -112,11 +113,15 @@ handle_cmd(struct android_app* app,
 
 //--- internal ---//
 ak_plat_base*
-ak_plat_base_startup(ak_alct alct)
+ak_plat_base_startup(ak_app_eq* eq,
+                     ak_alct alct)
 {
   ak_plat_base* pb = ak_alct_alloc(
     alct, sizeof(ak_plat_base));
   s_pb = pb;
+  pb->inited = false;
+
+  pb->eq = eq;
   pb->alct = alct;
 
   ak_android_app()->onAppCmd = &handle_cmd;
@@ -129,6 +134,10 @@ ak_plat_base_startup(ak_alct alct)
   pb->eq = 0;
 
   ak_plat_base_render_lock(s_pb);
+
+  while (!pb->inited) {
+    ak_plat_base_eventflush(pb);
+  }
 
   return pb;
 }
@@ -156,11 +165,9 @@ ak_plat_base_swapbuffer(ak_plat_base* pb)
 }
 
 void
-ak_plat_base_eventflush(ak_plat_base* pb,
-                        ak_app_eq* eq)
+ak_plat_base_eventflush(ak_plat_base* pb)
 {
-  pb->eq = eq;
-  int timeout = 0;
+  int timeout = pb->inited ? 0 : -1;
   int events;
   struct android_poll_source* source;
   while (ALooper_pollOnce(timeout,
@@ -175,7 +182,7 @@ ak_plat_base_eventflush(ak_plat_base* pb,
     if (ak_android_app()->destroyRequested) {
       ak_evt e = { .type = ak_evttype_pgm,
                    .pgm = ak_evtpgm_exit };
-      ak_app_eq_push(eq, &e);
+      ak_app_eq_push(pb->eq, &e);
     }
   }
 }

@@ -8,7 +8,8 @@
 typedef struct ak_plat_base ak_plat_base;
 
 ak_plat_base*
-ak_plat_base_startup(ak_alct alct);
+ak_plat_base_startup(ak_app_eq* eq,
+                     ak_alct alct);
 void
 ak_plat_base_shutdown(ak_plat_base* pb);
 
@@ -21,8 +22,7 @@ void
 ak_plat_base_swapbuffer(ak_plat_base* pb);
 
 void
-ak_plat_base_eventflush(ak_plat_base* pb,
-                        ak_app_eq* eq);
+ak_plat_base_eventflush(ak_plat_base* pb);
 
 uint32_t
 ak_plat_base_width(ak_plat_base* pb);

@@ -104,11 +104,10 @@ ak_renderer_startup(ak_plat_base* pb,
 
   ak_mutex_lock(&r->m);
   r->th = ak_thread_make(&thread_fn, r);
-  while (!r->inited)
-    ak_cond_wait(&r->c, &r->m);
-
   r->d = ak_dispatcher_make(r->th);
   r->d_pre = ak_dispatcher_make(r->th);
+  while (!r->inited)
+    ak_cond_wait(&r->c, &r->m);
 
   ak_mutex_unlock(&r->m);
   return r;

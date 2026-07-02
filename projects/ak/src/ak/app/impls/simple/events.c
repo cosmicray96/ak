@@ -41,7 +41,7 @@ event_collect(ak_lsimple* l)
     ak_app_eq_push(&l->eq, &e);
   }
 
-  ak_plat_base_eventflush(l->pb, &l->eq);
+  ak_plat_base_eventflush(l->pb);
 }
 
 void

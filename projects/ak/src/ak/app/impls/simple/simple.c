@@ -2,8 +2,6 @@
 #include "ak/app/eq.h"
 #include "ak/app/impls/simple/dir.h"
 #include "ak/core/mem/heap.h"
-#include "ak/platform/plat_base.h"
-#include "ak/system/render.h"
 
 //--- private ---//
 static void
@@ -57,7 +55,7 @@ ak_lsimple_tick(void* ctx)
   event_drain(l);
 
   pg_update(l);
-  world_update(l);
+  //  world_update(l);
   render_update(l);
 
   return l->should_close;
