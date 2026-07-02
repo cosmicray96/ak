@@ -2,6 +2,8 @@
 #include "ak/app/event.h"
 #include "ak/core/async/mutex.h"
 #include "ak_android/android.h"
+#include "ak_android/gfx/rctx.h"
+#include "ak_android/platform/plat_base.h"
 #include "ak_opengl/platform/plat_base.h"
 
 #include <EGL/egl.h>
@@ -28,6 +30,7 @@ struct ak_plat_base
   ak_mutex sfc_m;
   bool inited;
 
+  ak_rctx* rctx;
   ak_dispatcher* d;
 
   ak_app_eq* eq;
@@ -99,11 +102,12 @@ handle_cmd(struct android_app* app,
       ak_dispatcher_run(
         s_pb->d, &surface_make, s_pb);
       s_pb->inited = true;
-      ak_plat_base_render_unlock(s_pb);
+      ak_android_plat_base_render_unlock(
+        s_pb);
       break;
     }
     case APP_CMD_TERM_WINDOW: {
-      ak_plat_base_render_lock(s_pb);
+      ak_android_plat_base_render_lock(s_pb);
       ak_dispatcher_run(
         s_pb->d, &surface_destroy, s_pb);
       break;
@@ -133,7 +137,17 @@ ak_plat_base_startup(ak_app_eq* eq,
 
   pb->eq = 0;
 
-  ak_plat_base_render_lock(s_pb);
+  ak_android_plat_base_render_lock(s_pb);
+
+  pb->rctx = ak_android_rctx_startup_begin(
+    pb, 0, alct);
+  pb->d =
+    ak_android_rctx_dispatcher(pb->rctx);
+
+  while (!pb->inited) {
+    ak_plat_base_eventflush(pb);
+  }
+  ak_android_rctx_startup_end(pb->rctx);
 
   return pb;
 }
@@ -144,14 +158,6 @@ ak_plat_base_shutdown(ak_plat_base* pb)
   pb->eq = 0;
   ak_mutex_destroy(&pb->sfc_m);
   ak_alct_free(pb->alct, pb);
-}
-
-void
-ak_plat_base_render_dispatch_set(
-  ak_plat_base* pb,
-  ak_dispatcher* d)
-{
-  pb->d = d;
 }
 
 void
@@ -195,27 +201,28 @@ ak_plat_base_height(ak_plat_base* pb)
 }
 
 bool
-ak_plat_base_render_trylock(ak_plat_base* pb)
+ak_android_plat_base_render_trylock(
+  ak_plat_base* pb)
 {
   return ak_mutex_trylock(&pb->sfc_m);
 }
 void
-ak_plat_base_render_lock(ak_plat_base* pb)
+ak_android_plat_base_render_lock(
+  ak_plat_base* pb)
 {
   ak_mutex_lock(&pb->sfc_m);
 }
 void
-ak_plat_base_render_unlock(ak_plat_base* pb)
+ak_android_plat_base_render_unlock(
+  ak_plat_base* pb)
 {
   ak_mutex_unlock(&pb->sfc_m);
 }
 
 void
-ak_plat_base_glctx_startup(ak_plat_base* pb)
+ak_opengl_plat_base_glctx_startup(
+  ak_plat_base* pb)
 {
-  while (!pb->inited) {
-    ak_plat_base_eventflush(pb);
-  }
   EGLint attribs[] = { EGL_SURFACE_TYPE,
                        EGL_WINDOW_BIT,
                        EGL_RENDERABLE_TYPE,
@@ -256,7 +263,8 @@ ak_plat_base_glctx_startup(ak_plat_base* pb)
 }
 
 void
-ak_plat_base_glctx_shutdown(ak_plat_base* pb)
+ak_opengl_plat_base_glctx_shutdown(
+  ak_plat_base* pb)
 {
   if (pb->display != EGL_NO_DISPLAY) {
     eglMakeCurrent(pb->display,

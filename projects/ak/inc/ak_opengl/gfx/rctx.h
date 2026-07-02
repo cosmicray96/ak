@@ -5,11 +5,10 @@
 #include "ak/platform/plat_base.h"
 
 ak_rctx*
-ak_gl_rctx_startup_begin(ak_plat_base* pb,
-                         ak_alct alct);
-ak_rctx*
-ak_gl_rctx_startup_end(ak_plat_base* pb,
-                       ak_alct alct);
+ak_opengl_rctx_startup_begin(
+  ak_plat_base* pb,
+  ak_alct alct);
+
 ak_rctx*
 ak_gl_rctx_stutdown();
 

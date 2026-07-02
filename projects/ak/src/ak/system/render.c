@@ -8,7 +8,6 @@
 #include "ak/gfx/core.h"
 #include "ak/gfx/gcb.h"
 #include "ak/gfx/gfx.h"
-#include "ak/os/time.h"
 #include "ak/platform/plat_base.h"
 #include "ak/res/core.h"
 #include <stdbool.h>
@@ -28,7 +27,6 @@ struct ak_renderer
 
   ak_gcb gcb;
 
-  ak_dur time;
   ak_atomicint status;
   ak_atomicint shouldclose;
 

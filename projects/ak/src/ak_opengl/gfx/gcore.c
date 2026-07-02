@@ -1,4 +1,7 @@
-#include "ak/gfx/gfx.h"
+#include "ak_opengl/gfx/gcore.h"
+
+#include "ak_opengl/gfx/gcore.h"
+
 #include "ak/coll/da.h"
 #include "ak/core/math/fixed.h"
 #include "ak/core/math/mat3x3.h"
@@ -6,9 +9,6 @@
 #include "ak/core/mem/allocator.h"
 #include "ak/debug.h"
 #include "ak/gfx/core.h"
-
-#include "ak/platform/plat_base.h"
-#include "ak_opengl/platform/plat_base.h"
 
 #include "ak_opengl/gfx/gfx_impl.h"
 
@@ -29,39 +29,20 @@ typedef struct
 
 //--- private ---//
 
-struct ak_gfx
-{
-  ak_alct alct;
-  ak_plat_base* pb;
-  ak_dispatcher* d;
-
-  uint32_t screen_w;
-  uint32_t screen_h;
-
-  bool call_began;
-
-  GLuint vbo;
-  GLuint ebo;
-  GLuint vao;
-  GLuint ivbo;
-
-  ak_da quads;
-};
-
-void
-break_call_ifneeded(ak_gfx* g)
+static void
+break_call_ifneeded(ak_gcore* g)
 {
   uint32_t count = ak_da_count(&g->quads);
   if (count < s_max_quad_count) {
     return;
   }
 
-  ak_gfx_call_end(g);
-  ak_gfx_call_begin(g);
+  ak_opengl_gcore_call_end(g);
+  ak_opengl_gcore_call_begin(g);
 }
 
 void
-ak_gfx_call_begin(ak_gfx* g)
+ak_opengl_gcore_call_begin(ak_gcore* g)
 {
   ak_assert(!g->call_began);
   ak_glerr_check;
@@ -71,9 +52,10 @@ ak_gfx_call_begin(ak_gfx* g)
 }
 
 void
-ak_gfx_pushquad(ak_gfx* g,
-                const ak_gfx_quaddata* qd,
-                const ak_mat3_f* mat3)
+ak_opengl_gcore_pushquad(
+  ak_gcore* g,
+  const ak_gfx_quaddata* qd,
+  const ak_mat3_f* mat3)
 {
   ak_assert(g->call_began);
   ak_glerr_check;
@@ -96,7 +78,7 @@ ak_gfx_pushquad(ak_gfx* g,
 }
 
 void
-ak_gfx_call_end(ak_gfx* g)
+ak_opengl_gcore_call_end(ak_gcore* g)
 {
   ak_assert(g->call_began);
   uint32_t count = ak_da_count(&g->quads);
@@ -123,21 +105,18 @@ ak_gfx_call_end(ak_gfx* g)
 }
 
 //--- public ---//
-ak_gfx*
-ak_gfx_startup(ak_plat_base* pr,
-               ak_dispatcher* d,
-               ak_alct alct)
+ak_gcore
+ak_opengl_gcore_make(uint32_t width,
+                     uint32_t height,
+                     ak_alct alct)
 {
-  ak_opengl_plat_base_glctx_startup(pr);
-
-  ak_gfx* r =
-    ak_alct_alloc(alct, sizeof(ak_gfx));
+  ak_gcore g = { 0 };
+  ak_alct_alloc(alct, sizeof(ak_gcore));
+  ak_gcore* r = &g;
   r->alct = alct;
-  r->pb = pr;
-  r->d = d;
 
-  r->screen_w = ak_plat_base_width(pr);
-  r->screen_h = ak_plat_base_height(pr);
+  r->screen_w = width;
+  r->screen_h = height;
 
   r->quads = ak_da_make(sizeof(quad), alct);
   ak_da_reserve(&r->quads, s_max_quad_count);
@@ -259,34 +238,27 @@ ak_gfx_startup(ak_plat_base* pr,
   // glPolygonMode(GL_FRONT_AND_BACK,
   // GL_LINE);
 
-  return r;
+  return g;
 }
 
 void
-ak_gfx_shutdown(ak_gfx* r)
+ak_opengl_gcore_destroy(ak_gcore* r)
 {
   glDeleteBuffers(1, &r->vbo);
   glDeleteBuffers(1, &r->ebo);
 
   glDeleteBuffers(1, &r->ivbo);
 
-  ak_opengl_plat_base_glctx_shutdown(r->pb);
-
   ak_da_destroy(&r->quads);
 
   ak_alct_free(r->alct, r);
 }
 
-ak_dispatcher*
-ak_gfx_dispatcher(ak_gfx* r)
-{
-  return r->d;
-}
-
 void
-ak_gfx_resize(ak_gfx* g,
-              uint32_t w,
-              uint32_t h)
+ak_opengl_gcore_resize(ak_gcore* g,
+
+                       uint32_t w,
+                       uint32_t h)
 {
   ak_assert(!g->call_began);
   glViewport(0, 0, w, h);
@@ -295,7 +267,7 @@ ak_gfx_resize(ak_gfx* g,
 }
 
 void
-ak_gfx_frame_begin(ak_gfx* g)
+ak_opengl_gcore_frame_begin(ak_gcore* g)
 {
   //  ak_assert(!g->call_began);
 
@@ -305,98 +277,28 @@ ak_gfx_frame_begin(ak_gfx* g)
 }
 
 void
-ak_gfx_frame_end(ak_gfx* g)
+ak_opengl_gcore_frame_end(ak_gcore* g)
 {
-  ak_plat_base_swapbuffer(g->pb);
-}
-
-ak_mat3_f
-ak_gfx_vp_make(const ak_mat3* cam,
-               uint32_t w,
-               uint32_t h,
-               ak_fx pixelsize)
-{
-  ak_mat3 cimat3x3 = ak_mat3_inv_fast(cam);
-
-  if (w != 800) {
-    int a = 10;
-  }
-
-  float ps = ak_fx_to_f(pixelsize);
-  float sx = (ps * 2.0f) / (float)w;
-  float sy = -(ps * 2.0f) / (float)h;
-
-  // convert inverse camera matrix to float
-  ak_mat3_f cam_f = { 0 };
-  for (int i = 0; i < 9; i++) {
-    cam_f.v[i] = ak_fx_to_f(cimat3x3.v[i]);
-  }
-
-  ak_mat3_f proj = { 0 };
-  proj.m[0][0] = sx;
-  proj.m[1][1] = sy;
-  proj.m[2][2] = 1.0f;
-
-  ak_mat3_f result = { 0 };
-  // C = A * B, column-major m[col][row]
-  for (int col = 0; col < 3; col++)
-    for (int row = 0; row < 3; row++)
-      for (int k = 0; k < 3; k++)
-        result.m[col][row] +=
-          proj.m[k][row] * cam_f.m[col][k];
-
-  return result;
-}
-
-/*
-ak_mat3_f
-ak_gfx_vp_ui_make(uint32_t w, uint32_t h)
-{
-  ak_mat3_f proj = { 0 };
-  proj.m[0][0] = 2.0f / (float)w;
-  proj.m[1][1] = -2.0f / (float)h;
-  proj.m[0][2] = -1.0f;
-  proj.m[1][2] = 1.0f;
-  proj.m[2][2] = 1.0f;
-  return proj;
-}*/
-ak_mat3_f
-ak_gfx_vp_ui_make(uint32_t w, uint32_t h)
-{
-  ak_mat3_f proj = { 0 };
-
-  proj.m[0][0] = 2.0f / (float)w;
-  proj.m[1][1] = -2.0f / (float)h;
-  proj.m[2][0] = -1.0f;
-  proj.m[2][1] = 1.0f;
-  proj.m[2][2] = 1.0f;
-
-  return proj;
 }
 
 void
-ak_gfx_scissor_reset(ak_gfx* gfx)
+ak_opengl_gcore_scissor_reset(
+  ak_gcore* gcore)
 {
-  (void)gfx;
+  (void)gcore;
   glDisable(GL_SCISSOR_TEST);
 }
 void
-ak_gfx_scissor_set(ak_gfx* gfx,
-                   int32_t x,
-                   int32_t y,
-                   uint32_t w,
-                   uint32_t h)
+ak_opengl_gcore_scissor_set(ak_gcore* gcore,
+                            int32_t x,
+                            int32_t y,
+                            uint32_t w,
+                            uint32_t h)
 {
-  (void)gfx;
+  (void)gcore;
   glEnable(GL_SCISSOR_TEST);
   glScissor(x,
-            (GLint)(gfx->screen_h - y - h),
+            (GLint)(gcore->screen_h - y - h),
             (GLsizei)w,
             (GLsizei)h);
-}
-
-const char*
-ak_gfx_name()
-{
-  return "opengl";
 }
