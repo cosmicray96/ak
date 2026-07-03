@@ -1,6 +1,8 @@
 #include "ak/platform/plat_base.h"
 #include "ak/app/event.h"
+#include "ak/core/async/dispatcher.h"
 #include "ak/core/async/mutex.h"
+#include "ak/res/core.h"
 #include "ak_android/android.h"
 #include "ak_android/gfx/rctx.h"
 #include "ak_android/platform/plat_base.h"
@@ -99,7 +101,7 @@ handle_cmd(struct android_app* app,
 {
   switch (cmd) {
     case APP_CMD_INIT_WINDOW: {
-      ak_dispatcher_run(
+      ak_dispatcher_wake_run(
         s_pb->d, &surface_make, s_pb);
       s_pb->inited = true;
       ak_android_plat_base_render_unlock(
@@ -108,7 +110,7 @@ handle_cmd(struct android_app* app,
     }
     case APP_CMD_TERM_WINDOW: {
       ak_android_plat_base_render_lock(s_pb);
-      ak_dispatcher_run(
+      ak_dispatcher_wake_run(
         s_pb->d, &surface_destroy, s_pb);
       break;
     }
@@ -118,6 +120,7 @@ handle_cmd(struct android_app* app,
 //--- internal ---//
 ak_plat_base*
 ak_plat_base_startup(ak_app_eq* eq,
+                     ak_resreg* rr,
                      ak_alct alct)
 {
   ak_plat_base* pb = ak_alct_alloc(
@@ -135,19 +138,19 @@ ak_plat_base_startup(ak_app_eq* eq,
   pb->width = akd_width_init;
   pb->height = akd_height_init;
 
-  pb->eq = 0;
-
   ak_android_plat_base_render_lock(s_pb);
+  ak_opengl_plat_base_glctx_startup(pb);
 
-  pb->rctx = ak_android_rctx_startup_begin(
-    pb, 0, alct);
+  pb->rctx =
+    ak_android_rctx_startup(pb, rr, alct);
   pb->d =
-    ak_android_rctx_dispatcher(pb->rctx);
+    ak_android_rctx_dispatcher_pre(pb->rctx);
 
   while (!pb->inited) {
     ak_plat_base_eventflush(pb);
   }
-  ak_android_rctx_startup_end(pb->rctx);
+
+  ak_android_rctx_wait_inited(pb->rctx);
 
   return pb;
 }
@@ -155,13 +158,16 @@ ak_plat_base_startup(ak_app_eq* eq,
 void
 ak_plat_base_shutdown(ak_plat_base* pb)
 {
+  ak_android_rctx_shutdown(pb->rctx);
+  ak_opengl_plat_base_glctx_shutdown(pb);
   pb->eq = 0;
   ak_mutex_destroy(&pb->sfc_m);
   ak_alct_free(pb->alct, pb);
 }
 
 void
-ak_plat_base_swapbuffer(ak_plat_base* pb)
+ak_opengl_plat_base_swapbuffer(
+  ak_plat_base* pb)
 {
   eglSwapBuffers(pb->display, pb->surface);
 }
@@ -189,6 +195,12 @@ ak_plat_base_eventflush(ak_plat_base* pb)
   }
 }
 
+ak_rctx*
+ak_plat_base_rctx(ak_plat_base* pb)
+{
+  return pb->rctx;
+}
+
 uint32_t
 ak_plat_base_width(ak_plat_base* pb)
 {
@@ -198,6 +210,13 @@ uint32_t
 ak_plat_base_height(ak_plat_base* pb)
 {
   return pb->height;
+}
+
+void
+ak_android_plat_base_surface_make(
+  ak_plat_base* pb)
+{
+  surface_make(pb);
 }
 
 bool

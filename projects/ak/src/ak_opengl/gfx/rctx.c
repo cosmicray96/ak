@@ -1,4 +1,6 @@
 #include "ak/gfx/rctx.h"
+#include "ak/core/async/dispatcher.h"
+#include "ak_opengl/gfx/gcore.h"
 
 //--- internal ---//
 ak_mat3_f

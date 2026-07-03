@@ -8,6 +8,7 @@ typedef struct
 {
   ak_thread* th;
   ak_mutex m;
+  ak_mutex m_run;
   ak_cond c;
   bool pending;
   void (*fn)(void* ctx);
@@ -21,10 +22,16 @@ ak_dispatcher_destroy(ak_dispatcher* d);
 
 void
 ak_dispatcher_flush(ak_dispatcher* d);
+void
+ak_dispatcher_flush_wait(ak_dispatcher* d);
 
 void
 ak_dispatcher_run(ak_dispatcher* d,
                   void (*fn)(void* ctx),
                   void* ctx);
 
+void
+ak_dispatcher_wake_run(ak_dispatcher* d,
+                       void (*fn)(void* ctx),
+                       void* ctx);
 #endif

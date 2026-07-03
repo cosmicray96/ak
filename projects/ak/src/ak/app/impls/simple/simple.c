@@ -26,7 +26,7 @@ ak_lsimple_make()
 
   render_make(l);
   world_make(l);
-  pg_make(l);
+  //  pg_make(l);
 
   ak_pgm_crashfn_reg(&crash_fn, l);
 

@@ -8,18 +8,17 @@
 #include "ak/res/core.h"
 
 ak_rctx*
-ak_android_rctx_startup_begin(
-  ak_plat_base* pb,
-  ak_resreg* rr,
-  ak_alct alct);
-
-void
-ak_android_rctx_startup_end(ak_rctx* r);
-
-ak_dispatcher*
-ak_android_rctx_dispatcher(ak_rctx* r);
+ak_android_rctx_startup(ak_plat_base* pb,
+                        ak_resreg* rr,
+                        ak_alct alct);
 
 void
 ak_android_rctx_shutdown(ak_rctx* r);
+
+ak_dispatcher*
+ak_android_rctx_dispatcher_pre(ak_rctx* r);
+
+void
+ak_android_rctx_wait_inited(ak_rctx* r);
 
 #endif
