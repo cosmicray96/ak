@@ -9,7 +9,7 @@
 #include "ak/game/comp_t.h"
 #include "ak/game/core.h"
 #include "ak/game/world/view.h"
-#include "ak/gfx/gfx.h"
+#include "ak/gfx/rctx.h"
 #include "ak/os/time.h"
 #include <stdint.h>
 
@@ -75,10 +75,10 @@ ak_sys_ren_render(ak_sys_ren* r,
     }
     ak_mat3 cmat =
       ak_wv_comp_gmat3(wv, e_cam);
-    vp = ak_gfx_vp_make(&cmat,
-                        screen.w,
-                        screen.h,
-                        ak_fx_f(1.0));
+    vp = ak_rctx_vp_make(&cmat,
+                         screen.w,
+                         screen.h,
+                         ak_fx_f(1.0));
   }
 
   ak_gfx_batchdata mid = {

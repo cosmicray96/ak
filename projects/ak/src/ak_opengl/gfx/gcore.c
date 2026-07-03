@@ -111,7 +111,6 @@ ak_opengl_gcore_make(uint32_t width,
                      ak_alct alct)
 {
   ak_gcore g = { 0 };
-  ak_alct_alloc(alct, sizeof(ak_gcore));
   ak_gcore* r = &g;
   r->alct = alct;
 
@@ -250,8 +249,6 @@ ak_opengl_gcore_destroy(ak_gcore* r)
   glDeleteBuffers(1, &r->ivbo);
 
   ak_da_destroy(&r->quads);
-
-  ak_alct_free(r->alct, r);
 }
 
 void
@@ -269,7 +266,7 @@ ak_opengl_gcore_resize(ak_gcore* g,
 void
 ak_opengl_gcore_frame_begin(ak_gcore* g)
 {
-  //  ak_assert(!g->call_began);
+  ak_assert(!g->call_began);
 
   glClearColor(1.0f, 0.1f, 0.12f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);

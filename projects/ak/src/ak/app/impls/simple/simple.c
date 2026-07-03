@@ -55,7 +55,7 @@ ak_lsimple_tick(void* ctx)
   event_drain(l);
 
   pg_update(l);
-  //  world_update(l);
+  world_update(l);
   render_update(l);
 
   return l->should_close;

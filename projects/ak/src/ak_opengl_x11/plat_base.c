@@ -289,9 +289,6 @@ ak_plat_base_shutdown(ak_plat_base* pb)
 
   ak_plat_shutdown(pb->p);
 
-  glXMakeCurrent(pb->d, None, NULL);
-  glXDestroyContext(pb->d, pb->glx_ctx);
-
   XDestroyWindow(pb->d, pb->wn);
   XCloseDisplay(pb->d);
 

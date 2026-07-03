@@ -1,7 +1,7 @@
 #include "ak/coll/fcnst.h"
 #include "ak/core/math/mat3x3.h"
 #include "ak/core/math/vec4f.h"
-#include "ak/gfx/gfx.h"
+#include "ak/gfx/rctx.h"
 #include "ak/ui/core.h"
 #include "ak/ui/ui.h"
 #include "ak/ui/ui_dir.h"
@@ -111,7 +111,7 @@ ak_ui_render(ak_ui* ui, ak_gcb* gcb)
   ak_uielm* elm = ak_fcnst_at(
     &ui->tree, ak_fcnst_root(&ui->tree));
 
-  ak_mat3_f vp = ak_gfx_vp_ui_make(
+  ak_mat3_f vp = ak_rctx_vp_ui_make(
     elm->size.x, elm->size.y);
   ak_gfx_batchdata mid = { .vp = vp };
   ak_gcb_push_batch(gcb, &mid);

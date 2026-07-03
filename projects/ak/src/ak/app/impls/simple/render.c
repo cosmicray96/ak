@@ -22,6 +22,6 @@ void
 render_destroy(ak_lsimple* l)
 {
   ak_gcb_destroy(&l->gcb);
-  ak_resreg_destroy(&l->rr);
   ak_plat_base_shutdown(l->pb);
+  ak_resreg_destroy(&l->rr);
 }

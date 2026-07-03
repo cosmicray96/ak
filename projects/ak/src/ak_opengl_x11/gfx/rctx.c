@@ -1,5 +1,6 @@
 #include "ak/gfx/rctx.h"
 #include "ak/core/async/dispatcher.h"
+#include "ak_opengl/platform/plat_base.h"
 #include "ak_opengl_x11/gfx/rctx.h"
 
 #include "ak/core/async/atomic.h"
@@ -39,6 +40,7 @@ thread_fn(void* ctx)
   ak_rctx* r = ctx;
 
   ak_mutex_lock(&r->m);
+  ak_opengl_plat_base_glctx_startup(r->pb);
   r->gcore = ak_opengl_gcore_make(
     ak_plat_base_width(r->pb),
     ak_plat_base_height(r->pb),
@@ -56,10 +58,12 @@ thread_fn(void* ctx)
     ak_dispatcher_flush(&r->d);
 
     ak_gcb_flush(&r->gcb, &r->gcore, r->rr);
+    ak_opengl_plat_base_swapbuffer(r->pb);
 
     ak_mutex_unlock(&r->m);
   }
   ak_opengl_gcore_destroy(&r->gcore);
+  ak_opengl_plat_base_glctx_shutdown(r->pb);
 }
 
 //--- internal ---//
