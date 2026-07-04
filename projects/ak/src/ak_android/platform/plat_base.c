@@ -1,7 +1,5 @@
 #include "ak/platform/plat_base.h"
 #include "ak/app/event.h"
-#include "ak/core/async/dispatcher.h"
-#include "ak/core/async/mutex.h"
 #include "ak/res/core.h"
 #include "ak_android/android.h"
 #include "ak_android/gfx/rctx.h"
@@ -23,21 +21,21 @@ struct ak_plat_base
   EGLDisplay display;
   EGLSurface surface;
   EGLContext context;
+  EGLContext loader_context;
+  EGLSurface loader_surface;
   EGLConfig config;
   EGLint format;
 
   uint32_t width;
   uint32_t height;
 
-  ak_mutex sfc_m;
-  bool inited;
+  bool surface_ready;
 
   ak_rctx* rctx;
-  ak_dispatcher* d;
 
   ak_app_eq* eq;
+  ak_resreg* rr;
 };
-
 static ak_plat_base* s_pb = 0;
 
 static void
@@ -101,17 +99,13 @@ handle_cmd(struct android_app* app,
 {
   switch (cmd) {
     case APP_CMD_INIT_WINDOW: {
-      ak_dispatcher_wake_run(
-        s_pb->d, &surface_make, s_pb);
-      s_pb->inited = true;
-      ak_android_plat_base_render_unlock(
-        s_pb);
+      surface_make(s_pb);
+      s_pb->surface_ready = true;
       break;
     }
     case APP_CMD_TERM_WINDOW: {
-      ak_android_plat_base_render_lock(s_pb);
-      ak_dispatcher_wake_run(
-        s_pb->d, &surface_destroy, s_pb);
+      s_pb->surface_ready = false;
+      surface_destroy(s_pb);
       break;
     }
   }
@@ -126,31 +120,31 @@ ak_plat_base_startup(ak_app_eq* eq,
   ak_plat_base* pb = ak_alct_alloc(
     alct, sizeof(ak_plat_base));
   s_pb = pb;
-  pb->inited = false;
+  pb->surface_ready = false;
 
   pb->eq = eq;
+  pb->rr = rr;
   pb->alct = alct;
 
-  ak_android_app()->onAppCmd = &handle_cmd;
+  pb->display = EGL_NO_DISPLAY;
+  pb->surface = EGL_NO_SURFACE;
+  pb->context = EGL_NO_CONTEXT;
+  pb->loader_surface = EGL_NO_SURFACE;
+  pb->loader_context = EGL_NO_CONTEXT;
 
-  pb->sfc_m = ak_mutex_make();
+  ak_android_app()->onAppCmd = &handle_cmd;
 
   pb->width = akd_width_init;
   pb->height = akd_height_init;
 
-  ak_android_plat_base_render_lock(s_pb);
   ak_opengl_plat_base_glctx_startup(pb);
 
-  pb->rctx =
-    ak_android_rctx_startup(pb, rr, alct);
-  pb->d =
-    ak_android_rctx_dispatcher_pre(pb->rctx);
-
-  while (!pb->inited) {
+  while (!pb->surface_ready) {
     ak_plat_base_eventflush(pb);
   }
 
-  ak_android_rctx_wait_inited(pb->rctx);
+  pb->rctx =
+    ak_android_rctx_startup(pb, rr, alct);
 
   return pb;
 }
@@ -161,7 +155,6 @@ ak_plat_base_shutdown(ak_plat_base* pb)
   ak_android_rctx_shutdown(pb->rctx);
   ak_opengl_plat_base_glctx_shutdown(pb);
   pb->eq = 0;
-  ak_mutex_destroy(&pb->sfc_m);
   ak_alct_free(pb->alct, pb);
 }
 
@@ -175,7 +168,7 @@ ak_opengl_plat_base_swapbuffer(
 void
 ak_plat_base_eventflush(ak_plat_base* pb)
 {
-  int timeout = pb->inited ? 0 : -1;
+  int timeout = pb->surface_ready ? 0 : -1;
   int events;
   struct android_poll_source* source;
   while (ALooper_pollOnce(timeout,
@@ -212,30 +205,11 @@ ak_plat_base_height(ak_plat_base* pb)
   return pb->height;
 }
 
-void
-ak_android_plat_base_surface_make(
-  ak_plat_base* pb)
-{
-  surface_make(pb);
-}
-
 bool
-ak_android_plat_base_render_trylock(
+ak_android_plat_base_surface_ready(
   ak_plat_base* pb)
 {
-  return ak_mutex_trylock(&pb->sfc_m);
-}
-void
-ak_android_plat_base_render_lock(
-  ak_plat_base* pb)
-{
-  ak_mutex_lock(&pb->sfc_m);
-}
-void
-ak_android_plat_base_render_unlock(
-  ak_plat_base* pb)
-{
-  ak_mutex_unlock(&pb->sfc_m);
+  return pb->surface_ready;
 }
 
 void
@@ -261,6 +235,7 @@ ak_opengl_plat_base_glctx_startup(
   pb->display =
     eglGetDisplay(EGL_DEFAULT_DISPLAY);
   eglInitialize(pb->display, 0, 0);
+  eglBindAPI(EGL_OPENGL_ES_API);
   eglChooseConfig(pb->display,
                   attribs,
                   &pb->config,
@@ -301,4 +276,65 @@ ak_opengl_plat_base_glctx_shutdown(
   pb->display = EGL_NO_DISPLAY;
   pb->surface = EGL_NO_SURFACE;
   pb->context = EGL_NO_CONTEXT;
+}
+
+void
+ak_android_plat_base_rctx_loader_startup(
+  ak_plat_base* pb)
+{
+  eglBindAPI(EGL_OPENGL_ES_API);
+
+  // 1x1 pbuffer: doesn't need a window, just
+  // display + config, both already created
+  // in ak_opengl_plat_base_glctx_startup on
+  // the main thread.
+  EGLint pbuffer_attribs[] = {
+    EGL_WIDTH, 1, EGL_HEIGHT, 1, EGL_NONE
+  };
+  pb->loader_surface =
+    eglCreatePbufferSurface(pb->display,
+                            pb->config,
+                            pbuffer_attribs);
+
+  EGLint ctx_attribs[] = {
+    EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE
+  };
+
+  // Share against pb->context (the render
+  // context) so texture/buffer/shader IDs
+  // created here are visible from the render
+  // context later.
+  pb->loader_context =
+    eglCreateContext(pb->display,
+                     pb->config,
+                     pb->context,
+                     ctx_attribs);
+
+  // Make it current on THIS (loader) thread
+  // only.
+  eglMakeCurrent(pb->display,
+                 pb->loader_surface,
+                 pb->loader_surface,
+                 pb->loader_context);
+}
+
+void
+ak_android_plat_base_rctx_loader_shutdown(
+  ak_plat_base* pb)
+{
+  eglMakeCurrent(pb->display,
+                 EGL_NO_SURFACE,
+                 EGL_NO_SURFACE,
+                 EGL_NO_CONTEXT);
+
+  if (pb->loader_context != EGL_NO_CONTEXT) {
+    eglDestroyContext(pb->display,
+                      pb->loader_context);
+    pb->loader_context = EGL_NO_CONTEXT;
+  }
+  if (pb->loader_surface != EGL_NO_SURFACE) {
+    eglDestroySurface(pb->display,
+                      pb->loader_surface);
+    pb->loader_surface = EGL_NO_SURFACE;
+  }
 }

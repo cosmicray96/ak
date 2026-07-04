@@ -90,7 +90,8 @@ ak_shader_from_shaderstr(
                        .ss = ss,
                        .o_shader = o_shader,
                        .alct = alct };
-  ak_dispatcher_run(d, &shader_make_fn, &sm);
+  ak_dispatcher_wake_run(
+    d, &shader_make_fn, &sm);
   return sm.err;
 }
 
@@ -105,7 +106,7 @@ ak_shader_destroy(ak_shader* s)
 {
   ak_dispatcher* d =
     ak_opengl_rctx_dispatcher(s->rctx);
-  ak_dispatcher_run(
+  ak_dispatcher_wake_run(
     d, &shader_destroy_fn, s);
 }
 

@@ -11,6 +11,11 @@ run(ak_dispatcher* d,
     void* ctx,
     bool wake)
 {
+  if (!d) {
+    fn(ctx);
+    return;
+  }
+
   ak_mutex_lock(&d->m_run);
   ak_mutex_lock(&d->m);
   d->fn = fn;

@@ -104,7 +104,7 @@ ak_tex_from_img(ak_rctx* rctx,
                  .type = type,
                  .o_tex = o_tex,
                  .alct = alct };
-  ak_dispatcher_run(
+  ak_dispatcher_wake_run(
     ak_opengl_rctx_dispatcher(rctx),
     &tex_make_fn,
     &t);
@@ -120,7 +120,7 @@ tex_destroy_fn(void* ctx)
 void
 ak_tex_destroy(ak_tex* tex)
 {
-  ak_dispatcher_run(
+  ak_dispatcher_wake_run(
     ak_opengl_rctx_dispatcher(tex->rctx),
     &tex_destroy_fn,
     tex);

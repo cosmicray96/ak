@@ -17,65 +17,39 @@
 struct ak_rctx
 {
   ak_alct alct;
-  ak_thread* th;
 
   ak_plat_base* pb;
+
   ak_resreg* rr;
   ak_gcore gcore;
-
   ak_gcb gcb;
 
-  ak_atomicint shouldclose;
-
   bool inited;
-
-  ak_mutex m;
   ak_cond c;
-
-  ak_dispatcher d_pre;
+  ak_mutex m;
+  ak_thread* th;
   ak_dispatcher d;
+
+  ak_atomicint close;
 };
 
 static void
 thread_fn(void* ctx)
 {
   ak_rctx* r = ctx;
-
-  while (
-    !ak_atomicint_load(&r->shouldclose)) {
+  ak_mutex_lock(&r->m);
+  ak_android_plat_base_rctx_loader_startup(
+    r->pb);
+  r->inited = true;
+  ak_cond_broadcast(&r->c);
+  ak_mutex_unlock(&r->m);
+  while (!ak_atomicint_load(&r->close)) {
 
     ak_thread_sleep(r->th);
-
-    ak_mutex_lock(&r->m);
-
-    ak_dispatcher_flush(&r->d_pre);
-
-    if (ak_android_plat_base_render_trylock(
-          r->pb)) {
-
-      if (!r->inited) {
-        r->gcore = ak_opengl_gcore_make(
-          ak_plat_base_width(r->pb),
-          ak_plat_base_height(r->pb),
-          r->alct);
-        r->inited = true;
-        ak_cond_broadcast(&r->c);
-      }
-
-      ak_dispatcher_flush(&r->d);
-
-      ak_gcb_flush(
-        &r->gcb, &r->gcore, r->rr);
-      ak_opengl_plat_base_swapbuffer(r->pb);
-
-      ak_android_plat_base_render_unlock(
-        r->pb);
-    } else {
-      ak_gcb_clear(&r->gcb);
-    }
-    ak_mutex_unlock(&r->m);
+    ak_dispatcher_flush(&r->d);
   }
-  ak_opengl_gcore_destroy(&r->gcore);
+  ak_android_plat_base_rctx_loader_shutdown(
+    r->pb);
 }
 
 ak_rctx*
@@ -88,61 +62,51 @@ ak_android_rctx_startup(ak_plat_base* pb,
   r->alct = alct;
   r->pb = pb;
   r->rr = rr;
-  r->inited = false;
-
+  r->gcore = ak_opengl_gcore_make(
+    ak_plat_base_width(pb),
+    ak_plat_base_height(pb),
+    alct);
   r->gcb = ak_gcb_make(r->alct);
-  r->m = ak_mutex_make();
-  r->c = ak_cond_make();
 
-  ak_atomicint_store(&r->shouldclose, 0);
+  r->inited = false;
+  r->c = ak_cond_make();
+  r->m = ak_mutex_make();
+  r->close = ak_atomicint_make(0);
 
   ak_mutex_lock(&r->m);
   r->th = ak_thread_make(&thread_fn, r);
   r->d = ak_dispatcher_make(r->th);
-  r->d_pre = ak_dispatcher_make(r->th);
-  ak_mutex_unlock(&r->m);
-  return r;
-}
-
-ak_dispatcher*
-ak_android_rctx_dispatcher_pre(ak_rctx* r)
-{
-  return &r->d_pre;
-}
-
-void
-ak_android_rctx_wait_inited(ak_rctx* r)
-{
-  ak_mutex_lock(&r->m);
   while (!r->inited) {
     ak_cond_wait(&r->c, &r->m);
   }
   ak_mutex_unlock(&r->m);
+  return r;
 }
 
 void
 ak_android_rctx_shutdown(ak_rctx* r)
 {
-  ak_atomicint_store(&r->shouldclose, 1);
+  ak_atomicint_store(&r->close, 1);
   ak_thread_wake(r->th);
   ak_thread_join(r->th);
-
   ak_dispatcher_destroy(&r->d);
+  ak_mutex_destroy(&r->m);
+  ak_cond_destroy(&r->c);
 
   ak_gcb_destroy(&r->gcb);
+  ak_opengl_gcore_destroy(&r->gcore);
 
-  ak_cond_destroy(&r->c);
-  ak_mutex_destroy(&r->m);
   ak_alct_free(r->alct, r);
 }
 
 void
 ak_rctx_render(ak_rctx* r, ak_gcb* gcb)
 {
-  ak_mutex_lock(&r->m);
-  ak_gcb_joinback(&r->gcb, gcb);
-  ak_mutex_unlock(&r->m);
-  ak_thread_wake(r->th);
+  if (ak_android_plat_base_surface_ready(
+        r->pb)) {
+    ak_gcb_flush(gcb, &r->gcore, r->rr);
+    ak_opengl_plat_base_swapbuffer(r->pb);
+  }
 }
 
 ak_dispatcher*
