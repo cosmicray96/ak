@@ -12,6 +12,9 @@
 static ak_fcnstid
 id_from_ett(ak_world* w, ak_ett e)
 {
+  if (!e) {
+    return 0;
+  }
   ak_fcnstid* id = ak_hmn_at(&w->map, e);
   return *id;
 }
@@ -19,6 +22,9 @@ id_from_ett(ak_world* w, ak_ett e)
 static ak_ett
 ett_from_id(ak_world* w, ak_fcnstid id)
 {
+  if (!id) {
+    return 0;
+  }
   return *(ak_ett*)ak_fcnst_at(&w->tree, id);
 }
 

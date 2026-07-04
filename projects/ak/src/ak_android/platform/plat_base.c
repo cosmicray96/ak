@@ -99,13 +99,17 @@ handle_cmd(struct android_app* app,
 {
   switch (cmd) {
     case APP_CMD_INIT_WINDOW: {
-      surface_make(s_pb);
-      s_pb->surface_ready = true;
+      if (!s_pb->surface_ready) {
+        surface_make(s_pb);
+        s_pb->surface_ready = true;
+      }
       break;
     }
     case APP_CMD_TERM_WINDOW: {
-      s_pb->surface_ready = false;
-      surface_destroy(s_pb);
+      if (s_pb->surface_ready) {
+        s_pb->surface_ready = false;
+        surface_destroy(s_pb);
+      }
       break;
     }
   }
@@ -168,14 +172,13 @@ ak_opengl_plat_base_swapbuffer(
 void
 ak_plat_base_eventflush(ak_plat_base* pb)
 {
-  int timeout = pb->surface_ready ? 0 : -1;
   int events;
   struct android_poll_source* source;
-  while (ALooper_pollOnce(timeout,
-                          NULL,
-                          &events,
-                          (void**)&source) >=
-         0) {
+  while (ALooper_pollOnce(
+           pb->surface_ready ? 0 : -1,
+           NULL,
+           &events,
+           (void**)&source) >= 0) {
 
     if (source)
       source->process(ak_android_app(),
@@ -284,10 +287,6 @@ ak_android_plat_base_rctx_loader_startup(
 {
   eglBindAPI(EGL_OPENGL_ES_API);
 
-  // 1x1 pbuffer: doesn't need a window, just
-  // display + config, both already created
-  // in ak_opengl_plat_base_glctx_startup on
-  // the main thread.
   EGLint pbuffer_attribs[] = {
     EGL_WIDTH, 1, EGL_HEIGHT, 1, EGL_NONE
   };
@@ -300,18 +299,12 @@ ak_android_plat_base_rctx_loader_startup(
     EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE
   };
 
-  // Share against pb->context (the render
-  // context) so texture/buffer/shader IDs
-  // created here are visible from the render
-  // context later.
   pb->loader_context =
     eglCreateContext(pb->display,
                      pb->config,
                      pb->context,
                      ctx_attribs);
 
-  // Make it current on THIS (loader) thread
-  // only.
   eglMakeCurrent(pb->display,
                  pb->loader_surface,
                  pb->loader_surface,

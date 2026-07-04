@@ -26,7 +26,7 @@ ak_lsimple_make()
 
   render_make(l);
   world_make(l);
-  // pg_make(l);
+  //  pg_make(l);
 
   ak_pgm_crashfn_reg(&crash_fn, l);
 
@@ -36,7 +36,7 @@ ak_lsimple_make()
 void
 ak_lsimple_destroy(ak_lsimple* l)
 {
-  pg_destroy(l);
+  // pg_destroy(l);
   world_destroy(l);
   render_destroy(l);
 
@@ -54,7 +54,7 @@ ak_lsimple_tick(void* ctx)
   event_collect(l);
   event_drain(l);
 
-  pg_update(l);
+  //  pg_update(l);
   world_update(l);
   render_update(l);
 

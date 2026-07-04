@@ -34,6 +34,9 @@ ak_sys_tf_update(ak_sys_tf* stf,
   if (!root) {
     return;
   }
+  while (1) {
+  }
+
   ak_wv_itdfspre_reset(&stf->it, wv, root);
   ak_spa_clear(&stf->gmat3s);
 

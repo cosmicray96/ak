@@ -73,6 +73,8 @@ ak_android_rctx_startup(ak_plat_base* pb,
   r->m = ak_mutex_make();
   r->close = ak_atomicint_make(0);
 
+  return r;
+
   ak_mutex_lock(&r->m);
   r->th = ak_thread_make(&thread_fn, r);
   r->d = ak_dispatcher_make(r->th);
@@ -80,7 +82,6 @@ ak_android_rctx_startup(ak_plat_base* pb,
     ak_cond_wait(&r->c, &r->m);
   }
   ak_mutex_unlock(&r->m);
-  return r;
 }
 
 void
