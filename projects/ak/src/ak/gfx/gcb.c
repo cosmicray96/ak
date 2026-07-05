@@ -47,13 +47,17 @@ ak_gcb_push(ak_gcb* gcb,
 
 void
 ak_gcb_push_resize(ak_gcb* gcb,
+                   uint32_t x,
+                   uint32_t y,
                    uint32_t w,
                    uint32_t h)
 {
-  ak_gcbcmd ci = {
-    .type = ak_gcbcmdtype_resize,
-    .resize = { .w = w, .h = h }
-  };
+  ak_gcbcmd ci = { .type =
+                     ak_gcbcmdtype_resize,
+                   .resize = { .x = x,
+                               .y = y,
+                               .w = w,
+                               .h = h } };
   ak_da_pushback(&gcb->cmds, &ci);
 }
 

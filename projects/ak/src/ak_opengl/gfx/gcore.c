@@ -253,12 +253,13 @@ ak_opengl_gcore_destroy(ak_gcore* r)
 
 void
 ak_opengl_gcore_resize(ak_gcore* g,
-
+                       uint32_t x,
+                       uint32_t y,
                        uint32_t w,
                        uint32_t h)
 {
   ak_assert(!g->call_began);
-  glViewport(0, 0, w, h);
+  glViewport(x, y, w, h);
   g->screen_w = w;
   g->screen_h = h;
 }

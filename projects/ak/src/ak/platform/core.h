@@ -200,6 +200,8 @@ typedef struct
     ak_keyevt key;
     struct
     {
+      uint32_t x;
+      uint32_t y;
       uint32_t w;
       uint32_t h;
     } resize;

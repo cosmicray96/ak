@@ -37,6 +37,44 @@ struct ak_plat_base
   ak_resreg* rr;
 };
 static ak_plat_base* s_pb = 0;
+static bool s_flip = false;
+
+static void
+push_resize(ak_plat_base* pb)
+{
+  ak_evt e = {
+    .type = ak_evttype_win,
+    .win = { .type = ak_evtwintype_resize,
+             .resize = { .x = 0, .y = 0 } }
+  };
+  if (s_flip) {
+    e.win.resize.w = 100;
+    e.win.resize.h = 100;
+  } else {
+    e.win.resize.w = 200;
+    e.win.resize.h = 200;
+  }
+  ak_app_eq_push(pb->eq, &e);
+  s_flip = !s_flip;
+  return;
+
+  ARect r = ak_android_app()->contentRect;
+  int32_t x = r.left;
+  int32_t y = r.top;
+  int32_t w = r.right - r.left;
+  int32_t h = r.bottom - r.top;
+  pb->width = w;
+  pb->height = h;
+  ak_app_eq_push(
+    pb->eq,
+    &(ak_evt){
+      .type = ak_evttype_win,
+      .win = { .type = ak_evtwintype_resize,
+               .resize = { .x = x,
+                           .y = y,
+                           .w = w,
+                           .h = h } } });
+}
 
 static void
 surface_make(void* ctx)
@@ -67,16 +105,7 @@ surface_make(void* ctx)
                   pb->surface,
                   EGL_HEIGHT,
                   &height);
-  pb->width = width;
-  pb->height = height;
-
-  ak_evt e = {
-    .type = ak_evttype_win,
-    .win = { .type = ak_evtwintype_resize,
-             .resize = { .w = width,
-                         .h = height } }
-  };
-  ak_app_eq_push(pb->eq, &e);
+  push_resize(pb);
 }
 
 static void
@@ -110,6 +139,10 @@ handle_cmd(struct android_app* app,
         s_pb->surface_ready = false;
         surface_destroy(s_pb);
       }
+      break;
+    }
+    case APP_CMD_CONTENT_RECT_CHANGED: {
+      push_resize(s_pb);
       break;
     }
   }
