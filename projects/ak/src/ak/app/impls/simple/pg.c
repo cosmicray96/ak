@@ -34,7 +34,7 @@ pg_make(ak_lsimple* l)
   ak_img_destroy(&img);
 
   ak_shaderstr ss = { 0 };
-  err = ak_stm_open_ast("shaders/tex.glsl",
+  err = ak_stm_open_ast("shaders/tex.gles",
                         &stm);
   ak_assert(err == ak_stmerr_ok);
   err =

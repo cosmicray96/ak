@@ -42,21 +42,23 @@ static bool s_flip = false;
 static void
 push_resize(ak_plat_base* pb)
 {
-  ak_evt e = {
-    .type = ak_evttype_win,
-    .win = { .type = ak_evtwintype_resize,
-             .resize = { .x = 0, .y = 0 } }
-  };
-  if (s_flip) {
-    e.win.resize.w = 100;
-    e.win.resize.h = 100;
-  } else {
-    e.win.resize.w = 200;
-    e.win.resize.h = 200;
-  }
-  ak_app_eq_push(pb->eq, &e);
-  s_flip = !s_flip;
-  return;
+  /*
+ak_evt e = {
+.type = ak_evttype_win,
+.win = { .type = ak_evtwintype_resize,
+       .resize = { .x = 0, .y = 0 } }
+};
+if (s_flip) {
+e.win.resize.w = 100;
+e.win.resize.h = 100;
+} else {
+e.win.resize.w = 200;
+e.win.resize.h = 200;
+}
+ak_app_eq_push(pb->eq, &e);
+s_flip = !s_flip;
+return;
+  */
 
   ARect r = ak_android_app()->contentRect;
   int32_t x = r.left;
@@ -105,7 +107,6 @@ surface_make(void* ctx)
                   pb->surface,
                   EGL_HEIGHT,
                   &height);
-  push_resize(pb);
 }
 
 static void
@@ -208,7 +209,7 @@ ak_plat_base_eventflush(ak_plat_base* pb)
   int events;
   struct android_poll_source* source;
   while (ALooper_pollOnce(
-           pb->surface_ready ? 0 : -1,
+           0, // pb->surface_ready ? 0 : -1,
            NULL,
            &events,
            (void**)&source) >= 0) {

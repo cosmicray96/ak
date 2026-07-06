@@ -3,7 +3,6 @@
 #include "ak_opengl/gfx/gcore.h"
 
 #include "ak/coll/da.h"
-#include "ak/core/math/fixed.h"
 #include "ak/core/math/mat3x3.h"
 #include "ak/core/math/vec4f.h"
 #include "ak/core/mem/allocator.h"
@@ -251,6 +250,7 @@ ak_opengl_gcore_destroy(ak_gcore* r)
   ak_da_destroy(&r->quads);
 }
 
+static float s_color = 0;
 void
 ak_opengl_gcore_resize(ak_gcore* g,
                        uint32_t x,
@@ -258,6 +258,10 @@ ak_opengl_gcore_resize(ak_gcore* g,
                        uint32_t w,
                        uint32_t h)
 {
+  s_color += 0.3f;
+  if (s_color >= 1.0f)
+    s_color -= 1.0f;
+
   ak_assert(!g->call_began);
   glViewport(x, y, w, h);
   g->screen_w = w;
@@ -268,8 +272,7 @@ void
 ak_opengl_gcore_frame_begin(ak_gcore* g)
 {
   ak_assert(!g->call_began);
-
-  glClearColor(1.0f, 0.1f, 0.12f, 1.0f);
+  glClearColor(s_color, 0.1f, 0.12f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
   ak_glerr_check;
 }
