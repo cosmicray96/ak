@@ -4,6 +4,7 @@
 #include "ak/game/world/cbflush.h"
 #include "ak/gfx/reses/shader.h"
 #include "ak/gfx/reses/tex.h"
+#include "ak/platform/plat_base.h"
 #include "ak/res/reg.h"
 #include "ak/res/reses/img.h"
 #include "ak/res/reses/shaderstr.h"
@@ -11,6 +12,10 @@
 void
 pg_make(ak_lsimple* l)
 {
+  uint32_t width = ak_plat_base_width(l->pb);
+  uint32_t height =
+    ak_plat_base_height(l->pb);
+
   l->texid = 10;
   l->shaderid = 11;
 
@@ -20,11 +25,13 @@ pg_make(ak_lsimple* l)
   ak_errcode ec = 0;
 
   err =
-    ak_stm_open_ast("images/dog.png", &stm);
+    ak_stm_open_ast("images/test.png", &stm);
   ak_assert(err == ak_stmerr_ok);
+
   err = ak_stm_read_img(stm, &img, l->alct);
   ak_assert(err == ak_stmerr_ok);
   ak_stm_close(stm);
+
   ec = ak_tex_from_img(l->rctx,
                        &img,
                        ak_textype_rgba8,
@@ -81,8 +88,8 @@ pg_make(ak_lsimple* l)
       .pos =
         ak_vec2_make(ak_fx_f(0), ak_fx_f(0)),
       .rot = ak_angle_rad(ak_fx_f(0)),
-      .scale = ak_vec2_make(ak_fx_f(300),
-                            ak_fx_f(300)),
+      .scale = ak_vec2_make(ak_fx_f(width),
+                            ak_fx_f(height)),
     });
   ak_wcb_comp_quadsimple_add(
     &l->wcb,

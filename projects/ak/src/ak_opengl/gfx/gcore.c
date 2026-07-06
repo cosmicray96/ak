@@ -11,6 +11,7 @@
 
 #include "ak_opengl/gfx/gfx_impl.h"
 
+#include <GLES3/gl3.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -250,28 +251,32 @@ ak_opengl_gcore_destroy(ak_gcore* r)
   ak_da_destroy(&r->quads);
 }
 
-static float s_color = 0;
+void
+ak_opengl_gcore_sync(ak_gcore* g)
+{
+  glFinish();
+}
+
 void
 ak_opengl_gcore_resize(ak_gcore* g,
-                       uint32_t x,
-                       uint32_t y,
                        uint32_t w,
                        uint32_t h)
 {
-  s_color += 0.3f;
-  if (s_color >= 1.0f)
-    s_color -= 1.0f;
-
   ak_assert(!g->call_began);
-  glViewport(x, y, w, h);
   g->screen_w = w;
   g->screen_h = h;
+  glViewport(0, 0, w, h);
 }
 
+static float s_color = 0;
 void
 ak_opengl_gcore_frame_begin(ak_gcore* g)
 {
   ak_assert(!g->call_began);
+  s_color += 0.01f;
+  if (s_color >= 1.0f)
+    s_color -= 1.0f;
+
   glClearColor(s_color, 0.1f, 0.12f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
   ak_glerr_check;

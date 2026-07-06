@@ -42,40 +42,21 @@ static bool s_flip = false;
 static void
 push_resize(ak_plat_base* pb)
 {
-  /*
-ak_evt e = {
-.type = ak_evttype_win,
-.win = { .type = ak_evtwintype_resize,
-       .resize = { .x = 0, .y = 0 } }
-};
-if (s_flip) {
-e.win.resize.w = 100;
-e.win.resize.h = 100;
-} else {
-e.win.resize.w = 200;
-e.win.resize.h = 200;
-}
-ak_app_eq_push(pb->eq, &e);
-s_flip = !s_flip;
-return;
-  */
+  int32_t width = ANativeWindow_getWidth(
+    ak_android_app()->window);
+  int32_t height = ANativeWindow_getHeight(
+    ak_android_app()->window);
+  pb->width = width;
+  pb->height = height;
 
-  ARect r = ak_android_app()->contentRect;
-  int32_t x = r.left;
-  int32_t y = r.top;
-  int32_t w = r.right - r.left;
-  int32_t h = r.bottom - r.top;
-  pb->width = w;
-  pb->height = h;
   ak_app_eq_push(
     pb->eq,
     &(ak_evt){
       .type = ak_evttype_win,
-      .win = { .type = ak_evtwintype_resize,
-               .resize = { .x = x,
-                           .y = y,
-                           .w = w,
-                           .h = h } } });
+      .win = {
+        .type = ak_evtwintype_resize,
+        .resize = { .w = width,
+                    .h = height } } });
 }
 
 static void
@@ -98,15 +79,12 @@ surface_make(void* ctx)
                  pb->surface,
                  pb->context);
 
-  EGLint width, height;
-  eglQuerySurface(pb->display,
-                  pb->surface,
-                  EGL_WIDTH,
-                  &width);
-  eglQuerySurface(pb->display,
-                  pb->surface,
-                  EGL_HEIGHT,
-                  &height);
+  int32_t width = ANativeWindow_getWidth(
+    ak_android_app()->window);
+  int32_t height = ANativeWindow_getHeight(
+    ak_android_app()->window);
+  pb->width = width;
+  pb->height = height;
 }
 
 static void
@@ -142,6 +120,11 @@ handle_cmd(struct android_app* app,
       }
       break;
     }
+    case APP_CMD_WINDOW_RESIZED: {
+      push_resize(s_pb);
+      break;
+    }
+
     case APP_CMD_CONTENT_RECT_CHANGED: {
       push_resize(s_pb);
       break;
@@ -172,8 +155,8 @@ ak_plat_base_startup(ak_app_eq* eq,
 
   ak_android_app()->onAppCmd = &handle_cmd;
 
-  pb->width = akd_width_init;
-  pb->height = akd_height_init;
+  pb->width = 0;
+  pb->height = 0;
 
   ak_opengl_plat_base_glctx_startup(pb);
 

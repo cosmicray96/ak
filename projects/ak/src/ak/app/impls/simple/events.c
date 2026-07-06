@@ -17,8 +17,6 @@ event_on(ak_lsimple* l, const ak_evt* e)
   if (e->type == ak_evttype_win &&
       e->win.type == ak_evtwintype_resize) {
     ak_gcb_push_resize(&l->gcb,
-                       e->win.resize.x,
-                       e->win.resize.y,
                        e->win.resize.w,
                        e->win.resize.h);
     return;

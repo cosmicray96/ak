@@ -42,6 +42,8 @@ typedef struct
     } scissor;
     struct
     {
+      uint32_t w_screen;
+      uint32_t h_screen;
       uint32_t x;
       uint32_t y;
       uint32_t w;
@@ -92,8 +94,6 @@ ak_gcb_push_scissor(ak_gcb* gcb,
 
 void
 ak_gcb_push_resize(ak_gcb* gcb,
-                   uint32_t x,
-                   uint32_t y,
                    uint32_t w,
                    uint32_t h);
 

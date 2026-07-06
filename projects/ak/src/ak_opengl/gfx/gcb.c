@@ -4,6 +4,7 @@
 #include "ak_opengl/gfx/gcb.h"
 #include "ak_opengl/gfx/gcore.h"
 
+//--- impl ---//
 void
 ak_gcb_flush(ak_gcb* gcb,
              ak_gcore* gcore,
@@ -65,8 +66,6 @@ ak_gcb_flush(ak_gcb* gcb,
         }
         ak_opengl_gcore_resize(
           gcore,
-          cmd->resize.x,
-          cmd->resize.y,
           cmd->resize.w,
           cmd->resize.h);
         break;

@@ -36,9 +36,10 @@ void
 ak_opengl_gcore_destroy(ak_gcore* g);
 
 void
+ak_opengl_gcore_sync(ak_gcore* g);
+
+void
 ak_opengl_gcore_resize(ak_gcore* g,
-                       uint32_t x,
-                       uint32_t y,
                        uint32_t w,
                        uint32_t h);
 
