@@ -11,7 +11,6 @@
 
 #include "ak_opengl/gfx/gfx_impl.h"
 
-#include <GLES3/gl3.h>
 #include <stddef.h>
 #include <stdint.h>
 
