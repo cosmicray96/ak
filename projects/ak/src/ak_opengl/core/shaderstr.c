@@ -3,7 +3,7 @@
 #include "ak/system/stream.h"
 #include <string.h>
 
-ak_stmerr
+ak_errcode
 ak_stm_read_shaderstr(ak_stm stm,
                       ak_shaderstr* o_ss,
                       ak_alct alct)
@@ -14,10 +14,10 @@ ak_stm_read_shaderstr(ak_stm stm,
   ak_str line = ak_str_make(alct);
 
   ak_str* outline = &o_ss->vert;
-  ak_stmerr err = ak_stmerr_ok;
+  ak_errcode err = ak_ok;
   while (true) {
     err = ak_stm_read_line(stm, &line);
-    if (err != ak_stmerr_ok) {
+    if (err != ak_ok) {
       break;
     }
 
@@ -36,12 +36,12 @@ ak_stm_read_shaderstr(ak_stm stm,
     ak_str_clear(&line);
   }
 
-  if (err != ak_stmerr_end) {
+  if (err != ak_err_stm_end) {
     ak_shaderstr_destroy(o_ss);
     ak_str_destroy(&line);
     return err;
   }
 
   ak_str_destroy(&line);
-  return ak_stmerr_ok;
+  return ak_ok;
 }

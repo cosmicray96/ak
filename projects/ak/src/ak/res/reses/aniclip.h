@@ -16,10 +16,10 @@ ak_aniclip
 ak_aniclip_make(ak_resid atlasid,
                 const ak_da* da,
                 ak_alct alct);
-ak_stmerr
+ak_errcode
 ak_stm_write_aniclip(ak_stm stm,
                      const ak_aniclip* o_ac);
-ak_stmerr
+ak_errcode
 ak_stm_read_aniclip(ak_stm stm,
                     ak_resid atlasid,
                     ak_aniclip* o_ac,

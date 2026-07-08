@@ -60,19 +60,19 @@ ak_ex const void*
 ak_comp_tu_comp_const(const ak_comp_tu* ctu);
 
 #define ak_d_comp_x(name)                   \
-  ak_stmerr ak_stm_write_##name(            \
+  ak_errcode ak_stm_write_##name(           \
     ak_stm stm, ak_as_comp_t(name) name);   \
-  ak_stmerr ak_stm_read_##name(             \
+  ak_errcode ak_stm_read_##name(            \
     ak_stm stm,                             \
     ak_as_comp_t(name) * o_##name);
 
 #include "ak/game/comp.inc"
 #undef ak_d_comp_x
 
-ak_stmerr
+ak_errcode
 ak_stm_write_comp_tu(ak_stm stm,
                      ak_comp_tu ctu);
-ak_stmerr
+ak_errcode
 ak_stm_read_comp_tu(ak_stm stm,
                     ak_comp_tu* o_ctu);
 

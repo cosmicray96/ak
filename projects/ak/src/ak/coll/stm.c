@@ -1,7 +1,7 @@
 #include "ak/coll/stm.h"
 #include "ak/system/stream.h"
 
-ak_stmerr
+ak_errcode
 ak_stm_write_da(ak_stm stm, const ak_da* da)
 {
   uint32_t count = ak_da_count(da);
@@ -16,7 +16,7 @@ ak_stm_write_da(ak_stm stm, const ak_da* da)
   return r.err;
 }
 
-ak_stmerr
+ak_errcode
 ak_stm_read_da(ak_stm stm,
                ak_da* o_da,
                ak_alct alct)
@@ -30,7 +30,7 @@ ak_stm_read_da(ak_stm stm,
     ak_alct_alloc(alct, is * count);
   ak_stmresult r =
     ak_stm_read(stm, data, is * count);
-  if (r.err != ak_stmerr_ok) {
+  if (r.err != ak_ok) {
     ak_alct_free(alct, data);
     return r.err;
   }
@@ -38,5 +38,5 @@ ak_stm_read_da(ak_stm stm,
   *o_da =
     ak_da_from_ptr(data, is, count, alct);
 
-  return ak_stmerr_ok;
+  return ak_ok;
 }

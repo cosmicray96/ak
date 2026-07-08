@@ -15,10 +15,10 @@ typedef struct
 ak_ex ak_texatlas
 ak_texatlas_make(const ak_da* uv_rect,
                  ak_alct alct);
-ak_ex ak_stmerr
+ak_ex ak_errcode
 ak_stm_write_texatlas(ak_stm stm,
                       const ak_texatlas* ta);
-ak_ex ak_stmerr
+ak_ex ak_errcode
 ak_stm_read_texatlas(ak_stm stm,
                      ak_texatlas* o_ta,
                      ak_alct alct);

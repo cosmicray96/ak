@@ -19,17 +19,17 @@
 
 #define check(expr)                         \
   if (!(expr)) {                            \
-    exiterr = ak_stmerr_invalid;            \
+    exiterr = ak_err_stm_badformat;         \
     goto crash;                             \
   }
 
-ak_stmerr
+ak_errcode
 ak_stream_write_world(ak_stm stm,
                       ak_world* w,
                       ak_ett root,
                       ak_alct alct)
 {
-  ak_stmerr exiterr = ak_stmerr_ok;
+  ak_errcode exiterr = ak_ok;
 
   ak_stm_try(
     ak_stm_write_u32(stm, s_version));
@@ -75,12 +75,12 @@ crash:
   return exiterr;
 }
 
-ak_stmerr
+ak_errcode
 ak_stream_read_world(ak_stm stm,
                      ak_world* o_w,
                      ak_alct alct)
 {
-  ak_stmerr exiterr = ak_stmerr_err;
+  ak_errcode exiterr = ak_err;
   *o_w = ak_world_make(alct);
 
   uint32_t version = 0;

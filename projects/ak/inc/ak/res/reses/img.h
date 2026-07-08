@@ -27,7 +27,7 @@ ak_img_make_from_stm(ak_stm stm,
                      ak_alct alct);
 */
 
-ak_ex ak_stmerr
+ak_ex ak_errcode
 ak_stm_read_img(ak_stm stm,
                 ak_img* o_img,
                 ak_alct alct);

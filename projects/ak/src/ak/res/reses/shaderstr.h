@@ -12,7 +12,7 @@ typedef struct
   ak_str frag;
 } ak_shaderstr;
 
-ak_ex ak_stmerr
+ak_ex ak_errcode
 ak_stm_read_shaderstr(ak_stm stm,
                       ak_shaderstr* o_ss,
                       ak_alct alct);

@@ -1,8 +1,6 @@
 #include "ak/res/reses/texatlas.h"
 #include "ak/coll/stm.h"
-#include "ak/core/math/stm.h"
 #include "ak/core/math/vec4f.h"
-#include "ak/res/core.h"
 #include "ak/system/stream.h"
 
 ak_texatlas
@@ -21,13 +19,13 @@ ak_texatlas_make(const ak_da* uv_rects,
   return ta;
 }
 
-ak_stmerr
+ak_errcode
 ak_stm_write_texatlas(ak_stm stm,
                       const ak_texatlas* ta)
 {
   return ak_stm_write_da(stm, &ta->uv_rects);
 }
-ak_stmerr
+ak_errcode
 ak_stm_read_texatlas(ak_stm stm,
                      ak_texatlas* o_ta,
                      ak_alct alct)
@@ -37,7 +35,7 @@ ak_stm_read_texatlas(ak_stm stm,
     ak_stm_read_da(stm, &ta.uv_rects, alct));
 
   *o_ta = ta;
-  return ak_stmerr_ok;
+  return ak_ok;
 }
 
 void

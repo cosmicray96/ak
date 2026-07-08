@@ -18,13 +18,13 @@ ak_aniclip_make(ak_resid atlasid,
   }
   return ac;
 }
-ak_stmerr
+ak_errcode
 ak_stm_write_aniclip(ak_stm stm,
                      const ak_aniclip* ac)
 {
   return ak_stm_write_da(stm, &ac->frames);
 }
-ak_stmerr
+ak_errcode
 ak_stm_read_aniclip(ak_stm stm,
                     ak_resid atlasid,
                     ak_aniclip* o_ac,
@@ -36,7 +36,7 @@ ak_stm_read_aniclip(ak_stm stm,
     ak_stm_read_da(stm, &ac.frames, alct));
 
   *o_ac = ac;
-  return ak_stmerr_ok;
+  return ak_ok;
 }
 
 void

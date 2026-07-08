@@ -6,7 +6,7 @@
 #include <android/asset_manager.h>
 #include <android_native_app_glue.h>
 
-ak_stmerr
+ak_errcode
 ak_stm_open_ast(const char* path,
                 ak_stm* o_stm)
 {
@@ -20,20 +20,20 @@ ak_stm_open_ast(const char* path,
   AAsset* aasset = AAssetManager_open(
     mgr, path, AASSET_MODE_BUFFER);
   if (aasset == NULL) {
-    return ak_stmerr_invalid;
+    return ak_err_invalid_args;
   }
   stm.ctx = aasset;
 
   *o_stm = stm;
-  return ak_stmerr_ok;
+  return ak_ok;
 }
 
-ak_stmerr
+ak_errcode
 ak_stm_ast_close(void* ast)
 {
   AAsset* aasset = ast;
   AAsset_close(aasset);
-  return ak_stmerr_ok;
+  return ak_ok;
 }
 
 ak_stmresult
@@ -42,8 +42,7 @@ ak_stm_ast_write(void* ast,
                  uint64_t size)
 {
 
-  return (ak_stmresult){ .err =
-                           ak_stmerr_err };
+  return (ak_stmresult){ .err = ak_err };
 }
 
 ak_stmresult
@@ -58,9 +57,9 @@ ak_stm_ast_read(void* ast,
   ak_stmresult res = { 0 };
   res.transferred = bytesRead;
   if (bytesRead == size) {
-    res.err = ak_stmerr_ok;
+    res.err = ak_ok;
   } else {
-    res.err = ak_stmerr_end;
+    res.err = ak_errcode_end;
   }
   return res;
 }
@@ -83,11 +82,11 @@ ak_stm_ast_read_all(void* ast,
     AAsset_read(aasset, buf, size);
 
   if ((size_t)bytesRead == (size_t)size) {
-    r.err = ak_stmerr_ok;
+    r.err = ak_ok;
     *o_data = buf;
     *o_size = (uint64_t)size;
   } else {
-    r.err = ak_stmerr_err;
+    r.err = ak_err;
     ak_alct_free(alct, buf);
   }
   return r;

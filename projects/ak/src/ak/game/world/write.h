@@ -7,13 +7,13 @@
 #include "ak/system/idgen.h"
 #include "ak/system/stream.h"
 
-ak_stmerr
+ak_errcode
 ak_stream_write_world(ak_stm stm,
                       ak_world* w,
                       ak_ett root,
                       ak_alct alct);
 
-ak_stmerr
+ak_errcode
 ak_stream_read_world(ak_stm stm,
                      ak_world* o_w,
                      ak_alct alct);

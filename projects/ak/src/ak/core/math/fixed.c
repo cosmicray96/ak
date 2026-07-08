@@ -49,13 +49,13 @@ ak_iostream_print_fx(ak_iostream io,
   ak_iostream_print_u64(io, frac);
 }
 
-ak_stmerr
+ak_errcode
 ak_stm_write_fx(ak_stm stm, ak_fx fx)
 {
   return ak_stm_write_i32(stm, fx);
 }
 
-ak_stmerr
+ak_errcode
 ak_stm_read_fx(ak_stm stm, ak_fx* o_fx)
 {
   return ak_stm_read_i32(stm, o_fx);

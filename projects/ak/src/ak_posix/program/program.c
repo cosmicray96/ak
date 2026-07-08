@@ -38,7 +38,7 @@ ak_this_thread_sleep(ak_dur t)
       ts = rem;
     } else {
       ak_log("%s", strerror(errno));
-      ak_ec(ak_err_sleep);
+      ak_assert(false);
     }
   }
 }

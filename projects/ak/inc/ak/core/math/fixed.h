@@ -121,9 +121,9 @@ ak_ex void
 ak_iostream_print_fx(ak_iostream io,
                      ak_fx fx);
 
-ak_ex ak_stmerr
+ak_ex ak_errcode
 ak_stm_write_fx(ak_stm stm, ak_fx fx);
-ak_ex ak_stmerr
+ak_ex ak_errcode
 ak_stm_read_fx(ak_stm stm, ak_fx* o_fx);
 
 #endif
