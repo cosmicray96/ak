@@ -4,8 +4,10 @@
 #include "ak/game/comp.h"
 #include "ak/game/core.h"
 #include "ak/game/stg/world.h"
+#include "ak/game/world/cb_itn.h"
 #include "ak/game/world/view.h"
 #include "ak/game/world/view_itn.h"
+#include "ak/system/idgen.h"
 #include "ak/system/stream.h"
 
 #define s_version 11
@@ -71,7 +73,6 @@ ak_stream_write_world(ak_stm stm,
 
 crash:
   ak_wv_itbfs_destroy(&it);
-  ak_wv_destroy(&wv);
   return exiterr;
 }
 
@@ -113,30 +114,6 @@ exit:
 crash:
   ak_world_destroy(o_w);
   goto exit;
-}
-
-//--- private ---//
-typedef struct
-{
-  ak_ett e;
-  ak_comp_tu ctu;
-} ett_comp_tu;
-
-void
-remap_ett(ak_comp_tu* ctu, ak_hmn* map)
-{
-  uint32_t offsets[16];
-  uint32_t n =
-    ak_comp_enum_offsets(ctu->ce, offsets);
-  uint8_t* comp = ak_comp_tu_comp(ctu);
-  for (uint32_t i = 0; i < n; i++) {
-    ak_ett* e = (ak_ett*)(comp + offsets[i]);
-    if (ak_hmn_exist(map, *e)) {
-      ak_ett new_e =
-        *(ak_ett*)ak_hmn_at(map, *e);
-      *e = new_e;
-    }
-  }
 }
 
 void

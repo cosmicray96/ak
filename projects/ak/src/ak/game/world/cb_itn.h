@@ -4,7 +4,6 @@
 #include "ak/core/mem/allocator.h"
 #include "ak/game/comp.h"
 #include "ak/game/core.h"
-#include "ak/game/world/cb.h"
 #include "ak/system/idgen.h"
 
 typedef enum
@@ -52,5 +51,9 @@ ak_wcb_pop(ak_wcb* wcb, ak_wcbitem* o_item);
 
 void
 ak_wcb_joinback(ak_wcb* dest, ak_wcb* src);
+void
+ak_wcb_wv(ak_wcb* wcb,
+          ak_wv* wv,
+          ak_ett new_pt);
 
 #endif

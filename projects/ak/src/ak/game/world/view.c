@@ -14,11 +14,6 @@ ak_wv_make(ak_world* w)
   wv.w = w;
   return wv;
 }
-void
-ak_wv_destroy(ak_wv* wv)
-{
-  wv->w = 0;
-}
 
 //--- export ---//
 uint32_t

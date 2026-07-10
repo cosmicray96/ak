@@ -82,6 +82,13 @@ ak_wcb_joinback(ak_wcb* dest, ak_wcb* src)
   }
 }
 
+void
+ak_wcb_wv(ak_wcb* wcb,
+          ak_wv* wv,
+          ak_ett new_pt)
+{
+}
+
 //--- export ---//
 ak_ett
 ak_wcb_ett_new(ak_wcb* wcb, ak_ett pt)

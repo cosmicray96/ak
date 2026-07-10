@@ -11,7 +11,5 @@ struct ak_wv
 
 ak_wv
 ak_wv_make(ak_world* w);
-void
-ak_wv_destroy(ak_wv* wv);
 
 #endif

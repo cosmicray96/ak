@@ -1,10 +1,8 @@
 #ifndef ak_game_world_write_h
 #define ak_game_world_write_h
 
-#include "ak/core/io.h"
 #include "ak/game/core.h"
 #include "ak/game/stg/world.h"
-#include "ak/system/idgen.h"
 #include "ak/system/stream.h"
 
 ak_errcode

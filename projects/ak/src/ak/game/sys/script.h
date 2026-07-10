@@ -4,14 +4,18 @@
 #include "ak/coll/da.h"
 #include "ak/game/core.h"
 #include "ak/game/script/stg.h"
+#include "ak/game/stg/world.h"
+#include "ak/game/world/cb_itn.h"
 #include "ak/os/time.h"
+#include "ak/system/idgen.h"
 
 typedef struct
 {
   ak_alct alct;
   ak_scriptstg* ss;
 
-  ak_wv* wv;
+  ak_wcb wcb;
+  ak_wcb wcb_output;
 
   ak_da inits;
   ak_da deinits;
@@ -19,33 +23,23 @@ typedef struct
 } ak_sys_script;
 
 ak_sys_script
-ak_sys_script_make(ak_alct alct);
+ak_sys_script_make(ak_idgen* ig,
+                   ak_alct alct);
 void
 ak_sys_script_destroy(ak_sys_script* s);
 
 void
-ak_sys_script_set(ak_sys_script* s,
-                  ak_wv* wv,
-                  ak_wcb* wcb);
+ak_sys_script_on_event(ak_sys_script* s,
+                       ak_world* w,
+                       ak_ett ett,
+                       const ak_evt* evt);
+void
+ak_sys_script_update(ak_sys_script* s,
+                     ak_world* w);
 
 void
-ak_sys_script_run_init(ak_sys_script* s,
-                       ak_wcb* output_wcb);
-void
-ak_sys_script_run_deinit(ak_sys_script* s,
-                         ak_wcb* output_wcb);
-void
-ak_sys_script_run_event(ak_sys_script* s,
-                        ak_evt e,
-                        ak_wcb* output_wcb);
-void
-ak_sys_script_run_update(ak_sys_script* s,
-                         ak_dur delta,
-                         ak_wcb* output_wcb);
-
-void
-ak_sys_script_run_shutdown(
-  ak_sys_script* s,
-  ak_wcb* output_wcb);
+ak_sys_script_wcb_apply(ak_sys_script* s,
+                        ak_world* w,
+                        ak_wcb* wcb);
 
 #endif
