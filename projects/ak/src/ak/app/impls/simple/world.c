@@ -38,7 +38,6 @@ world_destroy(ak_lsimple* l)
 {
   ak_idgen_destroy(&l->ig);
   ak_world_destroy(&l->w);
-  ak_wv_destroy(&l->wv);
   ak_wcb_destroy(&l->wcb);
 
   ak_sys_tf_destroy(&l->sys_tf);
