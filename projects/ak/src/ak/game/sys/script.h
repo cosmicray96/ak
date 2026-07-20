@@ -29,6 +29,10 @@ void
 ak_sys_script_destroy(ak_sys_script* s);
 
 void
+ak_sys_script_destroy_world(ak_sys_script* s,
+                            ak_world* w);
+
+void
 ak_sys_script_on_event(ak_sys_script* s,
                        ak_world* w,
                        ak_ett ett,

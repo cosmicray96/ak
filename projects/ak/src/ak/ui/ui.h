@@ -30,7 +30,6 @@ typedef struct
 typedef struct
 {
   ak_fcnst tree;
-  bool setted;
 
   ak_uirstg rstg;
   ak_uilstg lstg;
@@ -53,11 +52,11 @@ ak_ui_add(ak_ui* ui,
           const ak_uielm_args* args);
 
 void
-ak_ui_set(ak_ui* ui,
-          float x,
-          float y,
-          float w,
-          float h);
+ak_ui_layout(ak_ui* ui,
+             float x,
+             float y,
+             float w,
+             float h);
 
 void
 ak_ui_render(ak_ui* ui, ak_gcb* gcb);

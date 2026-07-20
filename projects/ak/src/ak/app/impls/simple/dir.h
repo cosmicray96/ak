@@ -7,6 +7,7 @@
 #include "ak/game/core.h"
 #include "ak/game/stg/world.h"
 #include "ak/game/sys/ren.h"
+#include "ak/game/sys/script.h"
 #include "ak/game/sys/tf.h"
 #include "ak/game/world/cb_itn.h"
 #include "ak/game/world/view_itn.h"
@@ -37,6 +38,7 @@ struct ak_lsimple
   ak_world w;
   ak_wv wv;
   ak_wcb wcb;
+  ak_sys_script sys_script;
   ak_sys_tf sys_tf;
   ak_sys_ren sys_ren;
 

@@ -136,11 +136,11 @@ apply_cmd(ak_sys_script* s,
   ak_wv wv = ak_wv_make(w);
 
   parse_wcb(s, &wv, wcb);
+
   run_deinit(s, &wv);
-
   ak_world_cb_flush(w, wcb);
-
   run_init(s, &wv);
+
   ak_world_cb_flush(w, &s->wcb_output);
 }
 
@@ -170,6 +170,26 @@ ak_sys_script_destroy(ak_sys_script* s)
   ak_da_destroy(&s->deinits);
   ak_da_destroy(&s->inits);
   ak_scriptstg_destroy(s->ss);
+}
+
+void
+ak_sys_script_destroy_world(ak_sys_script* s,
+                            ak_world* w)
+{
+  ak_wv wv = ak_wv_make(w);
+  ak_wv_itdfspost it = ak_wv_itdfspost_make(
+    &wv, ak_wv_ett_root(&wv));
+  ak_ett ett = 0;
+  while ((ett = ak_wv_itdfspost_next(&it))) {
+    if (!ak_wv_comp_script_exist(&wv, ett)) {
+      continue;
+    }
+    ak_da_pushback(&s->deinits, &ett);
+  }
+
+  run_deinit(s, &wv);
+  ak_world_cb_flush(w, &s->wcb);
+  ak_world_cb_flush(w, &s->wcb_output);
 }
 
 void

@@ -90,12 +90,6 @@ ak_uilstg
 ak_uilstg_make(ak_alct alct);
 void
 ak_uilstg_destroy(ak_uilstg* lstg);
-void
-ak_ui_layout(ak_ui* ui,
-             float x,
-             float y,
-             float w,
-             float h);
 
 ak_uirstg
 ak_uirstg_make(ak_alct alct);

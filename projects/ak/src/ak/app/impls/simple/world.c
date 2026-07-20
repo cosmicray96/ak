@@ -1,7 +1,9 @@
 #include "ak/game/stg/world.h"
 #include "ak/app/core.h"
 #include "ak/app/impls/simple/dir.h"
+#include "ak/debug.h"
 #include "ak/game/sys/ren.h"
+#include "ak/game/sys/script.h"
 #include "ak/game/sys/tf.h"
 #include "ak/game/world/cb_itn.h"
 #include "ak/game/world/cbflush.h"
@@ -18,6 +20,8 @@ world_make(ak_lsimple* l)
 
   l->sys_tf = ak_sys_tf_make(l->alct);
   l->sys_ren = ak_sys_ren_make(l->alct);
+  l->sys_script =
+    ak_sys_script_make(&l->ig, l->alct);
 }
 
 void
@@ -26,6 +30,11 @@ world_update(ak_lsimple* l)
   ak_sys_tf_update(
     &l->sys_tf, &l->wv, &l->wcb);
   ak_world_cb_flush(&l->w, &l->wcb);
+
+  ak_log("frame begin:");
+  ak_sys_script_update(&l->sys_script,
+                       &l->w);
+  ak_log("frame end.");
 
   ak_sys_ren_render(&l->sys_ren,
                     &l->wv,
@@ -36,10 +45,14 @@ world_update(ak_lsimple* l)
 void
 world_destroy(ak_lsimple* l)
 {
+  ak_sys_tf_destroy(&l->sys_tf);
+  ak_sys_ren_destroy(&l->sys_ren);
+
+  ak_sys_script_destroy_world(&l->sys_script,
+                              &l->w);
+  ak_sys_script_destroy(&l->sys_script);
+
   ak_idgen_destroy(&l->ig);
   ak_world_destroy(&l->w);
   ak_wcb_destroy(&l->wcb);
-
-  ak_sys_tf_destroy(&l->sys_tf);
-  ak_sys_ren_destroy(&l->sys_ren);
 }

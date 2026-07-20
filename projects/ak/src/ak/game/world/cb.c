@@ -1,8 +1,10 @@
 #include "ak/game/world/cb.h"
 #include "ak/coll/dq.h"
+#include "ak/coll/hmn.h"
 #include "ak/core/mem/allocator.h"
 #include "ak/game/comp.h"
 #include "ak/game/world/cb_itn.h"
+#include "ak/game/world/view.h"
 
 //===== ak_gcmdbuff  =====//
 //--- private ---//
@@ -82,21 +84,16 @@ ak_wcb_joinback(ak_wcb* dest, ak_wcb* src)
   }
 }
 
-/*
-
 void
-ak_world_graft(ak_world* dest,
-               ak_world* src,
-               ak_ett dest_pt,
-               ak_idgen* ig,
-               ak_alct alct)
+ak_wcb_wv(ak_wcb* wcb,
+          ak_wv* wv,
+          ak_ett root)
 {
   ak_hmn map =
-    ak_hmn_make(sizeof(ak_ett), alct);
+    ak_hmn_make(sizeof(ak_ett), wcb->alct);
 
-  ak_wv wv = ak_wv_make(src);
   ak_wv_itdfspre it = ak_wv_itdfspre_make(
-    &wv, ak_wv_ett_root(&wv), alct);
+    wv, ak_wv_ett_root(wv), wcb->alct);
 
   bool first = true;
 
@@ -105,39 +102,32 @@ ak_world_graft(ak_world* dest,
     if (!e) {
       break;
     }
-    ak_ett pt = ak_wv_ett_parent(&wv, e);
-    if (first) {
-      ak_hmn_insert(&map, pt, &dest_pt);
-      first = false;
+
+    ak_ett new_pt = 0;
+    {
+      ak_ett pt = ak_wv_ett_parent(wv, e);
+      if (first) {
+        ak_hmn_insert(&map, pt, &root);
+        first = false;
+      }
+      new_pt = *(ak_ett*)ak_hmn_at(&map, pt);
     }
 
-    ak_ett new_e = ak_idgen_new(ig);
+    ak_ett new_e =
+      ak_wcb_ett_new(wcb, new_pt);
     ak_hmn_insert(&map, e, &new_e);
 
-    ak_ett new_pt =
-      *(ak_ett*)ak_hmn_at(&map, pt);
-
-    ak_world_ett_new(dest, new_e, new_pt);
-
     ak_wv_itettcomp itec =
-      ak_wv_itettcomp_make(&wv, e);
+      ak_wv_itettcomp_make(wv, e);
     ak_comp_tu ctu = { 0 };
     while (
       ak_wv_itettcomp_next(&itec, &ctu)) {
-      ak_world_comp_add_tu(
-        dest, new_e, &ctu);
+      ak_wcb_comp_tu_add(wcb, new_e, ctu);
     }
   }
 
   ak_wv_itdfspre_destroy(&it);
   ak_hmn_destroy(&map);
-}
-*/
-void
-ak_wcb_wv(ak_wcb* wcb,
-          ak_wv* wv,
-          ak_ett new_pt)
-{
 }
 
 //--- export ---//
@@ -162,6 +152,18 @@ ak_wcb_ett_remove(ak_wcb* wcb, ak_ett e)
   item.cmd = ak_wcbtype_ett_remove;
   item.e = e;
 
+  ak_dq_push(&wcb->cmds, &item);
+}
+
+void
+ak_wcb_comp_tu_add(ak_wcb* wcb,
+                   ak_ett e,
+                   ak_comp_tu ctu)
+{
+  ak_wcbitem item = { 0 };
+  item.cmd = ak_wcbtype_comp_add;
+  item.e = e;
+  item.ctu = ctu;
   ak_dq_push(&wcb->cmds, &item);
 }
 

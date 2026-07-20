@@ -1,5 +1,6 @@
 #include "ak/app/impls/simple/dir.h"
 #include "ak/game/core.h"
+#include "ak/game/sys/script.h"
 #include "ak/game/world/cb.h"
 #include "ak/game/world/cbflush.h"
 #include "ak/gfx/reses/shader.h"
@@ -100,7 +101,15 @@ pg_make(ak_lsimple* l)
         .uv_max = ak_vec2f_make(1, 1),
       } });
 
-  ak_world_cb_flush(&l->w, &l->wcb);
+  ak_ett s = ak_wcb_ett_new(&l->wcb, root);
+  ak_wcb_comp_script_add(
+    &l->wcb,
+    s,
+    (ak_script_t){ .se = ak_script_test_e });
+
+  ak_sys_script_wcb_apply(
+    &l->sys_script, &l->w, &l->wcb);
+  //  ak_world_cb_flush(&l->w, &l->wcb);
 }
 
 void

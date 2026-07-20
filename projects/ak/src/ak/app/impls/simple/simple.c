@@ -47,9 +47,15 @@ ak_lsimple_destroy(ak_lsimple* l)
   ak_heap_destroy(&heap);
 }
 
+uint32_t framecount = 4;
 bool
 ak_lsimple_tick(void* ctx)
 {
+  if (framecount == 0) {
+    return true;
+  }
+  framecount--;
+
   ak_lsimple* l = ctx;
   event_collect(l);
   event_drain(l);

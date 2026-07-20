@@ -25,7 +25,6 @@ void
 ak_ui_clear(ak_ui* ui)
 {
   ak_fcnst_clear(&ui->tree);
-  ui->setted = false;
 
   ak_uielm elm = {
     .axistype = ak_uiaxis_v,
@@ -48,7 +47,6 @@ ak_ui_add(ak_ui* ui,
           ak_uiid pt,
           const ak_uielm_args* args)
 {
-  ak_assert(!ui->setted);
   ak_assert(pt != 0);
 
   ak_uielm elm = { .cnst.x = args->x_cnst,
@@ -58,18 +56,4 @@ ak_ui_add(ak_ui* ui,
                      args->clipping,
                    .qd = args->qd };
   return ak_fcnst_add(&ui->tree, pt, &elm);
-}
-
-void
-ak_ui_set(ak_ui* ui,
-          float x,
-          float y,
-          float w,
-          float h)
-{
-  ak_assert(!ui->setted);
-
-  ak_ui_layout(ui, x, y, w, h);
-
-  ui->setted = true;
 }
