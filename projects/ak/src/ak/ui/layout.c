@@ -1,10 +1,11 @@
 #include "ak/ui/core.h"
+#include "ak/ui/ui.h"
 #include "ak/ui/ui_dir.h"
 
 //===== layout =====//
 //--- private ---//
 static void
-set_layout(ak_uilstg* lstg,
+set_layout(ak_ui* ui,
            ak_fcnst* tree,
            ak_uiid id)
 {
@@ -33,9 +34,9 @@ set_layout(ak_uilstg* lstg,
     ak_uielm* celm = ak_fcnst_at(tree, cid);
 
     ak_cnst* c_cnst_m =
-      ak_cnst_axis(celm->cnsts, axis_m);
+      ak_cnst_axis(celm->args.cnsts, axis_m);
     ak_cnst* c_cnst_c =
-      ak_cnst_axis(celm->cnsts, axis_c);
+      ak_cnst_axis(celm->args.cnsts, axis_c);
 
     float* c_pos_m =
       ak_uipos_axis(celm->poss, axis_m);
@@ -56,22 +57,11 @@ set_layout(ak_uilstg* lstg,
 
     cur_main += *c_size_m;
 
-    set_layout(lstg, tree, cid);
+    set_layout(ui, tree, cid);
   }
 }
 
 //--- dir ---//
-ak_uilstg
-ak_uilstg_make(ak_alct alct)
-{
-  return (ak_uilstg){ 0 };
-}
-
-void
-ak_uilstg_destroy(ak_uilstg* lstg)
-{
-  // empty
-}
 void
 ak_ui_layout(ak_ui* ui,
              float x,
@@ -97,5 +87,5 @@ ak_ui_layout(ak_ui* ui,
   *elm_w = w;
   *elm_h = h;
 
-  set_layout(&ui->lstg, tree, root_id);
+  set_layout(ui, tree, root_id);
 }

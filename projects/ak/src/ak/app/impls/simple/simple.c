@@ -47,7 +47,7 @@ ak_lsimple_destroy(ak_lsimple* l)
   ak_heap_destroy(&heap);
 }
 
-uint32_t framecount = 4;
+uint32_t framecount = 10000;
 bool
 ak_lsimple_tick(void* ctx)
 {

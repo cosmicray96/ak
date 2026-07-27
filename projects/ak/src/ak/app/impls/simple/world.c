@@ -31,10 +31,8 @@ world_update(ak_lsimple* l)
     &l->sys_tf, &l->wv, &l->wcb);
   ak_world_cb_flush(&l->w, &l->wcb);
 
-  ak_log("frame begin:");
   ak_sys_script_update(&l->sys_script,
                        &l->w);
-  ak_log("frame end.");
 
   ak_sys_ren_render(&l->sys_ren,
                     &l->wv,

@@ -101,25 +101,25 @@ ak_sys_ren_render(ak_sys_ren* r,
 
   {
     ak_wv_itcomp it =
-      ak_wv_itcomp_make(wv, ak_quadsimple_e);
-    ak_quadsimple_t qs = { 0 };
+      ak_wv_itcomp_make(wv, ak_sprite_e);
+    ak_sprite_t s = { 0 };
     ak_ett e = 0;
     while (true) {
-      e = ak_wv_itcomp_next(&it, &qs);
+      e = ak_wv_itcomp_next(&it, &s);
       if (!e) {
         break;
       }
 
       if (!ak_hmn_exist(&r->mtrls,
-                        qs.mtrlid)) {
+                        s.mtrlid)) {
         ak_da da = ak_da_make(sizeof(ak_ett),
                               r->alct);
         ak_hmn_insert(
-          &r->mtrls, qs.mtrlid, &da);
+          &r->mtrls, s.mtrlid, &da);
       }
 
       ak_da* da =
-        ak_hmn_at(&r->mtrls, qs.mtrlid);
+        ak_hmn_at(&r->mtrls, s.mtrlid);
       ak_da_pushback(da, &e);
     }
   }
@@ -149,13 +149,12 @@ ak_sys_ren_render(ak_sys_ren* r,
           ak_wv_comp_gmat3(wv, e);
         ak_quadsimple_t qs =
           ak_wv_comp_quadsimple(wv, e);
-        ak_gfx_quaddata qd = qs.data;
+        ak_gfx_quaddata qd = qs;
 
         ak_mat3_f gmat3f = { 0 };
         ak_mat3_to_f(&gmat3, &gmat3f);
 
-        ak_gcb_push_quad(
-          gcb, &qs.data, &gmat3f);
+        ak_gcb_push_quad(gcb, &qd, &gmat3f);
       }
     }
   }

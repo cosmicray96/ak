@@ -6,27 +6,11 @@
 #include "ak/ui/ui.h"
 
 //===== ak_uielm =====//
-typedef enum
-{
-  ak_uiaxis_h = 0,
-  ak_uiaxis_v = 1
-} ak_uiaxistype;
 
 typedef struct
 {
-  ak_uiaxistype axistype;
-  bool clipping;
-  bool visible;
+  ak_uielm_args args;
   ak_gfx_quaddata qd;
-  union
-  {
-    struct
-    {
-      ak_cnst x;
-      ak_cnst y;
-    } cnst;
-    ak_cnst cnsts[2];
-  };
 
   union
   {
@@ -52,12 +36,12 @@ typedef struct
 static ak_uiaxistype
 ak_uielm_axis_main(ak_uielm* elm)
 {
-  return elm->axistype;
+  return elm->args.axistype;
 }
 static ak_uiaxistype
 ak_uielm_axis_cross(ak_uielm* elm)
 {
-  if (elm->axistype == ak_uiaxis_h) {
+  if (elm->args.axistype == ak_uiaxis_h) {
     return ak_uiaxis_v;
   }
   return ak_uiaxis_h;
@@ -84,16 +68,5 @@ ak_uisize_axis(float size[2],
 
 ak_vec4f
 ak_ui_rectintersect(ak_vec4f a, ak_vec4f b);
-
-//===== ui_layout =====//
-ak_uilstg
-ak_uilstg_make(ak_alct alct);
-void
-ak_uilstg_destroy(ak_uilstg* lstg);
-
-ak_uirstg
-ak_uirstg_make(ak_alct alct);
-void
-ak_uirstg_destroy(ak_uirstg* rstg);
 
 #endif

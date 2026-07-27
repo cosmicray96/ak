@@ -95,17 +95,21 @@ pg_make(ak_lsimple* l)
     &l->wcb,
     sprite_e,
     (ak_quadsimple_t){
-      .mtrlid = mtrl_e,
-      .data = {
-        .uv_min = ak_vec2f_make(0, 0),
-        .uv_max = ak_vec2f_make(1, 1),
-      } });
-
-  ak_ett s = ak_wcb_ett_new(&l->wcb, root);
-  ak_wcb_comp_script_add(
+      .uv_min = ak_vec2f_make(0, 0),
+      .uv_max = ak_vec2f_make(1, 1),
+    });
+  ak_wcb_comp_sprite_add(
     &l->wcb,
-    s,
-    (ak_script_t){ .se = ak_script_test_e });
+    sprite_e,
+    (ak_sprite_t){ .mtrlid = mtrl_e });
+
+  /*
+ak_ett s = ak_wcb_ett_new(&l->wcb, root);
+ak_wcb_comp_script_add(
+&l->wcb,
+s,
+(ak_script_t){ .se = ak_script_test_e });
+  */
 
   ak_sys_script_wcb_apply(
     &l->sys_script, &l->w, &l->wcb);

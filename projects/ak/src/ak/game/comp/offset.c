@@ -1,3 +1,4 @@
+/*
 #include "ak/game/comp.h"
 
 #define ak_d_comp_x(name)                   \
@@ -77,3 +78,4 @@ ak_comp_ett_offsets_anistate(
 {
   return 0;
 }
+*/

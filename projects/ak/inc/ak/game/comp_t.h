@@ -24,11 +24,7 @@ typedef struct
   uint32_t h;
 } ak_screen_t;
 
-typedef struct
-{
-  ak_ett mtrlid;
-  ak_gfx_quaddata data;
-} ak_quadsimple_t;
+typedef ak_gfx_quaddata ak_quadsimple_t;
 
 typedef ak_gfx_calldata ak_mtrl_t;
 
@@ -43,6 +39,16 @@ typedef struct
   float framedur;
   float curtime;
 } ak_anistate_t;
+
+typedef struct
+{
+  bool ph;
+} ak_uicomp_t;
+
+typedef struct
+{
+  ak_ett mtrlid;
+} ak_sprite_t;
 
 #ifdef ak_user_comp_t_path
 #include ak_user_comp_t_path

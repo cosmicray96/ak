@@ -30,10 +30,6 @@ static const uint32_t
 const char*
 ak_comp_to_str(ak_comp_enum ce);
 
-ak_ex uint32_t
-ak_comp_enum_offsets(ak_comp_enum ce,
-                     uint32_t o_offsets[16]);
-
 typedef struct
 {
   ak_comp_enum ce;

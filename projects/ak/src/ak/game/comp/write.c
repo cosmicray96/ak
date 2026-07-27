@@ -167,10 +167,8 @@ ak_stm_write_quadsimple(
   ak_stm stm,
   ak_quadsimple_t quadsimple)
 {
-  ak_stm_try(ak_stm_write_u32(
-    stm, quadsimple.mtrlid));
   ak_stm_try(
-    ak_stm_write_qd(stm, quadsimple.data));
+    ak_stm_write_qd(stm, quadsimple));
 
   return ak_ok;
 }
@@ -180,10 +178,8 @@ ak_stm_read_quadsimple(
   ak_stm stm,
   ak_quadsimple_t* o_quadsimple)
 {
-  ak_stm_try(ak_stm_read_u32(
-    stm, &o_quadsimple->mtrlid));
-  ak_stm_try(ak_stm_read_qd(
-    stm, &o_quadsimple->data));
+  ak_stm_try(
+    ak_stm_read_qd(stm, o_quadsimple));
 
   return ak_ok;
 }
@@ -235,6 +231,34 @@ ak_errcode
 ak_stm_read_anistate(
   ak_stm stm,
   ak_anistate_t* o_anistate)
+{
+  return ak_err;
+}
+
+ak_errcode
+ak_stm_write_uicomp(ak_stm stm,
+                    ak_uicomp_t uicomp)
+{
+  return ak_err;
+}
+
+ak_errcode
+ak_stm_read_uicomp(ak_stm stm,
+                   ak_uicomp_t* o_uicomp)
+{
+  return ak_err;
+}
+
+ak_errcode
+ak_stm_write_sprite(ak_stm stm,
+                    ak_sprite_t sprite)
+{
+  return ak_err;
+}
+
+ak_errcode
+ak_stm_read_sprite(ak_stm stm,
+                   ak_sprite_t* o_sprite)
 {
   return ak_err;
 }

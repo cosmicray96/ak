@@ -9,32 +9,32 @@
 //===== render =====//
 //--- private ---//
 static void
-scissor_push(ak_uirstg* rstg,
+scissor_push(ak_ui* ui,
              ak_gcb* gcb,
              ak_vec4f rect)
 {
   ak_vec4f r_last = { 0 };
   ak_vec4f r = { 0 };
   if (ak_dq_peek(
-        &rstg->scissors, 0, &r_last)) {
+        &ui->scissors, 0, &r_last)) {
     r = ak_ui_rectintersect(rect, r_last);
   } else {
     r = rect;
   }
-  ak_dq_push(&rstg->scissors, &r);
+  ak_dq_push(&ui->scissors, &r);
   ak_gcb_push_scissor(
     gcb, r.rectx, r.recty, r.rectw, r.recth);
 }
 
 static void
-scissor_pop(ak_uirstg* rstg, ak_gcb* gcb)
+scissor_pop(ak_ui* ui, ak_gcb* gcb)
 {
   ak_vec4f r = { 0 };
-  ak_assert(ak_dq_pop(&rstg->scissors, &r));
+  ak_assert(ak_dq_pop(&ui->scissors, &r));
 
   ak_vec4f r_last = { 0 };
   if (ak_dq_peek(
-        &rstg->scissors, 0, &r_last)) {
+        &ui->scissors, 0, &r_last)) {
     ak_gcb_push_scissor(gcb,
                         r_last.rectx,
                         r_last.recty,
@@ -46,15 +46,15 @@ scissor_pop(ak_uirstg* rstg, ak_gcb* gcb)
 }
 
 static void
-elm_render_bg(ak_uirstg* rstg,
+elm_render_bg(ak_ui* ui,
               ak_gcb* gcb,
               ak_fcnst* tree,
               ak_uiid id)
 {
   ak_uielm* elm = ak_fcnst_at(tree, id);
 
-  if (elm->clipping) {
-    scissor_push(rstg,
+  if (elm->args.clipping) {
+    scissor_push(ui,
                  gcb,
                  (ak_vec4f){
                    .rectx = elm->pos.x,
@@ -64,7 +64,7 @@ elm_render_bg(ak_uirstg* rstg,
                  });
   }
 
-  if (elm->visible) {
+  if (elm->args.visible) {
 
     ak_mat3_f m =
       ak_mat3_from_rect(elm->pos.x,
@@ -80,30 +80,15 @@ elm_render_bg(ak_uirstg* rstg,
   ak_uiid cid = 0;
   while (
     (cid = ak_fcnst_itchild_next(&it))) {
-    elm_render_bg(rstg, gcb, tree, cid);
+    elm_render_bg(ui, gcb, tree, cid);
   }
 
-  if (elm->clipping) {
-    scissor_pop(rstg, gcb);
+  if (elm->args.clipping) {
+    scissor_pop(ui, gcb);
   }
 }
 
 //--- dir ---//
-ak_uirstg
-ak_uirstg_make(ak_alct alct)
-{
-  ak_uirstg rstg = { 0 };
-  rstg.scissors =
-    ak_dq_make(sizeof(ak_vec4f), alct);
-  rstg.mtrl =
-    (ak_gfx_calldata){ .shaderid = 18 };
-  return rstg;
-}
-void
-ak_uirstg_destroy(ak_uirstg* rstg)
-{
-  ak_dq_destroy(&rstg->scissors);
-}
 
 void
 ak_ui_render(ak_ui* ui, ak_gcb* gcb)
@@ -115,9 +100,9 @@ ak_ui_render(ak_ui* ui, ak_gcb* gcb)
     elm->size.x, elm->size.y);
   ak_gfx_batchdata mid = { .vp = vp };
   ak_gcb_push_batch(gcb, &mid);
-  ak_gcb_push_call(gcb, &ui->rstg.mtrl);
+  ak_gcb_push_call(gcb, &ui->mtrl);
 
-  elm_render_bg(&ui->rstg,
+  elm_render_bg(ui,
                 gcb,
                 &ui->tree,
                 ak_fcnst_root(&ui->tree));

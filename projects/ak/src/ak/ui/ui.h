@@ -9,30 +9,11 @@
 
 typedef struct
 {
-  ak_cnst x_cnst;
-  ak_cnst y_cnst;
-  bool visible;
-  bool clipping;
-  ak_gfx_quaddata qd;
-} ak_uielm_args;
-
-typedef struct
-{
-  ak_gfx_calldata mtrl;
-  ak_dq scissors;
-} ak_uirstg;
-
-typedef struct
-{
-  char _ph;
-} ak_uilstg;
-
-typedef struct
-{
   ak_fcnst tree;
 
-  ak_uirstg rstg;
-  ak_uilstg lstg;
+  ak_gfx_calldata mtrl;
+  ak_dq scissors;
+
 } ak_ui;
 
 ak_ui
@@ -49,7 +30,8 @@ ak_ui_root(ak_ui* ui);
 ak_uiid
 ak_ui_add(ak_ui* ui,
           ak_uiid pt,
-          const ak_uielm_args* args);
+          const ak_uielm_args* args,
+          const ak_gfx_quaddata* qd);
 
 void
 ak_ui_layout(ak_ui* ui,
